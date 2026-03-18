@@ -4,6 +4,16 @@ __pycache__/
 *.pyc
 *.pyo
 .idea/
-Data/
+# Ignore actual data files
+Data/CV/raw/*
+Data/CV/parsed/*
+Data/Jobs/raw/*
+Data/Jobs/processed/*
+
+# Keep folder structure
+!Data/CV/raw/.gitkeep
+!Data/CV/parsed/.gitkeep
+!Data/Jobs/raw/.gitkeep
+!Data/Jobs/processed/.gitkeep
 .DS_Store
 Thumbs.db
