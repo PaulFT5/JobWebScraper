@@ -1,20 +1,6 @@
-import os
-from dotenv import load_dotenv
-from groq import Groq
-load_dotenv()
+# main.py
+from CvParser.parser import parse_cv
+from Utils.LLM import LLM_activation
 
-client = Groq(
-    api_key=os.environ.get("GROQ_API_KEY"),
-)
-
-chat_completion = client.chat.completions.create(
-    messages=[
-        {
-            "role": "user",
-            "content": "Small script saying the api works",
-        }
-    ],
-    model="llama-3.3-70b-versatile",
-)
-print()
-print(chat_completion.choices[0].message.content)
+text = parse_cv()
+LLM_activation(text)
