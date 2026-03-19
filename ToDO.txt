@@ -1,0 +1,3 @@
+setup to create Data folder
+fix paths
+    finish CV processed/raw
