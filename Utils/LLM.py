@@ -15,11 +15,12 @@ def LLM_activation(prompt, input):
         messages=[
             {
                 "role": "user",
-                "content": f"{prompt}.\n\nCV Text:\n{input}",
+                "content": f"{prompt}\n\nCV Text:\n{input}",
             }
         ],
         model="llama-3.3-70b-versatile",
     )
+    print(chat_completion.choices[0].message.content)
     return chat_completion.choices[0].message.content
-    #print(chat_completion.choices[0].message.content)
+
 
