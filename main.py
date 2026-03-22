@@ -5,7 +5,7 @@ from Utils.setup import data_folder_setup
 from Utils.LLM import LLM_activation
 
 def main():
-    data_folder_setup() #setup Data files
+    data_folder_setup()
     parse_cv()
 
 main()
