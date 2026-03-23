@@ -28,13 +28,19 @@ def bestjobs_url_builder(location = None, domain = None, type_of_work = None, ex
 
     return filtered_url
 
-def links_list(soup):
+def links_list(soup): #get links from page
     links = []
     for link in soup.find_all("a", href=True):
         href = link.get("href")
         if "/loc-de-munca/" in href and href not in links:
             links.append(href)
+            break #remove after testing
     return links
+
+def get_title(soup):
+    return soup.find('h2').get_text()
+    print(title)
+    return title
 
 
 
