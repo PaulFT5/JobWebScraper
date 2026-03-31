@@ -4,7 +4,8 @@ from Utils import *
 import requests
 from bs4 import BeautifulSoup
 
-from Utils.bestjobs_utils import bestjobs_url_builder, links_list, get_title
+from Utils.bestjobs_utils import bestjobs_url_builder, links_list, get_job_title, get_company_name, get_salary, \
+    get_experience_level
 
 #get all links ->
 #check if all the page is loaded
@@ -20,11 +21,11 @@ def bestjobs(location = None, domain = None, type_of_work = None, experience = N
     scrape_ads(filtered_url_list) #returneaza informatii din fiecare link
 
 
-
 def site_response(url): #ERROR HANDLING
     response = requests.get(url)
     soup = BeautifulSoup(response.content, "html.parser")
     return response, soup
+
 
 def scrape_ads(url_list):
     for url in url_list:
@@ -32,13 +33,14 @@ def scrape_ads(url_list):
         print(current_url)
         response, soup = site_response(current_url)
 
-        get_title(soup)
-        #get_company_name(soup)
-        #get_salary(soup)
-        #get_work_type(soup)
+        print(get_job_title(soup))
+        print(get_company_name(soup))
+        print(get_salary(soup))
+        print(get_experience_level(soup))
+        #get_company_logo(soup)
         #get_work_type(soup)
         #get_location(soup)
-        #get_experience_level(soup)
+
 
         # descriere - > llm (technical skills, soft skills)
         # scrie csv -> link, title, comapany, salary, work_type, location, experience_level, descriere
