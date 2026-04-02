@@ -1,0 +1,44 @@
+{
+    "base_url": "https://www.bestjobs.eu/api/proxy/v2/jobs?limit=500",
+    "domains": {
+        "administrativ_secretariat": 8,
+        "agricultura_zootehnie": 16,
+        "armata_paza_protectie": 17,
+        "au_pair_babysitter_curatenie": 12,
+        "call_center_suport_clienti": 6,
+        "constructii_instalatii": 4,
+        "contabilitate_financiar": 7,
+        "educatie_training_coaching": 13,
+        "inginerie": 14,
+        "it_telecomunicatii": 9,
+        "legislativ_juridic_functii_publice": 20,
+        "management": null,
+        "marketing": null,
+        "medicina_sanatate_psihoterapie": null,
+        "productie_logistica": null,
+        "resurse_umane": null,
+        "retail": null,
+        "servicii_infrumusetare": null,
+        "servicii_transport_curierat": null,
+        "specialisti_tehnicieni": null,
+        "sport_arta_divertisment": null,
+        "turism_alimentatie": null,
+        "vanzari": null,
+        "altele": null
+    },
+    "experience": {
+        "fara_experienta": null,
+        "entry": null,
+        "middle": null,
+        "senior": null,
+        "executive": null
+    },
+    "work_type": {
+        "full_time": null,
+        "part_time": null,
+        "internship": null,
+        "proiect": null,
+        "voluntariat": null
+    },
+    "locations": {}
+}

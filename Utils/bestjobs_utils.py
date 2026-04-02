@@ -6,7 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 from tornado.gen import Return
 
-config_dir = Path(__file__).parent.parent / "config/filters_config.json"
+config_dir = Path(__file__).parent.parent / "config/filters_config_bestjobs.json"
 
 def filter_config_reader():
     with open(config_dir, 'r', encoding="utf-8") as file:
