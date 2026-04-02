@@ -5,7 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from Utils.bestjobs_utils import bestjobs_url_builder, links_list, get_job_title, get_company_name, get_salary, \
-    get_experience_level
+    get_experience_level, get_company_logo, get_work_type
 
 #get all links ->
 #check if all the page is loaded
@@ -33,18 +33,17 @@ def scrape_ads(url_list):
         print(current_url)
         response, soup = site_response(current_url)
 
+        #afisare GUI
         print(get_job_title(soup))
         print(get_company_name(soup))
         print(get_salary(soup))
         print(get_experience_level(soup))
-        #get_company_logo(soup)
-        #get_work_type(soup)
+        print(get_company_logo(soup))
+        get_work_type(soup)
+
         #get_location(soup)
-
-
         # descriere - > llm (technical skills, soft skills)
         # scrie csv -> link, title, comapany, salary, work_type, location, experience_level, descriere
-        break
 
 bestjobs()
 

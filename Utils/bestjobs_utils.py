@@ -4,6 +4,7 @@ from pathlib import Path
 
 import requests
 from bs4 import BeautifulSoup
+from tornado.gen import Return
 
 config_dir = Path(__file__).parent.parent / "config/filters_config.json"
 
@@ -36,7 +37,7 @@ def links_list(soup): #get links from page
         href = link.get("href")
         if "/loc-de-munca/" in href and href not in links:
             links.append(href)
-            break #remove after testing
+            #break #remove after testing
     return links
 
 
@@ -57,6 +58,18 @@ def get_salary(soup):
 def get_experience_level(soup):
     return soup.find(class_="hover:text-ink").get_text().split()[0]
 
+def get_company_logo(soup):
+    a_tag = soup.find("a", href="#company-widget-box")
+    if not a_tag:
+        return None
+    img_tag = a_tag.find("img")
+    if not img_tag:
+        return None
+    return img_tag.get("src")
+
+def get_work_type(soup):
+    soup = soup.find("div", class_="ml-6").get_text()
+    print(soup)
 
 #url = bestjobs_url_builder()
 #response = requests.get(url)
