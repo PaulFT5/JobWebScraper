@@ -1,5 +1,6 @@
 {
-    "base_url": "https://www.bestjobs.eu/api/proxy/v2/jobs?limit=500",
+    "base__json_url": "https://www.bestjobs.eu/api/proxy/v2/jobs?limit=500",
+    "base_url": "https://www.bestjobs.eu/loc-de-munca/",
     "domains": {
         "administrativ_secretariat": 8,
         "agricultura_zootehnie": 16,
@@ -36,9 +37,7 @@
     "work_type": {
         "full_time": null,
         "part_time": null,
-        "internship": null,
-        "proiect": null,
-        "voluntariat": null
+        "internship": null
     },
     "locations": {}
 }

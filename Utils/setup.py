@@ -5,14 +5,14 @@ from pathlib import Path
 Base_path = Path(__file__).parent.parent
 
 #cv dir
-CV_dir_path = Base_path / "Data1/CV1"
-Cv_processed_path = Base_path / "Data1/CV1/processed"
-Cv_raw_path = Base_path / "Data1/CV1/raw"
+CV_dir_path = Base_path / "Data/CV"
+Cv_processed_path = Base_path / "Data/CV/processed"
+Cv_raw_path = Base_path / "Data/CV/raw"
 
 #job dir
-Job_dir_path = Base_path / "Data1/Jobs1"
-Job_raw_path = Base_path / "Data1/Jobs1/raw"
-Job_processed_path = Base_path / "Data1/Jobs1/processed"
+Job_dir_path = Base_path / "Data/Jobs"
+Job_raw_path = Base_path / "Data/Jobs/raw"
+Job_processed_path = Base_path / "Data/Jobs/processed"
 
 
 def data_folder_setup():

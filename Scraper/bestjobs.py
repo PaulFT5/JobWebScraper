@@ -1,52 +1,117 @@
-
-from asyncio import sleep
-from Utils import *
+import asyncio
+import json
+import sqlite3
+import os
+import json
+import aiohttp
 import requests
 from bs4 import BeautifulSoup
+from pip._internal.network import session
+from urllib3.util import url
+from Utils.bestjobs_utils import get_company_logo, get_experience_level, get_work_type, get_description
 
-from Utils.bestjobs_utils import bestjobs_url_builder, links_list, get_job_title, get_company_name, get_salary, \
-    get_experience_level, get_company_logo, get_work_type
+with open("filters_config_bestjobs.json", "r", encoding="utf-8") as f:
+    config = json.load(f)
 
-#get all links ->
-#check if all the page is loaded
+base_json_url = config["base_json_url"]
+base_url = config["base_url"]
 
-base_url = "https://www.bestjobs.eu/locuri-de-munca"
-job_page_url = "https://www.bestjobs.eu"
-
-def bestjobs(location = None, domain = None, type_of_work = None, experience = None, keywords = None):
-    #site_response(base_url)
-    filtered_url = bestjobs_url_builder(location, domain, type_of_work, experience, keywords)  #filtreaza search
-    response, soup = site_response(filtered_url)
-    filtered_url_list = links_list(soup) #lista de url-uri
-    scrape_ads(filtered_url_list) #returneaza informatii din fiecare link
+#DATABASE CONNECT
+def database_connect():
+    conn = sqlite3.connect('JobsDatabase.sqlite')
+    cursor = conn.cursor()
+    return cursor, conn
 
 
-def site_response(url): #ERROR HANDLING
+def bestjobs(domain = None, experience = None, work_type = None, location = None):
+    filtered_url = url_apply_filters(domain, experience, work_type, location)
+    response, soup = check_site_response(filtered_url)
+    url_response_json_parser(response)
+    asyncio.run(ad_parser_async())
+
+
+def check_site_response(url): #ERROR HANDLING
     response = requests.get(url)
     soup = BeautifulSoup(response.content, "html.parser")
     return response, soup
 
+#move to utils
+def url_apply_filters(domain = None, experience = None, work_type = None, location = None):
+    return base_json_url
 
-def scrape_ads(url_list):
-    for url in url_list:
-        current_url = job_page_url + url
-        print(current_url)
-        response, soup = site_response(current_url)
+#title, company, location, slug / slug => w type, descr, exp level, logo
 
-        #afisare GUI
-        print(get_job_title(soup))
-        print(get_company_name(soup))
-        print(get_salary(soup))
-        print(get_experience_level(soup))
-        print(get_company_logo(soup))
-        get_work_type(soup)
 
-        #get_location(soup)
-        # descriere - > llm (technical skills, soft skills)
-        # scrie csv -> link, title, comapany, salary, work_type, location, experience_level, descriere
+def url_response_json_parser(response):
+    cursor, conn = database_connect()
+    data = response.json()
+
+    for item in data['items']:
+        cursor.execute(
+            "INSERT OR IGNORE INTO Jobs (source, slug, title, company_name, location, salary, logo, work_type, experience_level, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            ("bestjobs", item['slug'], item['title'], item['companyName'], item['locations'][0]['slug'], item['salary'],
+             None, None, None, None))
+
+    conn.commit()
+    conn.close()
+
+
+async def fetch_job_page(session, slug):
+    url = base_url + slug
+    sem = asyncio.Semaphore(5)
+
+    async with session.get(url) as response:
+        async with sem:
+            html = await response.text()
+
+    soup = BeautifulSoup(html, "html.parser")
+
+    logo = get_company_logo(soup)
+    work_type = get_work_type(soup)
+    experience = get_experience_level(soup)
+    description =get_description(soup)
+    #required_skills = get_required_skills(soup)
+    #nice_to_have_skills = get_nice_to_have_skills(soup)
+
+    return slug, logo, work_type, experience
+
+
+async def ad_parser_async():
+    cursor, conn = database_connect()
+    cursor.execute("SELECT slug FROM Jobs WHERE logo IS NULL OR work_type IS NULL OR experience_level IS NULL OR description IS NULL OR reqired_skills IS NULL OR nice_to_have_skills IS NULL")
+    rows = cursor.fetchall()
+
+    slugs = [row[0] for row in rows]
+
+    async with aiohttp.ClientSession() as session:
+        tasks = [fetch_job_page(session, slug) for slug in slugs]
+
+        results = await asyncio.gather(*tasks)
+
+        for slug, logo, work_type, experience in results:
+            cursor.execute(
+                "UPDATE Jobs SET logo=?, work_type=?, experience_level=? WHERE slug=?",
+                (logo, work_type, experience, slug)
+            )
+
+    conn.commit()
+    conn.close()
 
 bestjobs()
 
 
-
-
+#def ad_parser(): #based on slug
+#     cursor, conn = database_connect()
+#     cursor.execute("SELECT slug FROM Jobs WHERE logo IS NULL")
+#     rows = cursor.fetchall()
+#     for row in rows:
+#         url = base_url + row[0]
+#         response, soup = check_site_response(url)
+#         slug = row[0]
+#         logo = get_company_logo(soup)
+#         work_type = get_work_type(soup)
+#         experience = get_experience_level(soup)
+#         cursor.execute("UPDATE Jobs SET logo = ?, work_type = ?, experience_level = ? WHERE slug = ?", (logo, work_type, experience, slug))
+#
+#     conn.commit()
+#     conn.close()
