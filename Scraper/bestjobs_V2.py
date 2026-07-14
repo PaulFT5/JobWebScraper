@@ -4,14 +4,18 @@ import os
 import requests
 from bs4 import BeautifulSoup
 
-base_json_url = "https://www.bestjobs.eu/api/proxy/v2/jobs?limit=2"
+base_json_url = "https://www.bestjobs.eu/api/proxy/v2/jobs?limit=3"
 base_url = "https://www.bestjobs.eu/loc-de-munca/"
 
 def bestjobs_V2(domain = None, experience = None, work_type = None, location = None):
+    #filter the url
     filtered_url = url_apply_filters(domain, experience, work_type, location)
+    #get the filtered response
     response, soup = check_site_response(filtered_url)
-    #url_response_json_parser(response)
+
+    url_response_json_parser(response)
     ad_parser()
+
 
 
 def check_site_response(url): #ERROR HANDLING
@@ -29,6 +33,7 @@ def url_apply_filters(domain = None, experience = None, work_type = None, locati
 def url_response_json_parser(response):
     cursor, conn = database_connect()
     data = response.json()
+    print(data)
 
     for item in data['items']:
         cursor.execute(
@@ -46,16 +51,22 @@ def database_connect():
 
 def ad_parser(): #based on slug
     cursor, conn = database_connect()
-    cursor.execute("SELECT slug FROM Jobs")
+    cursor.execute("SELECT slug FROM Jobs") #selected slug from jobs are unavailable -> issue
     rows = cursor.fetchall()
     for row in rows:
         url = base_url + row[0]
+        print(url)
         response, soup = check_site_response(url)
-        slug = row[0]
-        logo = get_company_logo(soup)
-        work_type = get_work_type(soup)
-        experience = get_experience_level(soup)
-        cursor.execute("UPDATE Jobs SET logo = ?, work_type = ?, experience_level = ? WHERE slug = ?", (logo, work_type, experience, slug))
+        #print(response)
+        try:
+            slug = row[0]
+            logo = get_company_logo(soup)
+            work_type = "get_work_type(soup)"
+            experience = get_experience_level(soup)
+            cursor.execute("UPDATE Jobs SET logo = ?, work_type = ?, experience_level = ? WHERE slug = ?", (logo, work_type, experience, slug))
+        except IndexError:
+            print("Job not found")
+
 
     conn.commit()
     conn.close()
@@ -64,6 +75,7 @@ def get_experience_level(soup):
     return soup.find(class_="hover:text-ink").get_text().split()[0]
 
 def get_work_type(soup):
+    #print(soup)
     soup = soup.find("div", class_="ml-6").get_text()
     return soup.split(";")[0]
 
