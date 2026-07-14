@@ -38,7 +38,7 @@ II. Based on the slug base_url+slug
     Description:
     Logo:
     Experience Level:
-.
+..
     *All of these will be added into a db
 
 III. Additional info/ Databse design logic:
