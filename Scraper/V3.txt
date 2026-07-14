@@ -1,0 +1,66 @@
+
+
+URL BUILDER
+
+I. Add predetermined location filter to base url
+    Timisoara: https://www.bestjobs.eu/api/proxy/v2/jobs?limit= [n] &location%5B%5D=timisoara
+    Brasov: https://www.bestjobs.eu/api/proxy/v2/jobs?limit= [n] &location%5B%5D=brasov
+    Bucuresti: https://www.bestjobs.eu/api/proxy/v2/jobs?limit= [n] &location%5B%5D=bucuresti
+
+II.For each one, add the domain filter
+    Hierarchical impl. of domain: IT will have more jobs than sales
+
+    IT: https://www.bestjobs.eu/api/proxy/v2/jobs?limit= [n] &domain%5B%5D=9&location%5B%5D= [location]
+    Engineering: https://www.bestjobs.eu/api/proxy/v2/jobs?limit= [n] &domain%5B%5D=14&location%5B%5D= [location]
+    HR: https://www.bestjobs.eu/api/proxy/v2/jobs?limit= [n] &domain%5B%5D=18&location%5B%5D= [location]
+    Production & Logistics: https://www.bestjobs.eu/api/proxy/v2/jobs?limit= [n] &domain%5B%5D=5&location%5B%5D= [location]
+    Public service(legislativ_juridic_functii_publice): https://www.bestjobs.eu/api/proxy/v2/jobs?limit= [n] &domain%5B%5D=20&location%5B%5D= [location]
+    Administrative & Secretarial: https://www.bestjobs.eu/api/proxy/v2/jobs?limit= [n] &domain%5B%5D=8&location%5B%5D= [location]
+    Medical: https://www.bestjobs.eu/api/proxy/v2/jobs?limit= [n] &domain%5B%5D=15&location%5B%5D= [location]
+    Management: https://www.bestjobs.eu/api/proxy/v2/jobs?limit= [n] &domain%5B%5D=13&location%5B%5D= [location]
+    Marketing: https://www.bestjobs.eu/api/proxy/v2/jobs?limit= [n] &domain%5B%5D=10&location%5B%5D= [location]
+
+    *The other one are considered redundant
+
+
+SCRAPE
+
+I. Get Json details from network
+    Slug: "junior-operations-manager-12"
+    Title: "Junior Operations Manager"
+    Company name: "Confidențial"
+    Salary:
+    Estimated salary:
+
+II. Based on the slug base_url+slug
+    Work type:
+    Description:
+    Logo:
+    Experience Level:
+
+    *All of these will be added into a db
+
+III. Additional info/ Databse design logic:
+    Required Skills: taken from description -> LLM
+    The site where it is scraped from:
+    Link for the site:
+
+    Dirty bit logic: Extra column set to 0 or 1.
+        Initially set all to 0
+        If element not in db: set it to 1.
+        If slug already in the db: set it to 1.
+
+    *If a Dirty Bit is 0, it will not show in the GUI but can be used for data analyzing.
+
+
+UI
+
+I. User selection
+    All the selections will be made via the db
+
+II. User insights
+    Analyze the data into charts to let user see most looked for skills, skills/salary etc.
+
+
+Extra:
+    Implement a LLM from scratch
