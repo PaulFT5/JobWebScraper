@@ -2,13 +2,13 @@
 
 URL BUILDER
 
-I. Add predetermined location filter to base url
+✔I. Add predetermined location filter to base url
     Timisoara: https://www.bestjobs.eu/api/proxy/v2/jobs?limit= [n] &location%5B%5D=timisoara
     Brasov: https://www.bestjobs.eu/api/proxy/v2/jobs?limit= [n] &location%5B%5D=brasov
     Bucuresti: https://www.bestjobs.eu/api/proxy/v2/jobs?limit= [n] &location%5B%5D=bucuresti
 
-II.For each one, add the domain filter
-    Hierarchical impl. of domain: IT will have more jobs than sales
+✔II.For each one, add the domain filter
+    *Hierarchical impl. of domain: IT will have more jobs than sales(maybe not)
 
     IT: https://www.bestjobs.eu/api/proxy/v2/jobs?limit= [n] &domain%5B%5D=9&location%5B%5D= [location]
     Engineering: https://www.bestjobs.eu/api/proxy/v2/jobs?limit= [n] &domain%5B%5D=14&location%5B%5D= [location]
@@ -25,13 +25,16 @@ II.For each one, add the domain filter
 
 PARSER
 
-I. Get Json details from network. Async that calls II which is async
+✔I. Get Json details from network. Async that calls II which is async
     Source:
     Slug: "junior-operations-manager-12"
     Title: "Junior Operations Manager"
     Company name: "Confidențial"
     Salary:
     Estimated salary:
+    ad link url+slug
+    city
+    domain
 
 II. Based on the slug base_url+slug
     Work type:
@@ -43,7 +46,7 @@ II. Based on the slug base_url+slug
 
 III. Additional info/ Databse design logic:
     Required Skills: taken from description -> LLM
-    ad link url+slug
+
 
     Dirty bit logic: Extra column set to 0 or 1.
         Initially set all to 0
@@ -64,3 +67,8 @@ II. User insights
 
 Extra:
     Implement a LLM from scratch
+
+
+Issues:
+    Lipsa nivel experianta la unele job-uri unde se ia ori oras, ori eroare
+    ->Verificare mai buna, else generic (nonspecified or smth)

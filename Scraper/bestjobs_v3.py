@@ -6,7 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 
 #limit url usages
-limit = 3
+limit = 1
 BASE_LIMIT_URL = f"https://www.bestjobs.eu/api/proxy/v2/jobs?limit={limit}"
 BASE_URL = "https://www.bestjobs.eu/loc-de-munca/"
 CITIES = ["timisoara", "brasov", "bucuresti"]
@@ -30,9 +30,8 @@ def generate_urls():
     urls = []
     for city in CITIES:
         for domain in DOMAINS.values():
-            urls.append(f"{BASE_LIMIT_URL}&location%5B%5D={city}&domain%5B%5D={domain}")
+            urls.append((f"{BASE_LIMIT_URL}&location%5B%5D={city}&domain%5B%5D={domain}", domain, city))
     return urls
-
 
 
 #Function that connects the PARSER part
@@ -40,32 +39,52 @@ async def parser():
     start = time.time()
     url_list = generate_urls()
     async with aiohttp.ClientSession() as session:
-        for url in url_list:
-            json_parser(url)
+        for url, domain, city in url_list:
+            #I
+            slug_list = json_parser(url, domain, city)
             # II
+            additional_info(slug_list)
             # III
     end = time.time()
     length = end - start
     print(length)
 
-#insert source, slug, title, company name, salary, est salary
-def json_parser(url):
+#I. insert source, slug, title, company name, salary, est salary
+def json_parser(url, domain, city):
     response, soup = site_response(url)
     cursor, conn = database_connect()
     data = response.json()
+    slug_list =[]
 
     for item in data['items']:
         slug = item['slug']
+        slug_list.append(slug)
         ad_link = f"https://www.bestjobs.eu/ro/loc-de-munca/{slug}"
 
         cursor.execute(
-            "INSERT OR IGNORE INTO Jobs (source, slug, title, company_name, salary, est_salary, ad_link, available) VALUES (?, ?, ?, ?, ?, ?, ?, true)",
-            ("bestjobs", slug, item['title'], item['companyName'], item['salary'], item['estimatedSalary'], ad_link)
+            "INSERT OR IGNORE INTO Jobs (source, slug, title, company_name, salary, est_salary, ad_link, available, city, domain) VALUES (?, ?, ?, ?, ?, ?, ?, true, ?, ?)",
+            ("bestjobs", slug, item['title'], item['companyName'], item['salary'], item['estimatedSalary'], ad_link, city, domain)
         )
+
     conn.commit()
     conn.close()
+    return slug_list
 
+def additional_info(slug_list):
+    for slug in slug_list:
+        url = BASE_URL + slug
+        response, soup = site_response(url)
 
+        if response.status_code == 200:
+            #unele nu au nivel de exp.
+
+            print(url)
+            print(get_experience_level(soup))
+            print("==========================")
+
+            #work type
+            #description
+            #logo
 
 
 #HELPER FUNCTIONS
@@ -80,4 +99,14 @@ def database_connect():
     cursor = conn.cursor()
     return cursor, conn
 
+def get_work_type(soup):
+    print(soup)
+    soup = soup.find("div", class_="ml-6").get_text()
+    return soup.split(";")[0]
+
+def get_experience_level(soup):
+    return soup.find("a", class_="ml-2").get_text().split()[0]
+
+#middle_text = soup.find("div", class_="ml-2").find("a").get_text().split()[0]
+#middle_text = soup.select_one("div.ml-2 a").get_text().split()[0]
 asyncio.run(parser())
