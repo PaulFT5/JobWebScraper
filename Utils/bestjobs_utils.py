@@ -14,4 +14,5 @@ def get_company_logo(soup):
         return None
     return img_tag.get("src")
 
-#def get_description(soup):
+def get_description(soup):
+    return "a"

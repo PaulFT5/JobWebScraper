@@ -36,11 +36,11 @@ PARSER
     city
     domain
 
-II. Based on the slug base_url+slug
-    Work type:
-    Description:
-    Logo:
-    Experience Level:
+✔II. Based on the slug base_url+slug
+    ✔Work type:
+    ✔Description:
+    Logo: Si asta foarte random, ratie ciudata, cateva transparente, nu ai cum sa le generalizezi
+    ✔Experience Level:
 ..
     *All of these will be added into a db
 
@@ -72,3 +72,4 @@ Extra:
 Issues:
     Lipsa nivel experianta la unele job-uri unde se ia ori oras, ori eroare
     ->Verificare mai buna, else generic (nonspecified or smth)
+    Work type pus ca filtru de cautare
