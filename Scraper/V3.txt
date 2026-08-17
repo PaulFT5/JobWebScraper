@@ -47,14 +47,12 @@ PARSER
 III. Additional info/ Databse design logic:
     Required Skills: taken from description -> LLM
 
-
-    Dirty bit logic: Extra column set to 0 or 1.
+    ✔Dirty bit logic: Extra column set to 0 or 1.
         Initially set all to 0
         If element not in db: set it to 1.
         If slug already in the db: set it to 1.
 
     *If a Dirty Bit is 0, it will not show in the GUI but can be used for data analyzing.
-
 
 UI
 
@@ -73,3 +71,6 @@ Issues:
     Lipsa nivel experianta la unele job-uri unde se ia ori oras, ori eroare
     ->Verificare mai buna, else generic (nonspecified or smth)
     Work type pus ca filtru de cautare
+
+    Adaugare nume, nu doar cod in db
+    Mesaj cand ruleaza prin mail, cate au fost adaugate
