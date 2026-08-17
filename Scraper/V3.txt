@@ -63,14 +63,14 @@ II. User insights
     Analyze the data into charts to let user see most looked for skills, skills/salary etc.
 
 
+Issues:
+    ✔Lipsa nivel experianta la unele job-uri unde se ia ori oras, ori eroare
+    ->Verificare mai buna, else generic (nonspecified or smth)
+
+Improvements:
+    ✔Work type pus ca filtru de cautare
+    ✔Adaugare nume, nu doar cod in db: domain, work type
+    Mesaj cand ruleaza prin mail, cate au fost adaugate
+
 Extra:
     Implement a LLM from scratch
-
-
-Issues:
-    Lipsa nivel experianta la unele job-uri unde se ia ori oras, ori eroare
-    ->Verificare mai buna, else generic (nonspecified or smth)
-    Work type pus ca filtru de cautare
-
-    Adaugare nume, nu doar cod in db
-    Mesaj cand ruleaza prin mail, cate au fost adaugate

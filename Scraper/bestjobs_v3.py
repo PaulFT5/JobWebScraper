@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from Utils.LLM import LLM_activation
 
 #limit url usages
-limit = 1
+limit = 7
 BASE_LIMIT_URL = f"https://www.bestjobs.eu/api/proxy/v2/jobs?limit={limit}"
 BASE_URL = "https://www.bestjobs.eu/loc-de-munca/"
 CITIES = ["timisoara", "brasov", "bucuresti"]
@@ -39,9 +39,14 @@ WORK_TYPE = {
 def generate_urls():
     urls = []
     for city in CITIES:
-        for domain in DOMAINS.values():
-            for work_type in WORK_TYPE.values():
-                urls.append((f"{BASE_LIMIT_URL}&location%5B%5D={city}&domain%5B%5D={domain}&employmentTypes%5B%5D={work_type}", domain, city, work_type))
+        for domain_name, domain_id in DOMAINS.items():
+            for work_type_name, work_type_id in WORK_TYPE.items():
+                urls.append((
+                    f"{BASE_LIMIT_URL}&location%5B%5D={city}&domain%5B%5D={domain_id}&employmentTypes%5B%5D={work_type_id}",
+                    domain_name, domain_id,
+                    city,
+                    work_type_name, work_type_id
+                )) #tuple of elements
     return urls
 
 
@@ -53,9 +58,9 @@ async def parser():
     reset_availability(cursor, conn)
 
     async with aiohttp.ClientSession() as session:
-        for url, domain, city, work_type in url_list:
+        for url, domain_name, domain_id, city, work_type_name, work_type_id in url_list:
             #I
-            slug_list = json_parser(url, domain, city, work_type, cursor, conn)
+            slug_list = json_parser(url, domain_name, domain_id, city, work_type_name, work_type_id, cursor, conn)
             # II and III
             additional_info(slug_list, cursor, conn)
             # III
@@ -67,7 +72,7 @@ async def parser():
     print("Time taken: ", length)
 
 #I. insert source, slug, title, company name, salary, est salary
-def json_parser(url, domain, city, work_type, cursor, conn):
+def json_parser(url, domain_name, domain_id, city, work_type_name, work_type_id, cursor, conn):
     response, soup = site_response(url)
     data = response.json()
     slug_list =[]
@@ -85,8 +90,10 @@ def json_parser(url, domain, city, work_type, cursor, conn):
         ad_link = f"https://www.bestjobs.eu/ro/loc-de-munca/{slug}"
 
         cursor.execute(
-            "INSERT OR IGNORE INTO Jobs (source, slug, title, company_name, salary, est_salary, work_type, ad_link, available, city, domain) VALUES (?, ?, ?, ?, ?, ?, ?, ?, true, ?, ?)",
-            ("bestjobs", slug, item['title'], item['companyName'], item['salary'], item['estimatedSalary'],work_type, ad_link, city, domain)
+            "INSERT OR IGNORE INTO Jobs (source, slug, title, company_name, salary, est_salary, work_type, worktype_name, ad_link, available, city, domain, domain_name) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, true, ?, ?, ?)",
+            ("bestjobs", slug, item['title'], item['companyName'], item['salary'], item['estimatedSalary'],
+             work_type_id, work_type_name, ad_link, city, domain_id, domain_name)
         )
 
     cursor.executemany(
