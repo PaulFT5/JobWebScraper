@@ -35,4 +35,5 @@ jobs:
           git config user.email "github-actions@github.com"
           git add Scraper/JobsDatabase.sqlite
           git commit -m "Weekly scrape update" || echo "No changes to commit"
+          git pull --rebase origin master
           git push
