@@ -1,0 +1,33 @@
+name: Weekly Job Scrape
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"   # Monday, 3:00 AM UTC
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run scraper
+        env:
+          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+          EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
+        run: python Scraper/bestjobs_v3.py
+
+      - name: Commit updated database
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add Scraper/JobsDatabase.sqlite
+          git commit -m "Weekly scrape update" || echo "No changes to commit"
+          git push
