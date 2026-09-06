@@ -24,8 +24,9 @@ jobs:
 
       - name: Run scraper
         env:
-          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
-          EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
+          EMAIL_ACCOUNT_SENDER: ${{ secrets.EMAIL_ACCOUNT_SENDER }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          EMAIL_ACCOUNT_RECEIVER: ${{ secrets.EMAIL_ACCOUNT_RECEIVER }}
         run: python -m Scraper.bestjobs_v3
 
       - name: Commit updated database

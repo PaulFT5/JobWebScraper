@@ -24,6 +24,9 @@ jobs:
       - name: Run extraction
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          EMAIL_ACCOUNT_SENDER: ${{ secrets.EMAIL_ACCOUNT_SENDER }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          EMAIL_ACCOUNT_RECEIVER: ${{ secrets.EMAIL_ACCOUNT_RECEIVER }}
         run: python -m Scraper.populate_skills
 
       - name: Commit updated database
