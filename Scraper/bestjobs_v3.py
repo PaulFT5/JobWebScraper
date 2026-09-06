@@ -78,7 +78,10 @@ async def parser():
         f"Descriptions missing:  {totals['description_missing']}  (page fetched but description not found)\n"
         f"Run duration:          {totals['duration_sec']}s"
     )
-    sender("Weekly Scrape Summary", body)
+    try:
+        sender("Daily Skill Extraction Summary", body)
+    except Exception as e:
+        print(f"WARNING: failed to send summary email: {e}")
     print(body)
 
     print("Time taken: ", totals["duration_sec"])
