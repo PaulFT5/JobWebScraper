@@ -144,6 +144,7 @@ def additional_info(slug_list, cursor, conn):
             stats["fetched_ok"] += 1
         else:
             stats["http_failed"] += 1
+        time.sleep(0.5)
     conn.commit()
     return stats
 
