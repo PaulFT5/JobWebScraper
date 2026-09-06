@@ -6,7 +6,7 @@ from Utils.bestjobs_utils import site_response, check_slug_already_present, get_
 from Utils.email_log_sender import sender
 
 #limit url usages
-limit = 30
+limit = 500
 BASE_LIMIT_URL = f"https://www.bestjobs.eu/api/proxy/v2/jobs?limit={limit}"
 BASE_URL = "https://www.bestjobs.eu/loc-de-munca/"
 CITIES = ["timisoara", "brasov", "bucuresti"] #
