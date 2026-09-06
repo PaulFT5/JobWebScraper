@@ -1,4 +1,5 @@
 name: Daily Skill Extraction
+
 on:
   schedule:
     - cron: "0 4 * * *"   # every day, 4:00 AM UTC
