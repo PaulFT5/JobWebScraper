@@ -6,6 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from Utils.LLM import LLM_activation
+from Utils.email_log_sender import sender
 
 #limit url usages
 limit = 7

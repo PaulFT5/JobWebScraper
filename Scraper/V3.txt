@@ -70,7 +70,7 @@ Issues:
 Improvements:
     ✔Work type pus ca filtru de cautare
     ✔Adaugare nume, nu doar cod in db: domain, work type
-    Mesaj cand ruleaza prin mail, cate au fost adaugate
+    Mesaj cand ruleaza prin mail, cate au fost adaugate: Twilio
 
 Extra:
     Implement a LLM from scratch
