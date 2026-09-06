@@ -17,7 +17,8 @@ def LLM_activation(prompt, input):
                 "content": f"{prompt}\n\nCV Text:\n{input}",
             }
         ],
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-120b",
+        max_tokens=2000
     )
     print(chat_completion.choices[0].message.content)
     return chat_completion.choices[0].message.content

@@ -1,18 +1,55 @@
+import sqlite3
+from pathlib import Path
+
+import requests
+from bs4 import BeautifulSoup
+DB_PATH = Path(__file__).resolve().parent.parent / "Scraper" / "JobsDatabase.sqlite"
+print(DB_PATH)
+
+
+def reset_availability(cursor, conn):
+    cursor.execute(
+        "Update Jobs set available = 0 where available = 1"
+    )
+    conn.commit()
+
+def check_slug_already_present(cursor, conn, slug_check):
+    cursor.execute(
+        "SELECT EXISTS(SELECT 1 FROM Jobs WHERE slug = ?)", (slug_check,)
+    )
+    result = cursor.fetchone()
+    return bool(result[0])
+
+def site_response(url): #ERROR HANDLING
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, "html.parser")
+    return response, soup
+
+def database_connect():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    return cursor, conn
+
 def get_experience_level(soup):
-    return soup.find(class_="hover:text-ink").get_text().split()[0]
-
-def get_work_type(soup):
-    soup = soup.find("div", class_="ml-6").get_text()
-    return soup.split(";")[0]
-
-def get_company_logo(soup):
-    a_tag = soup.find("a", href="#company-widget-box")
-    if not a_tag:
+    try:
+        return soup.select_one("div.ml-2 a").get_text().split()[0]
+    except AttributeError:
         return None
-    img_tag = a_tag.find("img")
-    if not img_tag:
-        return None
-    return img_tag.get("src")
 
 def get_description(soup):
-    return "a"
+    try:
+        description = soup.find("div", class_="mt-8 pt-8 border-t border-input break-words prose job-description text-sm")
+        elements = description.find_all(["p", "li"])
+        parts = []
+        for el in elements:
+            text = el.get_text(strip=True)
+            if not text:
+                continue
+            if el.name == "li":
+                parts.append(f"- {text}")
+            else:
+                parts.append(text)
+        full_text = "\n\n".join(parts)
+        return full_text
+    except AttributeError:
+        return None

@@ -1,18 +1,15 @@
 import asyncio
-import sqlite3
 import time
 import aiohttp
-import requests
-from bs4 import BeautifulSoup
-
-from Utils.LLM import LLM_activation
+from Utils.bestjobs_utils import site_response, check_slug_already_present, get_experience_level, get_description, \
+    database_connect, reset_availability
 from Utils.email_log_sender import sender
 
 #limit url usages
-limit = 7
+limit = 30
 BASE_LIMIT_URL = f"https://www.bestjobs.eu/api/proxy/v2/jobs?limit={limit}"
 BASE_URL = "https://www.bestjobs.eu/loc-de-munca/"
-CITIES = ["timisoara", "brasov", "bucuresti"]
+CITIES = ["timisoara", "brasov", "bucuresti"] #
 
 DOMAINS = {
     "IT": 9,
@@ -58,24 +55,40 @@ async def parser():
     cursor, conn = database_connect()
     reset_availability(cursor, conn)
 
+    totals = {"new_jobs": 0, "fetched_ok": 0, "http_failed": 0, "description_missing": 0}
+
     async with aiohttp.ClientSession() as session:
         for url, domain_name, domain_id, city, work_type_name, work_type_id in url_list:
             #I
             slug_list = json_parser(url, domain_name, domain_id, city, work_type_name, work_type_id, cursor, conn)
             # II and III
-            additional_info(slug_list, cursor, conn)
-            # III
-            #skills_extraction()
+            info_stats = additional_info(slug_list, cursor, conn)
+
+            totals["new_jobs"] += len(slug_list)
+            for key in ("fetched_ok", "http_failed", "description_missing"):
+                totals[key] += info_stats[key]
 
     conn.close()
     end = time.time()
-    length = end - start
-    print("Time taken: ", length)
+    totals["duration_sec"] = int(round(end - start, 2))
+    body = (
+        f"New jobs found:        {totals['new_jobs']}\n"
+        f"Detail pages fetched:  {totals['fetched_ok']}\n"
+        f"Detail pages failed:   {totals['http_failed']}  (non-200 response)\n"
+        f"Descriptions missing:  {totals['description_missing']}  (page fetched but description not found)\n"
+        f"Run duration:          {totals['duration_sec']}s"
+    )
+    sender("Weekly Scrape Summary", body)
+    print(body)
+
+    print("Time taken: ", totals["duration_sec"])
 
 #I. insert source, slug, title, company name, salary, est salary
 def json_parser(url, domain_name, domain_id, city, work_type_name, work_type_id, cursor, conn):
+    #print(url)
     response, soup = site_response(url)
     data = response.json()
+    #print(f"{domain_name}/{city}/{work_type_name}: {len(data.get('items', []))} items, status {response.status_code}")
     slug_list =[]
     new_slugs = []
 
@@ -84,11 +97,15 @@ def json_parser(url, domain_name, domain_id, city, work_type_name, work_type_id,
         slug_list.append(slug)
 
         if check_slug_already_present(cursor, conn, slug):
-            #set availability to 1
+            cursor.execute(
+                "UPDATE Jobs SET available = 1 WHERE slug = ?",
+                (slug,)
+            )
             continue
 
         new_slugs.append(slug)
         ad_link = f"https://www.bestjobs.eu/ro/loc-de-munca/{slug}"
+
 
         cursor.execute(
             "INSERT OR IGNORE INTO Jobs (source, slug, title, company_name, salary, est_salary, work_type, worktype_name, ad_link, available, city, domain, domain_name) "
@@ -101,11 +118,11 @@ def json_parser(url, domain_name, domain_id, city, work_type_name, work_type_id,
         "UPDATE Jobs SET available = 1 WHERE slug = ?",
         [(s,) for s in slug_list]
     )
-
     conn.commit()
     return new_slugs
 
 def additional_info(slug_list, cursor, conn):
+    stats = {"fetched_ok": 0, "http_failed": 0, "description_missing": 0}
     for slug in slug_list:
         url = BASE_URL + slug
         response, soup = site_response(url)
@@ -113,77 +130,19 @@ def additional_info(slug_list, cursor, conn):
         if response.status_code == 200:
             experience_level = get_experience_level(soup)
             description = get_description(soup)
-            #skills_json = skills_extraction(description)
+
+            if description is None:
+                stats["description_missing"] += 1
 
             cursor.execute(
                 "UPDATE Jobs SET experience_level = ?, description = ? WHERE slug = ?",
-                (experience_level, description ,slug)
+                (experience_level, description,slug)
             )
-
+            stats["fetched_ok"] += 1
+        else:
+            stats["http_failed"] += 1
     conn.commit()
+    return stats
 
-
-#HELPER FUNCTIONS
-
-def skills_extraction(description):
-    prompt = "You are a professional recruiter analyzing a job description. Extract all skills required or preferred by the employer from the job description text below and return them as a JSON object. Follow these rules strictly: Hard skills — concrete, verifiable skills tied to performing the job: tools, software, systems, certifications, methodologies, or specialized domain knowledge (examples across fields: Python, SQL, SAP, Google Ads, GDPR compliance, phlebotomy, payroll processing, AutoCAD). For each skill, classify it as 'required' or 'preferred' based on how it is presented in the text (e.g. listed under Requirements/Must-have vs. Nice-to-have/Preferred/Plus). If the posting does not distinguish between the two, classify all extracted skills as 'required'. Separately, extract required_experience_level for the role as a whole, based on any explicit statement in the text (e.g. '3+ years', 'entry-level position', 'senior role'). Use one of: entry_level (0–2 years), junior (2–3 years), mid_level (3–5 years), senior (5+ years). If no experience level is stated, use 'not_specified'. Languages — return any spoken/written language requirements explicitly stated (e.g. 'fluent in English'). If none are stated, return an empty list. Return only valid JSON. No explanation, no markdown, no code fences."
-    data = LLM_activation(prompt, description)
-    return data
-
-def reset_availability(cursor, conn):
-    cursor.execute(
-        "Update Jobs set available = 0 where available = 1"
-    )
-    conn.commit()
-
-def check_slug_already_present(cursor, conn, slug_check):
-    cursor.execute(
-        "SELECT EXISTS(SELECT 1 FROM Jobs WHERE slug = ?)", (slug_check,)
-    )
-    result = cursor.fetchone()
-    return bool(result[0])
-
-def site_response(url): #ERROR HANDLING
-    response = requests.get(url)
-    soup = BeautifulSoup(response.content, "html.parser")
-    return response, soup
-
-def database_connect():
-    conn = sqlite3.connect('JobsDatabase.sqlite')
-    cursor = conn.cursor()
-    return cursor, conn
-
-def get_experience_level(soup):
-    try:
-        return soup.select_one("div.ml-2 a").get_text().split()[0]
-    except AttributeError:
-        return None
-
-# def get_description(soup):
-#     try:
-#         description = soup.find("div", class_="mt-8 pt-8 border-t border-input break-words prose job-description text-sm")
-#         paragraphs = description.find_all("p")
-#         full_text = "\n\n".join([p.get_text(strip=True) for p in paragraphs])
-#         return full_text
-#     except AttributeError:
-#         return None
-
-def get_description(soup):
-    try:
-        description = soup.find("div", class_="mt-8 pt-8 border-t border-input break-words prose job-description text-sm")
-        elements = description.find_all(["p", "li"])
-        parts = []
-        for el in elements:
-            text = el.get_text(strip=True)
-            if not text:
-                continue
-            if el.name == "li":
-                parts.append(f"- {text}")
-            else:
-                parts.append(text)
-        full_text = "\n\n".join(parts)
-        return full_text
-    except AttributeError:
-        return None
-
-asyncio.run(parser())
+if __name__ == "__main__":
+    asyncio.run(parser())
