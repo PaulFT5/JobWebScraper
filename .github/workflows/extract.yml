@@ -21,7 +21,7 @@ jobs:
       - name: Run extraction
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        run: python Scraper/populate_skills.py
+        run: python -m Scraper.populate_skills
 
       - name: Commit updated database
         run: |
