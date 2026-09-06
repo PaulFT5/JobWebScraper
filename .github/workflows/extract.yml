@@ -1,0 +1,32 @@
+name: Daily Skill Extraction
+
+on:
+  schedule:
+    - cron: "0 4 * * *"   # every day, 4:00 AM UTC
+  workflow_dispatch:
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run extraction
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python Scraper/populate_skills.py
+
+      - name: Commit updated database
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add Scraper/JobsDatabase.sqlite
+          git commit -m "Daily skill extraction update" || echo "No changes to commit"
+          git push
