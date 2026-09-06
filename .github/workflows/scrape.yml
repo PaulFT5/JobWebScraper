@@ -22,7 +22,7 @@ jobs:
         env:
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
           EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
-        run: python Scraper/bestjobs_v3.py
+        run: python -m Scraper.bestjobs_v3
 
       - name: Commit updated database
         run: |
