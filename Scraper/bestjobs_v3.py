@@ -79,7 +79,7 @@ async def parser():
         f"Run duration:          {totals['duration_sec']}s"
     )
     try:
-        sender("Daily Skill Extraction Summary", body)
+        sender("Weekly Job Extraction Summary", body)
     except Exception as e:
         print(f"WARNING: failed to send summary email: {e}")
     print(body)
