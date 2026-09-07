@@ -1,3 +1,5 @@
+import time
+
 from Scraper.bestjobs_v3 import database_connect
 from Utils.LLM import LLM_activation
 import json
@@ -63,6 +65,7 @@ def populate_skills(limit=90):
 
     try:
         for slug, description in rows:
+            time.sleep(20)
             try:
                 raw = skills_extraction(description)
                 parsed = json.loads(raw)
