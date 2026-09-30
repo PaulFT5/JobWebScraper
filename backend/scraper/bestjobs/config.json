@@ -1,9 +1,9 @@
 {
   "api": {
-    "base_url": "https://www.bestjobs.eu/api/proxy/v2/jobs",
-    "job_detail_base_url": "https://www.bestjobs.eu/loc-de-munca/",
+    "json_response_url": "https://www.bestjobs.eu/api/proxy/v2/jobs",
+    "base_url": "https://www.bestjobs.eu/loc-de-munca/",
     "default_limit": 200,
-    "delay_between_requests_sec": 0.5
+    "delay_between_requests_sec": 1
   },
   "filters": {
     "cities": ["timisoara", "brasov", "bucuresti"],

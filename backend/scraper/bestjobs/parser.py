@@ -2,46 +2,40 @@ import asyncio
 import time
 import aiohttp
 from backend.database.connection import database_connect
-from backend.scraper.bestjobs.scraper import get_experience_level, get_description
+from backend.database.repositories.job_repositories import reset_all_availability
+from backend.scraper.bestjobs.scraper import get_experience_level, get_description, json_response, additional_info
 from backend.services.notifier_service import sender
-from backend.utils.response import get_response
+from backend.utils.generate_urls import generate_urls
 
 
-def generate_urls():
-    urls = []
-    for city in CITIES:
-        for domain_name, domain_id in DOMAINS.items():
-            for work_type_name, work_type_id in WORK_TYPE.items():
-                urls.append((
-                    f"{BASE_LIMIT_URL}&location%5B%5D={city}&domain%5B%5D={domain_id}&employmentTypes%5B%5D={work_type_id}",
-                    domain_name, domain_id,
-                    city,
-                    work_type_name, work_type_id
-                )) #tuple of elements
-    return urls
-
-
-#Function that connects the PARSER part
 async def parser():
     start = time.time()
     url_list = generate_urls()
-    cursor, conn = database_connect()
-    reset_availability(cursor, conn)
+
+    try:
+        cursor, conn = database_connect()
+    except Exception as e:
+        print(f"WARNING: failed to connect to database: {e}")
+        return
 
     totals = {"new_jobs": 0, "fetched_ok": 0, "http_failed": 0, "description_missing": 0}
 
-    async with aiohttp.ClientSession() as session:
-        for url, domain_name, domain_id, city, work_type_name, work_type_id in url_list:
-            #I
-            slug_list = json_parser(url, domain_name, domain_id, city, work_type_name, work_type_id, cursor, conn)
-            # II and III
-            info_stats = additional_info(slug_list, cursor, conn)
+    try:
+        reset_all_availability(cursor, conn)
 
+        for url, domain_name, domain_id, city, work_type_name, work_type_id in url_list:
+
+            slug_list = json_response(url, domain_name, domain_id, city, work_type_name, work_type_id, cursor, conn)
+            info_stats = additional_info(slug_list, cursor, conn)
             totals["new_jobs"] += len(slug_list)
             for key in ("fetched_ok", "http_failed", "description_missing"):
                 totals[key] += info_stats[key]
 
-    conn.close()
+    except Exception as e:
+        print(f"Error during parser() execution: {e}")
+    finally:
+        conn.close()
+
     end = time.time()
     totals["duration_sec"] = int(round(end - start, 2))
     body = (
@@ -58,68 +52,6 @@ async def parser():
     print(body)
 
     print("Time taken: ", totals["duration_sec"])
-
-#I. insert source, slug, title, company name, salary, est salary
-def json_parser(url, domain_name, domain_id, city, work_type_name, work_type_id, cursor, conn):
-    #print(url)
-    response, soup = get_response(url)
-    data = response.json()
-    #print(f"{domain_name}/{city}/{work_type_name}: {len(data.get('items', []))} items, status {response.status_code}")
-    slug_list =[]
-    new_slugs = []
-
-    for item in data['items']:
-        slug = item['slug']
-        slug_list.append(slug)
-
-        if check_slug_already_present(cursor, conn, slug):
-            cursor.execute(
-                "UPDATE Jobs SET available = 1 WHERE slug = ?",
-                (slug,)
-            )
-            continue
-
-        new_slugs.append(slug)
-        ad_link = f"https://www.bestjobs.eu/ro/loc-de-munca/{slug}"
-
-
-        cursor.execute(
-            "INSERT OR IGNORE INTO Jobs (source, slug, title, company_name, salary, est_salary, work_type, worktype_name, ad_link, available, city, domain, domain_name) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, true, ?, ?, ?)",
-            ("bestjobs", slug, item['title'], item['companyName'], item['salary'], item['estimatedSalary'],
-             work_type_id, work_type_name, ad_link, city, domain_id, domain_name)
-        )
-
-    cursor.executemany(
-        "UPDATE Jobs SET available = 1 WHERE slug = ?",
-        [(s,) for s in slug_list]
-    )
-    conn.commit()
-    return new_slugs
-
-def additional_info(slug_list, cursor, conn):
-    stats = {"fetched_ok": 0, "http_failed": 0, "description_missing": 0}
-    for slug in slug_list:
-        url = BASE_URL + slug
-        response, soup = get_response(url)
-
-        if response.status_code == 200:
-            experience_level = get_experience_level(soup)
-            description = get_description(soup)
-
-            if description is None:
-                stats["description_missing"] += 1
-
-            cursor.execute(
-                "UPDATE Jobs SET experience_level = ?, description = ? WHERE slug = ?",
-                (experience_level, description,slug)
-            )
-            stats["fetched_ok"] += 1
-        else:
-            stats["http_failed"] += 1
-        time.sleep(0.5)
-    conn.commit()
-    return stats
 
 if __name__ == "__main__":
     asyncio.run(parser())

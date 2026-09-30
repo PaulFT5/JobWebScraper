@@ -1,5 +1,17 @@
-from backend.database.repositories.job_repositories import check_existing_slug
+import json
+import time
+from functools import lru_cache
+from pathlib import Path
+from backend.database.repositories.job_repositories import check_existing_slug, add_description_experience, \
+    add_new_jobs, mark_available
 from backend.utils.response import get_response
+
+
+@lru_cache(maxsize=1)
+def load_config():
+    config_path = Path(__file__).resolve().parent.parent / "bestjobs" / "config.json"
+    with config_path.open(encoding="utf-8") as file:
+        return json.load(file)
 
 def get_experience_level(soup):
     try:
@@ -26,10 +38,12 @@ def get_description(soup):
         return None
 
 def json_response(url, domain_name, domain_id, city, work_type_name, work_type_id, cursor, conn):
-    #print(url)
     response, soup = get_response(url)
+
+    if not soup or not response:
+        return []
+
     data = response.json()
-    #print(f"{domain_name}/{city}/{work_type_name}: {len(data.get('items', []))} items, status {response.status_code}")
     slug_list =[]
     new_slugs = []
 
@@ -37,52 +51,47 @@ def json_response(url, domain_name, domain_id, city, work_type_name, work_type_i
         slug = item['slug']
         slug_list.append(slug)
 
-        if check_existing_slug(cursor, conn, slug): #include function
-            cursor.execute(
-                "UPDATE Jobs SET available = 1 WHERE slug = ?",
-                (slug,)
-            )
+        if check_existing_slug(cursor, slug):
             continue
 
         new_slugs.append(slug)
         ad_link = f"https://www.bestjobs.eu/ro/loc-de-munca/{slug}"
 
+        add_new_jobs(cursor, "bestjobs", slug, item["title"], item["companyName"],
+                     item["salary"], item["estimatedSalary"], work_type_id, work_type_name,
+                     ad_link, city, domain_id, domain_name)
 
-        cursor.execute(
-            "INSERT OR IGNORE INTO Jobs (source, slug, title, company_name, salary, est_salary, work_type, worktype_name, ad_link, available, city, domain, domain_name) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, true, ?, ?, ?)",
-            ("bestjobs", slug, item['title'], item['companyName'], item['salary'], item['estimatedSalary'],
-             work_type_id, work_type_name, ad_link, city, domain_id, domain_name)
-        )
-
-    cursor.executemany(
-        "UPDATE Jobs SET available = 1 WHERE slug = ?",
-        [(s,) for s in slug_list]
-    )
+    mark_available(cursor, slug_list)
     conn.commit()
     return new_slugs
 
 
 def additional_info(slug_list, cursor, conn):
+    config = load_config()
+    delay = config["api"]["delay_between_requests_sec"]
+    base_url = config["api"]["base_url"]
+
     stats = {"fetched_ok": 0, "http_failed": 0, "description_missing": 0}
+
     for slug in slug_list:
-        url = BASE_URL + slug
-        response, soup = site_response(url)
+        url = base_url + slug
 
-        if response.status_code == 200:
-            experience_level = get_experience_level(soup)
-            description = get_description(soup)
-
-            if description is None:
-                stats["description_missing"] += 1
-
-            cursor.execute(
-                "UPDATE Jobs SET experience_level = ?, description = ? WHERE slug = ?",
-                (experience_level, description,slug)
-            )
-            stats["fetched_ok"] += 1
-        else:
+        response, soup = get_response(url)
+        if not soup or not response:
             stats["http_failed"] += 1
-        time.sleep(0.5)
-    conn.commit()
+            continue
+
+        experience_level = get_experience_level(soup)
+        description = get_description(soup)
+
+        if not description:
+            stats["description_missing"] += 1
+            add_description_experience(cursor, experience_level, None, slug)
+        else:
+            add_description_experience(cursor, experience_level, description, slug)
+            stats["fetched_ok"] += 1
+
+        time.sleep(delay)
+
+        conn.commit()
     return stats
