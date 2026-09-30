@@ -1,4 +1,4 @@
-from Utils.LLM import LLM_activation
+from backend.services.llm_service import LLM_activation
 import pdfplumber
 from pathlib import Path
 

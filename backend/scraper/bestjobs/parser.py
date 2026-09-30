@@ -1,39 +1,12 @@
 import asyncio
 import time
 import aiohttp
-from Utils.bestjobs_utils import site_response, check_slug_already_present, get_experience_level, get_description, \
-    database_connect, reset_availability
-from Utils.email_log_sender import sender
+from backend.database.connection import database_connect
+from backend.scraper.bestjobs.scraper import get_experience_level, get_description
+from backend.services.notifier_service import sender
+from backend.utils.response import get_response
 
-#limit url usages
-limit = 200
-BASE_LIMIT_URL = f"https://www.bestjobs.eu/api/proxy/v2/jobs?limit={limit}"
-BASE_URL = "https://www.bestjobs.eu/loc-de-munca/"
-CITIES = ["timisoara", "brasov", "bucuresti"] #
 
-DOMAINS = {
-    "IT": 9,
-    "Engineering": 14,
-    "HR": 18,
-    "Production & Logistics": 5,
-    "Public Service": 20,
-    "Administrative & Secretarial": 8,
-    "Medical": 15,
-    "Management": 13,
-    "Marketing": 10,
-}
-
-WORK_TYPE = {
-#     se ia url-ul, filtrare pe baza de asta, return db
-#     &employmentTypes%5B%5D=1
-    "Full time": 1,
-    "Part time":2,
-    "Internship": 4,
-}
-
-# I, II: Url preparation
-
-#Makes a list of url + city
 def generate_urls():
     urls = []
     for city in CITIES:
@@ -89,7 +62,7 @@ async def parser():
 #I. insert source, slug, title, company name, salary, est salary
 def json_parser(url, domain_name, domain_id, city, work_type_name, work_type_id, cursor, conn):
     #print(url)
-    response, soup = site_response(url)
+    response, soup = get_response(url)
     data = response.json()
     #print(f"{domain_name}/{city}/{work_type_name}: {len(data.get('items', []))} items, status {response.status_code}")
     slug_list =[]
@@ -128,7 +101,7 @@ def additional_info(slug_list, cursor, conn):
     stats = {"fetched_ok": 0, "http_failed": 0, "description_missing": 0}
     for slug in slug_list:
         url = BASE_URL + slug
-        response, soup = site_response(url)
+        response, soup = get_response(url)
 
         if response.status_code == 200:
             experience_level = get_experience_level(soup)

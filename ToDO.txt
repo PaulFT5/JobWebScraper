@@ -1,3 +1,0 @@
-search whole page
-data saved in db
-GUI

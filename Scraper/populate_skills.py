@@ -1,11 +1,11 @@
 import time
 
-from Scraper.bestjobs_v3 import database_connect
-from Utils.LLM import LLM_activation
+from backend.scraper.bestjobs.parser import database_connect
+from backend.services.llm_service import LLM_activation
 import json
 from groq import RateLimitError
 
-from Utils.email_log_sender import sender
+from backend.services.notifier_service import sender
 
 
 def skills_extraction(description):

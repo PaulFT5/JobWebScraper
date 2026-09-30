@@ -1,5 +1,5 @@
-from Scraper.bestjobs_v3 import DOMAINS, database_connect
-from Utils.LLM import LLM_activation
+from backend.scraper.bestjobs.parser import DOMAINS, database_connect
+from backend.services.llm_service import LLM_activation
 
 
 def get_sample_descriptions_by_domain(cursor, samples_per_domain=1):

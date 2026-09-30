@@ -1,18 +1,17 @@
 import os
 from pathlib import Path
-#This will create the Data folder with subfolders
 
 Base_path = Path(__file__).parent.parent
 
 #cv dir
-CV_dir_path = Base_path / "Data/CV"
-Cv_processed_path = Base_path / "Data/CV/processed"
-Cv_raw_path = Base_path / "Data/CV/raw"
+CV_dir_path = Base_path / "data/CV"
+Cv_processed_path = Base_path / "data/CV/processed"
+Cv_raw_path = Base_path / "data/CV/raw"
 
 #job dir
-Job_dir_path = Base_path / "Data/Jobs"
-Job_raw_path = Base_path / "Data/Jobs/raw"
-Job_processed_path = Base_path / "Data/Jobs/processed"
+Job_dir_path = Base_path / "data/Jobs"
+Job_raw_path = Base_path / "data/Jobs/raw"
+Job_processed_path = Base_path / "data/Jobs/processed"
 
 
 def data_folder_setup():

@@ -1,0 +1,27 @@
+{
+  "api": {
+    "base_url": "https://www.bestjobs.eu/api/proxy/v2/jobs",
+    "job_detail_base_url": "https://www.bestjobs.eu/loc-de-munca/",
+    "default_limit": 200,
+    "delay_between_requests_sec": 0.5
+  },
+  "filters": {
+    "cities": ["timisoara", "brasov", "bucuresti"],
+    "work_types": {
+      "Full time": 1,
+      "Part time": 2,
+      "Internship": 4
+    },
+    "domains": {
+      "IT": 9,
+      "Engineering": 14,
+      "HR": 18,
+      "Production & Logistics": 5,
+      "Public Service": 20,
+      "Administrative & Secretarial": 8,
+      "Medical": 15,
+      "Management": 13,
+      "Marketing": 10
+    }
+  }
+}
