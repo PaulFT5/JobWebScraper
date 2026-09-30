@@ -1,14 +1,12 @@
 import asyncio
 import time
-import aiohttp
 from backend.database.connection import database_connect
 from backend.database.repositories.job_repositories import reset_all_availability
 from backend.scraper.bestjobs.scraper import get_experience_level, get_description, json_response, additional_info
 from backend.services.notifier_service import sender
 from backend.utils.generate_urls import generate_urls
 
-
-async def parser():
+async def runner():
     start = time.time()
     url_list = generate_urls()
 
@@ -54,4 +52,4 @@ async def parser():
     print("Time taken: ", totals["duration_sec"])
 
 if __name__ == "__main__":
-    asyncio.run(parser())
+    asyncio.run(runner())

@@ -1,6 +1,4 @@
 from email.mime.text import MIMEText
-from email.mime.image import MIMEImage
-from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 import smtplib
 import os
@@ -8,25 +6,25 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
-my_email = os.getenv('EMAIL_ACCOUNT_SENDER')
+email_sender = os.getenv('EMAIL_ACCOUNT_SENDER')
 my_password = os.getenv('EMAIL_PASSWORD')
-receiver = os.getenv('EMAIL_ACCOUNT_RECEIVER')
+email_reciver = os.getenv('EMAIL_ACCOUNT_RECEIVER')
 
 def sender(subject, text):
-    if not my_email or not my_password:
+    if not email_sender or not my_password:
         raise ValueError("Credentials are None!")
     smtp = smtplib.SMTP('smtp.gmail.com', 587)
     smtp.ehlo()
     smtp.starttls()
-    smtp.login(my_email, my_password)
+    smtp.login(email_sender, my_password)
 
     msg = MIMEMultipart()
-    msg['From'] = my_email
-    msg['To'] = receiver
+    msg['From'] = email_sender
+    msg['To'] = email_reciver
     msg['Subject'] = subject
     msg.attach(MIMEText(text))
 
-    smtp.sendmail(from_addr="EMAIL_ACCOUNT_RECEIVER",
-              to_addrs=receiver,
-              msg=msg.as_string())
+    smtp.sendmail(from_addr=email_sender,
+                  to_addrs=email_reciver,
+                  msg=msg.as_string())
     smtp.quit()

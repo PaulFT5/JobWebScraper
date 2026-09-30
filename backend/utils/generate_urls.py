@@ -1,8 +1,6 @@
 import json
 from pathlib import Path
-
 from cachetools.func import lru_cache
-
 
 @lru_cache(maxsize=1)
 def load_config():

@@ -1,20 +1,17 @@
 import os
-from dotenv import load_dotenv
 from groq import Groq
-load_dotenv()
-import os
 from dotenv import load_dotenv
 load_dotenv()
 
 
-def LLM_activation(prompt, input):
+def llm_service(prompt, content):
     client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
     chat_completion = client.chat.completions.create(
         messages=[
             {
                 "role": "user",
-                "content": f"{prompt}\n\nCV Text:\n{input}",
+                "content": f"{prompt}\n\nInput:\n{content}",
             }
         ],
         model="openai/gpt-oss-120b",

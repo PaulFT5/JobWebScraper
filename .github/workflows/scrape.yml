@@ -8,7 +8,6 @@ on:
 permissions:
   contents: write
 
-
 jobs:
   scrape:
     runs-on: ubuntu-latest
@@ -22,18 +21,18 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run scraper
+      - name: Run runner
         env:
           EMAIL_ACCOUNT_SENDER: ${{ secrets.EMAIL_ACCOUNT_SENDER }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
           EMAIL_ACCOUNT_RECEIVER: ${{ secrets.EMAIL_ACCOUNT_RECEIVER }}
-        run: python -m Scraper.bestjobs_v3
+        run: python -m backend.scraper.bestjobs.runner
 
       - name: Commit updated database
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add Scraper/JobsDatabase.sqlite
+          git add data/jobs/JobsDatabase.sqlite
           git commit -m "Weekly scrape update" || echo "No changes to commit"
           git pull --rebase origin master
           git push

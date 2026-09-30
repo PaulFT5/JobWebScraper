@@ -1,4 +1,4 @@
-from backend.services.llm_service import LLM_activation
+from backend.services.llm_service import llm_service
 import pdfplumber
 from pathlib import Path
 
@@ -32,6 +32,6 @@ def write_raw_data(input_text):
 def process_write_extracted_data(input_raw_text):
     promt = "You are a professional recruiter analyzing a candidate's CV. Extract all skills from the CV text below and return them as a JSON object. Follow these rules strictly: Hard skills — concrete, verifiable skills tied to performing a job: tools, software, systems, certifications, methodologies, or specialized domain knowledge (examples across fields: Python, SQL, SAP, Google Ads, GDPR compliance, phlebotomy, payroll processing, AutoCAD). Categorize each by experience level using any explicit dates or context clues in the CV. If no experience level can be determined, default to Entry-level. entry_level (0–2 years) ,junior (2–3 years), mid_level (3–5 years), senior (5+ years), Languages - return the candidate's known languages. Return only valid JSON. No explanation, no markdown, no code fences."
     f = open(pathToProcessedData, "w", encoding="utf-8")
-    f.write(LLM_activation(promt, input_raw_text))
+    f.write(llm_service(promt, input_raw_text))
     f.close()
 

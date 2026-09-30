@@ -1,10 +1,12 @@
+import json
 import time
 
-from backend.scraper.bestjobs.parser import database_connect
-from backend.services.llm_service import LLM_activation
-import json
 from groq import RateLimitError
 
+from backend.database.connection import database_connect
+from backend.database.repositories.job_repositories import count_jobs_eligible_extraction, count_fully_populated_jobs, \
+    get_available_for_extraction, set_failed_sentinel_extraction, set_successful_skill_extraction
+from backend.services.llm_service import llm_service
 from backend.services.notifier_service import sender
 
 
@@ -22,7 +24,7 @@ def skills_extraction(description):
 }
 
     If no skills are found, return an empty list for required_skills — never omit the key or use null."""
-    data = LLM_activation(prompt, description)
+    data = llm_service(prompt, description)
     return data
 
 
@@ -33,23 +35,11 @@ REQUIRED_KEYS = {"required_skills"}  # add "nice_to_have_skills" here if you kee
 def populate_skills(limit=90):
     cursor, conn = database_connect()
 
-    cursor.execute("SELECT COUNT(*) FROM Jobs WHERE description IS NOT NULL")
-    total_eligible = cursor.fetchone()[0]
+    total_eligible = count_jobs_eligible_extraction(cursor)
 
-    # 2. Already processed globally before this run
-    cursor.execute(
-        "SELECT COUNT(*) FROM Jobs "
-        "WHERE description IS NOT NULL AND required_skills IS NOT NULL"
-    )
-    already_populated = cursor.fetchone()[0]
+    already_populated = count_fully_populated_jobs(cursor)
 
-    cursor.execute(
-        "SELECT slug, description FROM Jobs "
-        "WHERE description IS NOT NULL AND required_skills IS NULL "
-        "LIMIT ?",
-        (limit,)
-    )
-    rows = cursor.fetchall()
+    rows = get_available_for_extraction(cursor, limit)
 
     global_progress = round((already_populated / total_eligible) * 100, 2)
 
@@ -88,10 +78,9 @@ def populate_skills(limit=90):
                 break
             except json.JSONDecodeError as e:
                 print(f"Malformed JSON for {slug}, marking failed. {e}")
-                cursor.execute(
-                    "UPDATE Jobs SET required_skills = ? WHERE slug = ?",
-                    (FAILED_SENTINEL, slug)
-                )
+
+                set_failed_sentinel_extraction(cursor, FAILED_SENTINEL, slug)
+
                 conn.commit()
                 stats["malformed_json"] += 1
                 continue
@@ -100,10 +89,7 @@ def populate_skills(limit=90):
                 stats["other_errors"] += 1
                 continue
 
-            cursor.execute(
-                "UPDATE Jobs SET required_skills = ? WHERE slug = ?",
-                (skills_json, slug)
-            )
+            set_successful_skill_extraction(cursor, skills_json, slug)
             conn.commit()
             stats["processed"] += 1
     finally:

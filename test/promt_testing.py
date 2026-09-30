@@ -1,5 +1,5 @@
-from backend.scraper.bestjobs.parser import DOMAINS, database_connect
-from backend.services.llm_service import LLM_activation
+from backend.scraper.bestjobs.runner import DOMAINS, database_connect
+from backend.services.llm_service import llm_service
 
 
 def get_sample_descriptions_by_domain(cursor, samples_per_domain=1):
@@ -27,7 +27,7 @@ def skills_extraction(description):
   "required_skills": ["Python", "SQL"],
 }
     If there are no skills for a category, return an empty list for that key — never omit the key or use null."""
-    data = LLM_activation(prompt, description)
+    data = llm_service(prompt, description)
     return data
 
 

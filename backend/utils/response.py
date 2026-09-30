@@ -1,4 +1,6 @@
 import requests
+from bs4 import BeautifulSoup
+
 
 def get_response(url: str, timeout: int = 10):
     try:
@@ -8,7 +10,8 @@ def get_response(url: str, timeout: int = 10):
             print(f"Server returned error code: {response.status_code}")
             return None, None
 
-        return response.text
+        soup = BeautifulSoup(response.content, "html.parser")
+        return response, soup
 
     except requests.RequestException as e:
         print(f"Network error: {e}")
