@@ -2,7 +2,7 @@ import asyncio
 import time
 from backend.database.connection import database_connect
 from backend.database.repositories.job_repositories import reset_all_availability
-from backend.scraper.bestjobs.scraper import get_experience_level, get_description, json_response, additional_info
+from backend.scraper.bestjobs.scraper import json_response, additional_info
 from backend.services.notifier_service import sender
 from backend.utils.generate_urls import generate_urls
 

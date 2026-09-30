@@ -1,8 +1,6 @@
 import json
 import time
-
 from groq import RateLimitError
-
 from backend.database.connection import database_connect
 from backend.database.repositories.job_repositories import count_jobs_eligible_extraction, count_fully_populated_jobs, \
     get_available_for_extraction, set_failed_sentinel_extraction, set_successful_skill_extraction
@@ -32,13 +30,11 @@ FAILED_SENTINEL = '["__EXTRACTION_FAILED__"]'
 REQUIRED_KEYS = {"required_skills"}  # add "nice_to_have_skills" here if you keep it
 
 
-def populate_skills(limit=90):
+def populate_skills(limit=1):
     cursor, conn = database_connect()
 
     total_eligible = count_jobs_eligible_extraction(cursor)
-
     already_populated = count_fully_populated_jobs(cursor)
-
     rows = get_available_for_extraction(cursor, limit)
 
     global_progress = round((already_populated / total_eligible) * 100, 2)
@@ -109,8 +105,7 @@ def populate_skills(limit=90):
     except Exception as e:
         print(f"WARNING: failed to send summary email: {e}")
 
-    #print(body)
     return stats["processed"]
 
 if __name__ == "__main__":
-    populate_skills(limit=90)
+    populate_skills(limit=1)

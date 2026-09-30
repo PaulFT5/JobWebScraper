@@ -1,7 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 
-
 def get_response(url: str, timeout: int = 10):
     try:
         response = requests.get(url, timeout=timeout)
