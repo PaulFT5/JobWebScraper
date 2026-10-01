@@ -30,7 +30,7 @@ FAILED_SENTINEL = '["__EXTRACTION_FAILED__"]'
 REQUIRED_KEYS = {"required_skills"}
 
 
-def populate_skills(limit=1):
+def populate_skills(limit=90):
     cursor, conn = database_connect()
 
     total_eligible = count_jobs_eligible_extraction(cursor)
@@ -108,4 +108,4 @@ def populate_skills(limit=1):
     return stats["processed"]
 
 if __name__ == "__main__":
-    populate_skills(limit=1)
+    populate_skills(limit=90)
