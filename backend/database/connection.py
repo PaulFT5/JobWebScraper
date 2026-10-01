@@ -11,3 +11,4 @@ def database_connect():
     except sqlite3.Error as e:
         raise RuntimeError(f"Could not open database at {DB_PATH}: {e}") from e
     return conn.cursor(), conn
+

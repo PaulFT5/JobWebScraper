@@ -4,6 +4,7 @@ __pycache__/
 *.pyc
 *.pyo
 .idea/
-Data/
+data/cv/
+!data/jobs/JobsDatabase.sqlite
 .DS_Store
 Thumbs.db

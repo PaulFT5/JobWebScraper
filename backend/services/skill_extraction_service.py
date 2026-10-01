@@ -27,7 +27,7 @@ def skills_extraction(description):
 
 
 FAILED_SENTINEL = '["__EXTRACTION_FAILED__"]'
-REQUIRED_KEYS = {"required_skills"}  # add "nice_to_have_skills" here if you keep it
+REQUIRED_KEYS = {"required_skills"}
 
 
 def populate_skills(limit=1):
