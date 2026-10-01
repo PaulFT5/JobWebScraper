@@ -2,11 +2,10 @@ from backend.services.llm_service import llm_service
 import pdfplumber
 from pathlib import Path
 
-BASE_DIR = Path(__file__).parent.parent
-pathToCV = BASE_DIR / "Data/CV/raw/Test.pdf"
-pathToRawData = BASE_DIR / "Data/CV/raw/CV_Raw_Extracted_Data.txt"
-pathToProcessedData = BASE_DIR / "Data/CV/processed/CV_Processed_Extracted_Data.txt"
-
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+pathToCV = BASE_DIR / "data" / "cv" / "raw" / "Test.pdf"
+pathToRawData = BASE_DIR / "data" / "cv" / "raw" / "CV_Raw_Extracted_Data.txt"
+pathToProcessedData = BASE_DIR / "data" / "cv" / "processed" / "CV_Processed_Extracted_Data.txt"
 
 def parse_cv():
     total_text = cv_data_extract()

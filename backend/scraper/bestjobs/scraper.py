@@ -1,3 +1,4 @@
+import datetime
 import json
 import time
 from functools import lru_cache
@@ -47,6 +48,8 @@ def json_response(url, domain_name, domain_id, city, work_type_name, work_type_i
     slug_list =[]
     new_slugs = []
 
+    scraped_date = datetime.date.today().isoformat()
+
     for item in data['items']:
         slug = item['slug']
         slug_list.append(slug)
@@ -59,7 +62,7 @@ def json_response(url, domain_name, domain_id, city, work_type_name, work_type_i
 
         add_new_jobs(cursor, "bestjobs", slug, item["title"], item["companyName"],
                      item["salary"], item["estimatedSalary"], work_type_id, work_type_name,
-                     ad_link, city, domain_id, domain_name)
+                     ad_link, city, domain_id, domain_name, scraped_date)
 
     mark_available(cursor, slug_list)
     conn.commit()

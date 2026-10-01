@@ -23,13 +23,13 @@ def add_description_experience(cursor, experience_level, description, slug):
     return cursor.rowcount > 0
 
 def add_new_jobs(cursor, source, slug, title, company_name, salary, est_salary,
-                 work_type_id, work_type_name, ad_link, city, domain_id, domain_name):
+                 work_type_id, work_type_name, ad_link, city, domain_id, domain_name, scraped_date):
     cursor.execute(
         "INSERT OR IGNORE INTO Jobs (source, slug, title, company_name, salary, est_salary, "
-        "work_type, worktype_name, ad_link, available, city, domain, domain_name) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)",
+        "work_type, worktype_name, ad_link, available, city, domain, domain_name, scraped_date) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)",
         (source, slug, title, company_name, salary, est_salary,
-         work_type_id, work_type_name, ad_link, city, domain_id, domain_name),
+         work_type_id, work_type_name, ad_link, city, domain_id, domain_name, scraped_date),
     )
 
 def mark_available(cursor, slug_list):
