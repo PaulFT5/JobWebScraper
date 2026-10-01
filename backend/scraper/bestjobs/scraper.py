@@ -68,7 +68,6 @@ def json_response(url, domain_name, domain_id, city, work_type_name, work_type_i
     conn.commit()
     return new_slugs
 
-
 def additional_info(slug_list, cursor, conn):
     config = load_config()
     delay = config["api"]["delay_between_requests_sec"]
