@@ -2,7 +2,7 @@ import json
 import time
 from groq import RateLimitError
 from backend.database.connection import database_connect
-from backend.database.repositories.job_repositories import count_jobs_eligible_extraction, count_fully_populated_jobs, \
+from backend.database.repositories.jobExtractionRepository import count_jobs_eligible_extraction, count_fully_populated_jobs, \
     get_available_for_extraction, set_failed_sentinel_extraction, set_successful_skill_extraction
 from backend.services.llm_service import llm_service
 from backend.services.notifier_service import sender
@@ -37,7 +37,10 @@ def populate_skills(limit=90):
     already_populated = count_fully_populated_jobs(cursor)
     rows = get_available_for_extraction(cursor, limit)
 
-    global_progress = round((already_populated / total_eligible) * 100, 2)
+    if total_eligible != 0:
+        global_progress = round((already_populated / total_eligible) * 100, 2)
+    else:
+        global_progress = 0
 
     stats = {
         "pending": len(rows),
@@ -57,12 +60,16 @@ def populate_skills(limit=90):
                 parsed = json.loads(raw)
 
                 if not REQUIRED_KEYS.issubset(parsed.keys()):
-                    print(f"Missing expected keys for {slug}, skipping. Got: {list(parsed.keys())}")
+                    print(f"Missing expected keys for {slug}, marking failed. Got: {list(parsed.keys())}")
+                    set_failed_sentinel_extraction(cursor, FAILED_SENTINEL, slug)
+                    conn.commit()
                     stats["invalid_shape"] += 1
                     continue
 
                 if not isinstance(parsed["required_skills"], list):
-                    print(f"required_skills is not a list for {slug}, skipping. Got: {type(parsed['required_skills'])}")
+                    print(f"required_skills is not a list for {slug}, marking failed. Got: {type(parsed['required_skills'])}")
+                    set_failed_sentinel_extraction(cursor, FAILED_SENTINEL, slug)
+                    conn.commit()
                     stats["invalid_shape"] += 1
                     continue
 
@@ -81,8 +88,10 @@ def populate_skills(limit=90):
                 stats["malformed_json"] += 1
                 continue
             except Exception as e:
-                print(f"Extraction failed for {slug}, skipping. {e}")
+                print(f"Extraction failed for {slug}, marking failed. {e}")
                 stats["other_errors"] += 1
+                set_failed_sentinel_extraction(cursor, FAILED_SENTINEL, slug)
+                conn.commit()
                 continue
 
             set_successful_skill_extraction(cursor, skills_json, slug)
@@ -95,8 +104,8 @@ def populate_skills(limit=90):
         f"Pending jobs found:    {stats['pending']}\n"
         f"Successfully processed: {stats['processed']}\n"
         f"Malformed JSON:        {stats['malformed_json']}  (marked failed, won't retry)\n"
-        f"Invalid shape:         {stats['invalid_shape']}  (skipped, will retry next run)\n"
-        f"Other errors:          {stats['other_errors']}  (skipped, will retry next run)\n"
+        f"Invalid shape:         {stats['invalid_shape']}  (marked failed, won't retry)\n"
+        f"Other errors:          {stats['other_errors']}  (marked failed, won't retry)\n"
         f"Rate limit hit:        {'yes' if stats['rate_limited'] else 'no'}\n"
         f"Percentage of covered jobs: {stats['global_progress']}%"
     )

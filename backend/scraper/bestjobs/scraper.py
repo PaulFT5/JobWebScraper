@@ -2,8 +2,9 @@ import datetime
 import json
 import time
 from functools import lru_cache
+from json import JSONDecodeError
 from pathlib import Path
-from backend.database.repositories.job_repositories import check_existing_slug, add_description_experience, \
+from backend.database.repositories.jobExtractionRepository import check_existing_slug, add_description_experience, \
     add_new_jobs, mark_available
 from backend.utils.response import get_response
 
@@ -42,31 +43,50 @@ def json_response(url, domain_name, domain_id, city, work_type_name, work_type_i
     response, soup = get_response(url)
 
     if not soup or not response:
-        return []
+        return None
 
-    data = response.json()
-    slug_list =[]
+    # 1. Guard response.json() decoding
+    try:
+        data = response.json()
+    except (ValueError, JSONDecodeError):
+        return None
+
+    # Guard against top-level JSON not being a dict (e.g. JSON array or literal)
+    if not isinstance(data, dict):
+        return None
+
+    # 2. Guard data['items']: verify key exists and value is a list
+    items = data.get('items')
+    if not isinstance(items, list):
+        return None
+
+    slug_list = []
     new_slugs = []
-
     scraped_date = datetime.date.today().isoformat()
 
-    for item in data['items']:
-        slug = item['slug']
-        slug_list.append(slug)
+    for item in items:
+        try:
+            slug = item['slug']
+            slug_list.append(slug)
 
-        if check_existing_slug(cursor, slug):
-            continue
+            if check_existing_slug(cursor, slug):
+                continue
 
-        new_slugs.append(slug)
-        ad_link = f"https://www.bestjobs.eu/ro/loc-de-munca/{slug}"
+            new_slugs.append(slug)
+            ad_link = f"https://www.bestjobs.eu/ro/loc-de-munca/{slug}"
 
-        add_new_jobs(cursor, "bestjobs", slug, item["title"], item["companyName"],
-                     item["salary"], item["estimatedSalary"], work_type_id, work_type_name,
-                     ad_link, city, domain_id, domain_name, scraped_date)
+            add_new_jobs(
+                cursor, "bestjobs", slug, item["title"], item["companyName"],
+                item["salary"], item["estimatedSalary"], work_type_id, work_type_name,
+                ad_link, city, domain_id, domain_name, scraped_date
+            )
+        # 3. Catch TypeError alongside KeyError (e.g., item is None or not a dict)
+        except (KeyError, TypeError) as e:
+            print(f"Error executing scraper: {e}")
+        finally:
+            conn.commit()
 
-    mark_available(cursor, slug_list)
-    conn.commit()
-    return new_slugs
+    return new_slugs, slug_list
 
 def additional_info(slug_list, cursor, conn):
     config = load_config()

@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 email_sender = os.getenv('EMAIL_ACCOUNT_SENDER')
 my_password = os.getenv('EMAIL_PASSWORD')
-email_reciver = os.getenv('EMAIL_ACCOUNT_RECEIVER')
+email_receiver = os.getenv('EMAIL_ACCOUNT_RECEIVER')
 
 def sender(subject, text):
     if not email_sender or not my_password:
@@ -20,11 +20,11 @@ def sender(subject, text):
 
     msg = MIMEMultipart()
     msg['From'] = email_sender
-    msg['To'] = email_reciver
+    msg['To'] = email_receiver
     msg['Subject'] = subject
     msg.attach(MIMEText(text))
 
     smtp.sendmail(from_addr=email_sender,
-                  to_addrs=email_reciver,
+                  to_addrs=email_receiver,
                   msg=msg.as_string())
     smtp.quit()
