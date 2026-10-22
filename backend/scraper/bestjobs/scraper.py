@@ -5,7 +5,7 @@ from functools import lru_cache
 from json import JSONDecodeError
 from pathlib import Path
 from backend.database.repositories.jobExtractionRepository import check_existing_slug, add_description_experience, \
-    add_new_jobs, mark_available
+    add_new_jobs
 from backend.utils.response import get_response
 
 
