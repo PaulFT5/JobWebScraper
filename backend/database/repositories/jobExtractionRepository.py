@@ -12,7 +12,6 @@ def reset_all_availability(cursor, conn):
     cursor.execute(
         "Update Jobs set available = 0 where available = 1"
     )
-    conn.commit()
 
 def add_description_experience(cursor, experience_level, description, slug):
     """add experience level and description. This is done is the second scraping phase, where I already have the needed job slugs"""
