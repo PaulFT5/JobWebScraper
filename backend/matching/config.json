@@ -1,0 +1,40 @@
+{
+  "esco": {
+    "version": "1.2.1",
+    "language": "en",
+    "data_folder": "data/esco",
+    "metadata": {
+      "version_note": "Reproducibility; stored with every grounding row",
+      "language_note": "English-only decision",
+      "data_folder_note": "Where the CSVs are"
+    }
+  },
+  "seniority": {
+    "job_level_map": {
+      "Fără": 0,
+      "Entry": 0,
+      "Middle": 2,
+      "Senior": 3,
+      "Executive": 3
+    },
+    "cv_tier_map": {
+      "entry": 0,
+      "junior": 1,
+      "mid": 2,
+      "senior": 3
+    },
+    "multipliers_by_tiers_below": {
+      "0": 1.00,
+      "1": 0.85,
+      "2": 0.65,
+      "3": 0.45
+    },
+    "unknown_cv_tier_or_no_job_level": 1.00,
+    "metadata": {
+      "job_level_map_note": "Job tiers",
+      "cv_tier_map_note": "CV tiers",
+      "multipliers_note": "Discount",
+      "unknown_note": "No penalty"
+    }
+  }
+}

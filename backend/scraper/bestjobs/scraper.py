@@ -45,17 +45,14 @@ def json_response(url, domain_name, domain_id, city, work_type_name, work_type_i
     if not soup or not response:
         return None
 
-    # 1. Guard response.json() decoding
     try:
         data = response.json()
     except (ValueError, JSONDecodeError):
         return None
 
-    # Guard against top-level JSON not being a dict (e.g. JSON array or literal)
     if not isinstance(data, dict):
         return None
 
-    # 2. Guard data['items']: verify key exists and value is a list
     items = data.get('items')
     if not isinstance(items, list):
         return None
