@@ -9,6 +9,18 @@
       "data_folder_note": "Where the CSVs are"
     }
   },
+  "model": {
+    "name": "BAAI/bge-small-en-v1.5",
+    "revision": "5c38ec7c405ec4b44b94cc5a9bb96e735b38267a",
+    "model_folder": "data/models",
+    "cache_folder":"data/cache"
+  },
+  "grounding": {
+    "fuzzy_threshold": 90,
+    "gap_acceptance_min": 5,
+    "fuzzy_min_lenght": 4,
+    "embedding_floor": 0.80
+  },
   "seniority": {
     "job_level_map": {
       "Fără": 0,
