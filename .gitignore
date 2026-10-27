@@ -2,6 +2,8 @@
 .env
 __pycache__/
 *.pyc
+data/models/
+data/cache/
 *.pyo
 .idea/
 data/cv/
