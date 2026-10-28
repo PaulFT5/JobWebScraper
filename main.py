@@ -1,10 +1,9 @@
 # main.py
-from backend.cv_parser.parser import parse_cv
+from backend.api.main import app
 from backend.utils.data_setup import data_folder_setup
 
+data_folder_setup()
 
-def main():
-    data_folder_setup()
-    parse_cv()
-
-main()
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
