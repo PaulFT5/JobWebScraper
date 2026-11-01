@@ -3,13 +3,13 @@
     import { fetchJobs } from '$lib/api/fetchJobs';
     import { selection, selectJob, showDetails } from '$lib/selection.svelte';
     import { cv } from '$lib/cv.svelte';
-    import { jobKey, salaryFloor, salaryKind, experienceKind } from '$lib/jobs';
+    import { mockScore } from '$lib/mockScore.svelte';
+    import { jobKey, salaryFloor, salaryKind, experienceKind, parseSkills } from '$lib/jobs';
     import type { Job } from '$lib/types';
     import JobCard from './JobCard.svelte';
+    import SearchBar, { type SortKey, type SearchFields } from './SearchBar.svelte';
 
     const PAGE_SIZE = 30;
-
-    type SortKey = 'default' | 'salary-desc' | 'salary-asc' | 'title';
 
     let jobs = $state<Job[]>([]);
     let status = $state<'loading' | 'ready' | 'error'>('loading');
@@ -17,6 +17,7 @@
     let reloadKey = $state(0);
     let search = $state('');
     let sort = $state<SortKey>('default');
+    let fields = $state<SearchFields>({ title: true, company: true, skills: false });
     let visible = $state(PAGE_SIZE);
 
     // only the newest request may write results
@@ -40,6 +41,15 @@
             });
     });
 
+    // search only in the fields ticked under "Search in"
+    function matches(j: Job, term: string): boolean {
+        return (
+            (fields.title && j.title.toLowerCase().includes(term)) ||
+            (fields.company && (j.company ?? '').toLowerCase().includes(term)) ||
+            (fields.skills && parseSkills(j.required_skills).some((s) => s.toLowerCase().includes(term)))
+        );
+    }
+
     const shown = $derived.by(() => {
         const term = search.trim().toLowerCase();
         const kinds = applied.salary_kinds;
@@ -48,7 +58,7 @@
             (j) =>
                 (kinds.length === 0 || kinds.includes(salaryKind(j))) &&
                 (levels.length === 0 || levels.includes(experienceKind(j))) &&
-                (!term || j.title.toLowerCase().includes(term) || (j.company ?? '').toLowerCase().includes(term))
+                (!term || matches(j, term))
         );
 
         if (sort === 'title') list.sort((a, b) => a.title.localeCompare(b.title));
@@ -93,8 +103,9 @@
 </script>
 
 <section class="flex min-h-0 flex-1 flex-col">
-    <header class="flex shrink-0 flex-wrap items-end gap-3 pb-3">
-        <div class="mr-auto">
+    <!-- same columns as the job grid below, so the search bar is exactly one job card wide (the middle one on wide screens) -->
+    <header class="grid shrink-0 grid-cols-1 items-end gap-3 pb-3 md:grid-cols-2 xl:grid-cols-3">
+        <div>
             <h2 class="text-base font-semibold">Available Positions</h2>
             <p class="text-xs text-slate-500" aria-live="polite">
                 {#if status === 'error'}
@@ -107,25 +118,9 @@
             </p>
         </div>
 
-        <input
-            type="search"
-            placeholder="Search title or company"
-            aria-label="Search title or company"
-            class="w-56 rounded-md border-slate-300 py-1 text-sm focus:border-teal-500 focus:ring-teal-500"
-            bind:value={search}
-            oninput={resetPaging}
-        />
-        <select
-            aria-label="Sort jobs"
-            class="rounded-md border-slate-300 py-1 pr-8 text-sm focus:border-teal-500 focus:ring-teal-500"
-            bind:value={sort}
-            onchange={resetPaging}
-        >
-            <option value="default">Default order</option>
-            <option value="salary-desc">Salary: high → low</option>
-            <option value="salary-asc">Salary: low → high</option>
-            <option value="title">Title A–Z</option>
-        </select>
+        <SearchBar bind:search bind:sort bind:fields onchange={resetPaging} />
+
+        <div class="hidden xl:block" aria-hidden="true"></div>
     </header>
 
     <!-- inner padding keeps the selected ring and focus outline from being clipped by the scroll box -->
@@ -146,7 +141,7 @@
         {:else if loadedOnce}
             <div class="grid grid-cols-1 items-start gap-3 transition-opacity md:grid-cols-2 xl:grid-cols-3 {status === 'loading' ? 'opacity-60' : ''}">
                 {#each page as job (jobKey(job))}
-                    <JobCard {job} selected={jobKey(job) === selectedKey} onSelect={selectJob} onDetails={showDetails} />
+                    <JobCard {job} score={mockScore.value ?? undefined} selected={jobKey(job) === selectedKey} onSelect={selectJob} onDetails={showDetails} />
                 {/each}
             </div>
 

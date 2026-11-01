@@ -12,6 +12,23 @@ export function parseSkills(raw: string | null): string[] {
     }
 }
 
+// muted pastel avatar per company; red, amber and green are left out because they mean weak / partial / strong match
+const AVATAR_COLORS: { bg: string; fg: string }[] = [
+    { bg: '#ccfbf1', fg: '#115e59' }, // teal
+    { bg: '#e0f2fe', fg: '#075985' }, // sky
+    { bg: '#ede9fe', fg: '#5b21b6' }, // violet
+    { bg: '#e0e7ff', fg: '#3730a3' }, // indigo
+    { bg: '#f5f5f4', fg: '#44403c' } // stone
+];
+
+// same company → same color on every card and in the details popup
+export function avatarColors(company: string | null): { bg: string; fg: string } {
+    const name = (company || '?').toLowerCase();
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+    return AVATAR_COLORS[h % AVATAR_COLORS.length];
+}
+
 export function companyInitials(company: string | null): string {
     return (company || '?')
         .split(/\s+/)

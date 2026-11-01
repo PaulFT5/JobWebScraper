@@ -1,2 +1,29 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/forms';
+
+/* Color tokens shared by the sidebar and the analyzer cards */
+:root {
+	--sidebar-bg: #0f172a;
+	/* emerald-700 so the white label keeps ~5.5:1 contrast */
+	--apply-bg: #047857;
+	--apply-bg-hover: #059669;
+	--apply-fg: #ffffff;
+	/* card headers: the sidebar color at low opacity */
+	--card-head-bg: rgb(15 23 42 / 0.06);
+	--card-head-fg: #0f172a;
+	--card-head-border: rgb(15 23 42 / 0.12);
+	/* one color per chart: the "Earthy" set (sage, terracotta, dusty blue, ochre) */
+	--bar-level: #7d9c7f;
+	--bar-domain: #b9846a;
+	--bar-city: #7f9fb3;
+	--bar-skills: #a8936a;
+	/* accent on the Jobs page (selected card, detail buttons); text on it stays >= 4.5:1 */
+	--accent-btn: #14b8a6;
+	--accent-btn-hover: #2dd4bf;
+	--accent-btn-fg: #0f172a;
+	--accent-text: #0f766e;
+	--accent-soft: #f0fdfa;
+	--accent-soft-hover: #ccfbf1;
+	--accent-border: #5eead4;
+	--accent-ring: #14b8a6;
+}

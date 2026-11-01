@@ -2,9 +2,11 @@
     import { cv } from '$lib/cv.svelte';
     import { selection, showDetails } from '$lib/selection.svelte';
     import { scoreTheme, scoreLabel } from '$lib/score';
+    import { mockScore } from '$lib/mockScore.svelte';
 
     // null until the matcher is wired to the API
-    const score = null as number | null;
+    // TEMPORARY: mock value from MockScoreSwitch; null until the matcher is wired to the API
+    const score = $derived(mockScore.value);
 
     const job = $derived(selection.job);
     const theme = $derived(score === null ? null : scoreTheme(score));
@@ -36,7 +38,7 @@
         {#if job && !selection.details}
             <button
                 type="button"
-                class="w-fit cursor-pointer text-xs font-semibold text-teal-700 hover:underline focus-visible:outline-2 focus-visible:outline-teal-500"
+                class="w-fit cursor-pointer text-xs font-semibold text-(--accent-text) hover:underline focus-visible:outline-2 focus-visible:outline-teal-500"
                 onclick={() => showDetails(job)}
             >
                 Show job details

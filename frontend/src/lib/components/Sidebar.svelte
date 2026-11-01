@@ -40,7 +40,7 @@
          ${active ? activeStyle : 'border-transparent text-slate-500 hover:text-slate-300'}`;
 </script>
 
-<aside class="flex h-screen w-64 shrink-0 flex-col bg-[#1e2433] text-slate-200">
+<aside class="flex h-screen w-64 shrink-0 flex-col bg-(--sidebar-bg) text-slate-200">
     <header class="border-b border-slate-700 p-4">
         <h1 class="text-xl font-bold">CV<span class="text-teal-400">Match</span></h1>
         <p class="text-xs text-slate-400">Job compatibility engine</p>
@@ -82,9 +82,9 @@
         <div class="flex gap-2">
             <button
                 type="button"
-                class="flex-1 cursor-pointer rounded-lg bg-teal-500 px-3 py-1.5 text-sm font-semibold text-slate-900 hover:bg-teal-400
+                class="flex-1 cursor-pointer rounded-lg bg-(--apply-bg) px-3 py-1.5 text-sm font-semibold text-(--apply-fg) hover:bg-(--apply-bg-hover)
                        focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400
-                       disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-teal-500"
+                       disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-(--apply-bg)"
                 disabled={!dirty}
                 onclick={applyFilters}
             >

@@ -1,6 +1,6 @@
 <script lang="ts">
     import { selection, closeDetails } from '$lib/selection.svelte';
-    import { parseSkills, companyInitials, salaryInfo, experienceLabel } from '$lib/jobs';
+    import { parseSkills, companyInitials, avatarColors, salaryInfo, experienceLabel } from '$lib/jobs';
 
     const job = $derived(selection.details);
     const skills = $derived(job ? parseSkills(job.required_skills) : []);
@@ -30,7 +30,10 @@
         aria-labelledby="job-details-title"
     >
         <header class="flex items-start gap-3 border-b border-slate-200 p-5">
-            <div class="flex size-10 shrink-0 items-center justify-center rounded-md bg-teal-700 text-sm font-bold text-white">
+            <div
+                class="flex size-10 shrink-0 items-center justify-center rounded-md text-sm font-bold"
+                style="background: {avatarColors(job.company).bg}; color: {avatarColors(job.company).fg}"
+            >
                 {companyInitials(job.company)}
             </div>
             <div class="min-w-0 flex-1">
@@ -89,7 +92,7 @@
                     href={job.ad_link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="block rounded-lg bg-teal-500 px-3 py-2 text-center text-sm font-semibold text-slate-900 hover:bg-teal-400 focus-visible:outline-2 focus-visible:outline-teal-700"
+                    class="block rounded-lg bg-(--accent-btn) px-3 py-2 text-center text-sm font-semibold text-(--accent-btn-fg) hover:bg-(--accent-btn-hover) focus-visible:outline-2 focus-visible:outline-teal-700"
                 >
                     Open original ad
                 </a>

@@ -4,7 +4,7 @@ description: Targeted code search for the JobWebScraper project. Use when you ne
 tools: Read, Grep, Glob
 ---
 
-You find code in the JobWebScraper project (root: C:\Users\User\PycharmProjects\JobWebScraper) and answer with precise locations. You never modify anything.
+You find code in the JobWebScraper project (the project root is the working directory; never assume a machine-specific path, the project runs on more than one machine) and answer with precise locations. You never modify anything.
 
 ## Method: narrow first, widen only when needed
 1. **Classify the question** into one or two topics using the map below, and extract 2–5 search terms. Include likely identifiers, column names, endpoint paths and synonyms.
@@ -32,7 +32,8 @@ You find code in the JobWebScraper project (root: C:\Users\User\PycharmProjects\
 | LLM calls (Groq, model, tokens) | `backend/services/llm_service.py` |
 | Skill extraction from job descriptions, failure sentinel | `backend/services/skill_extraction_service.py` |
 | CV parsing | `backend/cv_parser/parser.py` |
-| Matching CV ↔ jobs | `backend/services/matcher_service.py` (may be empty) |
+| Matching engine: config, normalization, ESCO loader/index, grounding (exact/fuzzy), `MatchResult` | `backend/matching/` (`config.py`, `config.json`, `normalization.py`, `esco/loader.py`, `esco/index.py`, `grounding.py`, `match_result_object.py`); plan in `docs/MATCHING_ROADMAP.md` |
+| Matching CV ↔ jobs (service entry point) | `backend/services/matcher_service.py` (may be empty) |
 | E-mail notifications | `backend/services/notifier_service.py` |
 | API app, CORS, routes | `backend/api/main.py`, `backend/api/routers/`, `backend/api/schemas/` |
 | Scheduling / CI | `.github/workflows/scrape.yml`, `.github/workflows/extract.yml` |

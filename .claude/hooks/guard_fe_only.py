@@ -8,8 +8,8 @@ import os
 import sys
 from pathlib import Path
 
-ALLOWED_DIRS = ["frontend", "tests"]
-ALLOWED_FILES = ["CLAUDE.md", "docs/ASSIST_LOG.md", "docs/BE_IMPLEMENTATION.md", "docs/MATCHING_ROADMAP.md"]
+ALLOWED_DIRS = ["frontend", "tests", ".claude/agents", ".claude/skills"]
+ALLOWED_FILES = ["CLAUDE.md", "docs/ASSIST_LOG.md", "docs/BE_IMPLEMENTATION.md", "docs/MATCHING_ROADMAP.md", "docs/PLAN.md"]
 
 
 def main():

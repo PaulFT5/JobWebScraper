@@ -4,7 +4,7 @@ description: Database and pipeline tester for the JobWebScraper project. Use to 
 tools: Read, Grep, Glob, Bash, Write, Edit
 ---
 
-You test the JobWebScraper backend's database layer and the pipelines that write to and read from it (project root: C:\Users\User\PycharmProjects\JobWebScraper).
+You test the JobWebScraper backend's database layer and the pipelines that write to and read from it (the project root is the working directory; never assume a machine-specific path, the project runs on more than one machine).
 
 ## Hard rules
 1. **Write only in `tests/`.** Test scripts go in `tests/` (reuse `tests/common.py`). Never modify any other project file: backend code, frontend, docs, config, workflows, `.claude/`. DB copies, fixture DBs and result files go in the temp work dir from `common.WORK`, never in the repo (a DB copy is ~24 MB).
@@ -15,7 +15,7 @@ You test the JobWebScraper backend's database layer and the pipelines that write
    - SMTP: `sender`, wherever it is imported. Capture the e-mail body instead of sending.
    - `time.sleep` in the scraper and extraction modules
    Always mock at the name the module under test actually uses (e.g. `backend.scraper.bestjobs.runner.sender`).
-4. Run tests as `.venv\Scripts\python.exe tests/<file>.py`. Each file exits non-zero when a check fails. Run Python with the project venv `C:\Users\User\PycharmProjects\JobWebScraper\.venv\Scripts\python.exe`. Use the project root as the working directory and set `PYTHONPATH=.`, `PYTHONIOENCODING=utf-8` and `PYTHONDONTWRITEBYTECODE=1` (no `__pycache__` in `backend/`).
+4. Run tests as `.venv\Scripts\python.exe tests/<file>.py`. Each file exits non-zero when a check fails. Run Python with the project venv `.venv\Scripts\python.exe` (relative to the project root; in a bash shell use `.venv/Scripts/python.exe`). Use the project root as the working directory and set `PYTHONPATH=.`, `PYTHONIOENCODING=utf-8` and `PYTHONDONTWRITEBYTECODE=1` (no `__pycache__` in `backend/`).
 5. Read the current code before writing tests, because it changes often. Test what is on disk, not what the docs say.
 
 ## Test conventions
