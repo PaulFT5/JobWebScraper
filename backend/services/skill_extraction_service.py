@@ -5,6 +5,7 @@ from backend.database.connection import database_connect
 from backend.database.repositories.jobExtractionRepository import count_jobs_eligible_extraction, count_fully_populated_jobs, \
     get_available_for_extraction, set_failed_sentinel_extraction, set_successful_skill_extraction
 from backend.services.llm_service import llm_service
+from backend.services.llm_output_validator import validate_job_skills, MalformedJSONError, InvalidShapeError
 from backend.services.notifier_service import sender
 
 
@@ -13,6 +14,10 @@ def skills_extraction(description):
     You are a professional recruiter analyzing a job description.
     Extract hard skills mentioned in the text below — concrete, verifiable tools, software, systems, certifications, methodologies, or specialized domain knowledge
     (e.g. Python, SQL, SAP, Google Ads, GDPR compliance, phlebotomy, payroll processing, AutoCAD). Do not include soft skills (e.g. "communication," "teamwork," "leadership") and do not include spoken/written language requirements (e.g. "English", "fluent in German").
+
+    Write every skill in English, even when the job description is in Romanian or another language. Translate generic skills into their usual English term (e.g. "contabilitate primară" -> "bookkeeping", "diagnosticare" -> "medical diagnosis"). Keep product, software, standard and certification names exactly as written (e.g. SAP, AutoCAD, ISO 9001, PCI DSS); do not translate or expand them.
+
+    Each list item must be exactly one skill, written as a short noun phrase. If the text lists several skills together (in brackets, with commas, or joined by "and" or "/"), return each one as its own item. Keep a name as written when it is a single tool, standard or concept (e.g. CI/CD, TCP/IP, SAP S/4HANA). Do not include duties, tasks or degrees.
 
     Return every extracted skill in a single list called required_skills, regardless of whether the posting marks it as mandatory or optional.
 
@@ -27,7 +32,6 @@ def skills_extraction(description):
 
 
 FAILED_SENTINEL = '["__EXTRACTION_FAILED__"]'
-REQUIRED_KEYS = {"required_skills"}
 
 
 def populate_skills(limit=90):
@@ -57,29 +61,21 @@ def populate_skills(limit=90):
             time.sleep(20)
             try:
                 raw = skills_extraction(description)
-                parsed = json.loads(raw)
+                skills = validate_job_skills(raw)
+                skills_json = json.dumps(skills)
 
-                if not REQUIRED_KEYS.issubset(parsed.keys()):
-                    print(f"Missing expected keys for {slug}, marking failed. Got: {list(parsed.keys())}")
-                    set_failed_sentinel_extraction(cursor, FAILED_SENTINEL, slug)
-                    conn.commit()
-                    stats["invalid_shape"] += 1
-                    continue
-
-                if not isinstance(parsed["required_skills"], list):
-                    print(f"required_skills is not a list for {slug}, marking failed. Got: {type(parsed['required_skills'])}")
-                    set_failed_sentinel_extraction(cursor, FAILED_SENTINEL, slug)
-                    conn.commit()
-                    stats["invalid_shape"] += 1
-                    continue
-
-                skills_json = json.dumps(parsed["required_skills"])
+            except InvalidShapeError as e:
+                print(f"Invalid shape for {slug}, marking failed. {e}")
+                set_failed_sentinel_extraction(cursor, FAILED_SENTINEL, slug)
+                conn.commit()
+                stats["invalid_shape"] += 1
+                continue
 
             except RateLimitError as e:
                 print(f"Rate limit hit after {stats['processed']} jobs, stopping. {e}")
                 stats["rate_limited"] = True
                 break
-            except json.JSONDecodeError as e:
+            except MalformedJSONError as e:
                 print(f"Malformed JSON for {slug}, marking failed. {e}")
 
                 set_failed_sentinel_extraction(cursor, FAILED_SENTINEL, slug)

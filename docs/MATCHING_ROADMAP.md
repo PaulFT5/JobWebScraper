@@ -135,7 +135,7 @@ data/
 **Week 1 (2026-10-29 → 11-04)** — open
 - [x] *(open → done 2026-10-29)* Step B in `grounding.py`: rapidfuzz `process.extract` over index keys with length ≥ `fuzzy_min_length`, scorer `fuzz.ratio` (whole string); accept only if best ≥ `fuzzy_threshold` **and** best − second ≥ `gap_acceptance_min`; digits in input and key must be equal (ISO 9001 ≠ 14001); return `MatchResult(method="fuzzy", score=…)`.
 - [ ] `ground(skill)`: normalize → exact → fuzzy → unresolved, results kept in an in-memory dict (P3).
-- [ ] CV parser minimum (ASSIST_LOG CV1, CV4, CV5, CV6): file path/stream as input, fixed JSON shape with the `cv_tier_map` names, parsed and validated reply, returns a dict.
+- [ ] CV parser minimum (ASSIST_LOG CV1, CV4, CV5, CV6): file path/stream as input, fixed JSON shape with the `cv_tier_map` names, parsed and validated reply, returns a dict. — *(2026-11-11)* CV4, CV5 done, CV6 partly (returns dict); CV1 still open.
 
 **Week 2 (2026-11-05 → 11-11)** — open
 - [ ] Matrix: rows = job requirements, columns = CV skills, cell rule as in the assumption above.
@@ -212,7 +212,7 @@ One skill's path from the data to the screen. For each stage: **what goes in**, 
 - [x] Normalization: casefold, trim/collapse spaces, punctuation cleanup, small curated acronym list (ESCO alt labels first). Same function for ESCO labels and for input skills. — open → done 2026-10-26 (ticked 2026-10-29; acronym part moved to Phase 2)
   - *(2026-10-26)* Acronym list moved to grounding (Phase 2), applied after normalization; the normalization function itself is done (build step 2).
 - [ ] Compound split ("/", "&", "and") only if the whole string fails grounding **and** every part grounds confidently; never around digits. (CI/CD stays whole, C/C++ splits.)
-- [ ] CV parser returns a validated structure; tiers entry / junior / mid / senior / **unknown**; skill in several tiers → highest.
+- [ ] CV parser returns a validated structure; tiers entry / junior / mid / senior / **unknown**; skill in several tiers → highest. — *(2026-11-11)* validator implemented (`llm_output_validator.py`); prompt asks for `unknown` when experience is undeterminable.
   - *(2026-10-26)* Config `cv_tier_map` is the source of truth for tier names. The prompt names the exact keys; an alias table maps variants (`entry_level`, `Entry-level`, `mid_level`, `middle`, …; case-insensitive) to canonical keys; anything unrecognized → `unknown` (no default to entry).
 - [ ] Job requirements: flatten, normalize, dedupe (by URI after grounding).
 - [ ] Map job level: Fără/Entry→0, Middle→2, Senior/Executive→3, NULL→none. *(Since 2026-10-26; until 2026-10-26: "Fără"/NULL→none.)*

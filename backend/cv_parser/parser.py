@@ -1,4 +1,6 @@
+import json
 from backend.services.llm_service import llm_service
+from backend.services.llm_output_validator import validate_cv_skills
 import pdfplumber
 from pathlib import Path
 
@@ -7,10 +9,34 @@ pathToCV = BASE_DIR / "data" / "cv" / "raw" / "Test.pdf"
 pathToRawData = BASE_DIR / "data" / "cv" / "raw" / "CV_Raw_Extracted_Data.txt"
 pathToProcessedData = BASE_DIR / "data" / "cv" / "processed" / "CV_Processed_Extracted_Data.txt"
 
+CV_PROMPT = """
+    You are a professional recruiter analyzing a candidate's CV.
+    Extract hard skills mentioned in the text below — concrete, verifiable tools, software, systems, certifications, methodologies, or specialized domain knowledge
+    (e.g. Python, SQL, SAP, Google Ads, GDPR compliance, phlebotomy, payroll processing, AutoCAD). Do not include soft skills (e.g. "communication," "teamwork," "leadership") and do not include spoken/written language requirements (e.g. "English", "fluent in German") in the hard skills.
+
+    Write every skill in English, even when the CV is in Romanian or another language. Translate generic skills into their usual English term (e.g. "contabilitate primară" -> "bookkeeping", "diagnosticare" -> "medical diagnosis"). Keep product, software, standard and certification names exactly as written (e.g. SAP, AutoCAD, ISO 9001, PCI DSS); do not translate or expand them.
+
+    Each list item must be exactly one skill, written as a short noun phrase. If the text lists several skills together (in brackets, with commas, or joined by "and" or "/"), return each one as its own item. Keep a name as written when it is a single tool, standard or concept (e.g. CI/CD, TCP/IP, SAP S/4HANA). Do not include duties, tasks or degrees.
+
+    Put each hard skill in exactly one experience tier, based on explicit dates or clear context in the CV for how long the candidate has used it:
+    entry (0-2 years), junior (2-3 years), mid (3-5 years), senior (5+ years).
+    If the experience with a skill cannot be determined, put it in unknown.
+
+    Also list the spoken/written languages the candidate knows, in English (e.g. "English", "German").
+
+    Return only a JSON object in exactly this shape, with no explanation, no markdown, no code fences:
+{
+  "hard_skills": {"entry": [], "junior": [], "mid": [], "senior": [], "unknown": []},
+  "languages": []
+}
+
+    Every key is always present; use an empty list when there is nothing for it, never omit a key or use null."""
+
+
 def parse_cv():
     total_text = cv_data_extract()
     write_raw_data(total_text)
-    process_write_extracted_data(total_text)
+    return process_write_extracted_data(total_text)
 
 
 def cv_data_extract():
@@ -29,8 +55,9 @@ def write_raw_data(input_text):
 
 
 def process_write_extracted_data(input_raw_text):
-    promt = "You are a professional recruiter analyzing a candidate's CV. Extract all skills from the CV text below and return them as a JSON object. Follow these rules strictly: Hard skills — concrete, verifiable skills tied to performing a job: tools, software, systems, certifications, methodologies, or specialized domain knowledge (examples across fields: Python, SQL, SAP, Google Ads, GDPR compliance, phlebotomy, payroll processing, AutoCAD). Categorize each by experience level using any explicit dates or context clues in the CV. If no experience level can be determined, default to Entry-level. entry_level (0–2 years) ,junior (2–3 years), mid_level (3–5 years), senior (5+ years), Languages - return the candidate's known languages. Return only valid JSON. No explanation, no markdown, no code fences."
-    f = open(pathToProcessedData, "w", encoding="utf-8")
-    f.write(llm_service(promt, input_raw_text))
-    f.close()
+    cv_skills = validate_cv_skills(llm_service(CV_PROMPT, input_raw_text))
+    with open(pathToProcessedData, "w", encoding="utf-8") as f:
+        json.dump(cv_skills, f, ensure_ascii=False, indent=2)
+    return cv_skills
+
 
