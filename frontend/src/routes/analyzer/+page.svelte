@@ -65,7 +65,7 @@
 
     <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5" role="tabpanel">
         {#if tab === 'extraction'}
-            <ExtractionView {jobs} {coverage} />
+            <ExtractionView {coverage} />
         {:else if tab === 'matching'}
             <MatchingView />
         {:else}

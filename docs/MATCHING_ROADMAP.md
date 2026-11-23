@@ -2,7 +2,7 @@
 
 *Created: 2026-10-22 · design recorded in `docs/BE_IMPLEMENTATION.md` §5.4 (T10–T13)*
 
-*(Since 2026-10-26)* Score a user's CV against **one clicked job** (available, with extracted skills) and explain the score. English-only ESCO grounding, relative seniority, similarity matrix, set-matching metrics. *(Until 2026-10-26: score a CV against every available job with extracted skills.)*
+*(Since 2026-11-16, G1)* Score a user's CV against **every available job with extracted skills** right after upload (score on every job card), and explain the score of a clicked job. Job skills are pre-grounded by the daily workflow (see *Pre-grounded jobs*). English-only ESCO grounding, relative seniority, similarity matrix, set-matching metrics. *(2026-10-26 until 2026-11-16: score a user's CV against **one clicked job** and explain the score.)* *(Until 2026-10-26: score a CV against every available job with extracted skills.)*
 
 **Context (2026-10-29):** this engine is the core of the user's bachelor thesis; the learning focus is grounding, embeddings, similarity and metrics. Deadlines: minimal working slice by ~2026-11-12 (see *Minimal slice*), engine mostly done by March 2027. Parts are postponed, never dropped, unless time runs out. A job-market analyzer is a later bonus.
 
@@ -22,7 +22,7 @@
 - Both workflows install `requirements.txt` → sentence-transformers there would pull ~2 GB of CUDA torch into every run.
 
 ## Target structure
-*Last changed: 2026-10-29 (grounding.py location, match_result_object.py, per-machine folders, config table synced with config.json)* · before: 2026-10-26 (Fără job level, CV tier names, embedding model, step D postponed, acronym list, on-click flow)
+*Last changed: 2026-11-16 (pre-grounded jobs: services, repository, build steps 6 and 16, no grounding cache file)* · before: 2026-10-29 (grounding.py location, match_result_object.py, per-machine folders, config table synced with config.json) · before: 2026-10-26 (Fără job level, CV tier names, embedding model, step D postponed, acronym list, on-click flow)
 
 ### File organization
 ```
@@ -52,10 +52,10 @@ backend/
 │   ├── report.py                  ← %, per-requirement attribution, gaps, extra skills, ranking
 │   └── engine.py                  ← orchestrates the pipeline
 ├── services/
-│   ├── skill_grounding_service.py ← on-click grounding of a job's / CV's skills + local batch script for stats (since 2026-10-26; until then: offline batch after daily extraction)
-│   └── matcher_service.py         ← online entry point: CV + jobs → engine
+│   ├── skill_grounding_service.py ← batch: grounds every job's new/stale skills into `Jobs.grounded_skills`, run by `extract.yml` after extraction (since 2026-11-16, G2/G4; 2026-10-26 until 2026-11-16: on-click grounding of a job's / CV's skills + local batch script for stats; until 2026-10-26: offline batch after daily extraction)
+│   └── matcher_service.py         ← online entry point: grounded CV → scores for all jobs + detail for one job (since 2026-11-16, G1)
 └── database/repositories/
-    └── skillGroundingRepository.py ← grounding cache access (`data/cache/grounding.sqlite`, since 2026-10-26; until then: SkillGrounding table in JobsDatabase)
+    └── skillGroundingRepository.py ← reads/writes the `Jobs.grounded_skills` + `grounding_fingerprint` columns (since 2026-11-16, G3; 2026-10-26 until 2026-11-16: grounding cache `data/cache/grounding.sqlite`; until 2026-10-26: SkillGrounding table in JobsDatabase)
 
 data/
 ├── esco/                          ← committed
@@ -64,7 +64,7 @@ data/
 │   ├── skill_Hierarchy.csv        ← ESCO skillsHierarchy_en (renamed 2026-10-23)
 │   └── overrides                  ← manual corrections (always win)
 ├── models/                        ← downloaded embedding model, git-ignored
-├── cache/                         ← vectors, git-ignored, rebuilt when missing
+├── cache/                         ← vectors, git-ignored, rebuilt when missing (no grounding cache file since 2026-11-16, G3)
 └── eval/                          ← hand-labelled CV–job pairs
 ```
 *(2026-10-29)* `data/models/` and `data/cache/` are **per machine**: git never carries them, so a new machine starts without the model and with an empty cache (see `BE_IMPLEMENTATION.md` §7, *Setting up a new machine*). `data/eval/`, `data/esco/overrides` and the acronym file don't exist yet (planned).
@@ -104,7 +104,7 @@ data/
 3. `esco/loader.py` — open → done 2026-10-26
 4. `esco/index.py` — exact, then fuzzy — exact: open → done 2026-10-27 (`exact_match`, `tests/test_index.py`); fuzzy: open → in progress 2026-10-28 (in `grounding.py` since 2026-10-29, decision P1) → done 2026-10-29 (`fuzzy_match`)
 5. `esco/graph.py`
-6. Grounding cache DB `data/cache/grounding.sqlite` (git-ignored) + repository *(since 2026-10-26)* — until 2026-10-26: `SkillGrounding` table in `JobsDatabase.sqlite`
+6. *(Since 2026-11-16, G3)* `Jobs.grounded_skills` (JSON parallel to `required_skills`) + `grounding_fingerprint` columns + repository, filled by the batch service in `extract.yml` — *(2026-10-26 until 2026-11-16: grounding cache DB `data/cache/grounding.sqlite` (git-ignored) + repository)* — until 2026-10-26: `SkillGrounding` table in `JobsDatabase.sqlite`
 7. `embeddings.py`
 8. `grounding.py` *(at `backend/matching/` since 2026-10-29; until then `esco/grounding.py`)* — overrides → table → A → B → C; local batch script over all job skills for stats *(since 2026-10-26)*; **then** step D *(postponed 2026-10-26, may not be implemented)*
 9. CV parser rework (independent; any time before 10)
@@ -114,10 +114,12 @@ data/
 13. Minimal `engine.py` + `report.py` (first end-to-end result)
 14. `soft_cosine.py` → `hungarian.py` → `chamfer.py`
 15. Full `report.py` (gaps, extra skills, ranking)
-16. `matcher_service.py` (on click: ground unseen job skills, score one CV vs one job) *(since 2026-10-26)* — until 2026-10-26: + grounding step in `extract.yml` with CPU torch (dropped: no matching work in GitHub Actions)
+16. `matcher_service.py` — *(since 2026-11-16, G1)* grounded CV → scores for all available jobs (read from `Jobs.grounded_skills` in one query) + detail for one clicked job. *(2026-10-26 until 2026-11-16: on click: ground unseen job skills, score one CV vs one job.)* — until 2026-10-26: + grounding step in `extract.yml` with CPU torch (dropped: no matching work in GitHub Actions)
 17. API endpoint + analyzer page (after the API decision) — *(2026-10-30)* analyzer after the minimal slice (AN1), design in *Analyzer page* below
 
 *(2026-10-29)* This order still holds for the full engine, but it is now reached **through the minimal slice first** (below): exact + fuzzy → matrix → Chamfer → minimal report → endpoints → FE, then the remaining steps. Changes to the order: Chamfer is the first metric (P2); the grounding cache (step 6) starts as an in-memory dict and becomes `grounding.sqlite` in November (P3).
+
+*(2026-11-16, G5)* The slice now continues in three steps (see *Pre-grounded jobs*): saved exact + fuzzy grounding for all jobs → matching engine on the saved data, CV side included → embeddings (step 7, step C) + reground of every job. P3's `grounding.sqlite` is replaced by the `Jobs` column (G3).
 
 ## Minimal slice (since 2026-10-29)
 **Goal by ~2026-11-12:** the end-to-end flow works with real data: upload a CV → click a job → see a real score and the missing skills in the UI. Minimum: exact + fuzzy grounding and one compare method (Chamfer). Accuracy is secondary; nothing below is dropped, only sequenced.
@@ -126,7 +128,7 @@ data/
 |---|---|---|
 | P1 | Grounding lives at `backend/matching/grounding.py`: one pipeline used for job **and** CV skills; `esco/` stays the ESCO data layer (loader, index, graph). | `esco/grounding.py` in the file tree |
 | P2 | **Chamfer first**, then Tversky → Soft Cosine → Hungarian. Chamfer is the simplest, the UI default, and its per-requirement output is exactly what the report needs. | Hardest first (Tversky first, Chamfer last) |
-| P3 | Grounding cache starts as an **in-memory dict** (lost on restart); `grounding.sqlite` follows in November. | Cache DB built before embeddings (build step 6) |
+| P3 | Grounding cache starts as an **in-memory dict** (lost on restart); `grounding.sqlite` follows in November. *(2026-11-16: the `grounding.sqlite` part is replaced by the `Jobs.grounded_skills` column, G3; the in-memory dict stays inside `ground()` for the batch run.)* | Cache DB built before embeddings (build step 6) |
 | P4 | **Keep FastAPI** for the slice; T2 reconsidered after March, if at all (routing is low priority for the learning goal). | "Reconsider week of 2026-10-26" |
 | P5 | Thin end-to-end slice by ~2026-11-12, then deepen in the build order. | Strict dependency-driven order to the end |
 
@@ -134,20 +136,66 @@ data/
 
 **Week 1 (2026-10-29 → 11-04)** — open
 - [x] *(open → done 2026-10-29)* Step B in `grounding.py`: rapidfuzz `process.extract` over index keys with length ≥ `fuzzy_min_length`, scorer `fuzz.ratio` (whole string); accept only if best ≥ `fuzzy_threshold` **and** best − second ≥ `gap_acceptance_min`; digits in input and key must be equal (ISO 9001 ≠ 14001); return `MatchResult(method="fuzzy", score=…)`.
-- [ ] `ground(skill)`: normalize → exact → fuzzy → unresolved, results kept in an in-memory dict (P3).
+- [x] `ground(skill)`: normalize → exact → fuzzy → unresolved, results kept in an in-memory dict (P3). — open → done (found in `grounding.py`, checked 2026-11-16; exact score set to 100)
 - [ ] CV parser minimum (ASSIST_LOG CV1, CV4, CV5, CV6): file path/stream as input, fixed JSON shape with the `cv_tier_map` names, parsed and validated reply, returns a dict. — *(2026-11-11)* CV4, CV5 done, CV6 partly (returns dict); CV1 still open.
 
 **Week 2 (2026-11-05 → 11-11)** — open
 - [ ] Matrix: rows = job requirements, columns = CV skills, cell rule as in the assumption above.
 - [ ] `metrics/chamfer.py`: per requirement, the best value in its row (and which CV skill gave it); score = mean of those bests × 100.
 - [ ] Minimal report: % score, best CV skill per requirement, missing requirements (best = 0).
-- [ ] FastAPI (user): CV upload → parsed + grounded CV for the session; score for a job id.
+- [ ] FastAPI (user): CV upload → parsed + grounded CV for the session; score for a job id. *(2026-11-16, G1: the upload returns scores for all jobs; the job-id call returns the detail.)*
 - [ ] Frontend (Claude, on request): real score instead of the mock 72 (FE_NOTES L5/I5), missing skills, PDF-only upload (I4/CV11).
 
 **Stretch** — open
 - [ ] `embeddings.py` (bge-small, `model_folder` + `revision` from config) + step C full search with floor 0.80; matrix cell = cosine for unmatched pairs.
 
-**After the slice (November → March, in this order):** `grounding.sqlite` cache → step C (if not done) → acronym list + overrides → ambiguity rule in step C (candidates + gap) → `esco/graph.py` + subsumption boost → seniority → Tversky → Soft Cosine → Hungarian → eval set (20 pairs) + batch grounding stats → full report → remaining CV items → analyzer (bonus). Thesis writing from `BE_IMPLEMENTATION.md`, started early.
+**After the slice (November → March, in this order):** `grounding.sqlite` cache → step C (if not done) → acronym list + overrides → ambiguity rule in step C (candidates + gap) → `esco/graph.py` + subsumption boost → seniority → Tversky → Soft Cosine → Hungarian → eval set (20 pairs) + batch grounding stats → full report → remaining CV items → analyzer (bonus). Thesis writing from `BE_IMPLEMENTATION.md`, started early. *(2026-11-16, G5: the `grounding.sqlite` cache is replaced by step 1 of *Pre-grounded jobs* (saved grounding in `Jobs`), and step C comes as its step 3 with a reground; the rest of this list follows unchanged.)*
+
+## Pre-grounded jobs (since 2026-11-16)
+**Goal:** right after a CV upload, every job card shows its score. The slow part (grounding job skills against ~100k ESCO keys) runs ahead of time in the daily workflow, so the user only waits for the CV parse, the CV grounding and the comparison.
+
+| # | Decision (user, 2026-11-16) | Replaces |
+|---|---|---|
+| G1 | Score the CV against **every available job with extracted skills** at upload; score on every card; click = detail (best CV skill per requirement, missing skills) | One CV vs one clicked job (2026-10-26) |
+| G2 | Job skills are **pre-grounded** by a batch; at upload only the CV's skills are grounded, and CV keys already grounded for a job reuse that result | Job skills grounded on first click (2026-10-26) |
+| G3 | Stored in a **new `Jobs` column** `grounded_skills`: JSON list parallel to `required_skills`, one entry per skill (key, status, concept or candidates, method, score), plus `grounding_fingerprint` (hash of the `grounding` config + ESCO version, later the model revision). A fingerprint mismatch = stale row → regrounded | `SkillGrounding` in a separate git-ignored `data/cache/grounding.sqlite` (2026-10-26) and the in-memory dict (P3) |
+| G4 | The batch runs in **GitHub Actions**, after extraction in `extract.yml`, installing only `rapidfuzz` (not `requirements-matching.txt`, which pulls torch); the DB is committed as now. Embeddings in Actions: not decided | No grounding / torch in `extract.yml` (2026-10-26) |
+| G5 | Order: **(1)** exact + fuzzy grounding saved for all jobs → **(2)** matching engine on the saved data, **CV side included** → **(3)** embeddings (step C) + reground every job | Slice weeks 1–2 + stretch |
+| G6 | **Stay on SQLite** (24 MB, 6,627 jobs on 2026-11-16). Reconsider only with several writers, a real deployment, or a DB file too large for git | — (new) |
+| G7 | The matcher takes a **grounded CV object**, independent of where it comes from (session now; user accounts later, in a separate git-ignored store, never in `JobsDatabase.sqlite`) | — (new) |
+
+**Steps (G5)** — open
+- [ ] **1. Saved exact + fuzzy grounding.** `Jobs.grounded_skills` + `grounding_fingerprint`; repository (rows to ground: skills present, not `[]` / failure marker, column NULL or stale fingerprint; save; bulk read); batch service with `ground()`; workflow step in `extract.yml`; first full run; **save the stats** (share per method, unresolved rate) for the before/after comparison.
+- [ ] **2. Matching engine on the saved data.**
+  - CV side: parser takes the uploaded file (CV1), returns the dict, writes no CV files to `data/cv/`; CV grounding (saved job results first, then `ground()`). The engine can be built and tested first with a hand-written CV dict in the parser's shape.
+  - Comparison: matrix (same concept or same key = 1.0, else 0), Chamfer, `matcher_service.py` (all jobs + one job's detail), endpoints (CV upload, match detail), ESCO index built at app startup.
+- [ ] **3. Embeddings (step C) + reground.** Adding step C changes the fingerprint, so the batch regrounds every row; compare the stats with step 1.
+
+**Measurements (2026-11-16, user's PC, DB opened read-only):**
+
+| What | Result |
+|---|---|
+| Data | 2,149 available jobs with skills → 19,878 skills → 9,219 distinct keys (~9 per job) |
+| ESCO index build | 2.0 s, 99,873 keys |
+| Exact (A), all keys | 0.14 s (~0.015 ms per key) |
+| Exact + fuzzy (`ground()`), all keys, cold | **156 s (~17 ms per key)**; fuzzy scans ~100k keys |
+| Same, warm in-memory cache | 0.2 s |
+| Grounding result | 612 exact, 161 fuzzy, 14 ambiguous, 8,446 unresolved → **8.4% grounded** |
+| bge-small (CPU, 6 threads) | model load 12 s; ~1.7 ms per string (batch 128) → est. ~170 s once for all ESCO keys; one short query ~15 ms |
+| Cosine 9k queries × 100k vectors (numpy) | 2.6 s |
+| Bulk read of all jobs' skills + JSON decode | 0.25 s |
+| Chamfer over all jobs (simulated, random 40-skill CV) | 2.5 ms (equality cells), 25 ms (cosine cells) |
+
+**Per CV upload:** about 1 s of backend work (CV grounding ≤ 0.7 s, read 0.25 s, scoring ~ms) plus the Groq parse (est. 2–5 s, not measured). Scoring every job on the fly instead: ~156 s (~3 min with embeddings) on the first upload after each restart. Workflow cost: first run est. 3–5 min on a runner, then est. 5–10 s per day.
+
+**Open questions (2026-11-16):**
+- CV cache: in memory (fits the session-only rule) or on disk (would reverse it)?
+- Grounding as a step in `extract.yml` or a separate workflow triggered after it?
+- Scores for all jobs in the upload response, or a separate request?
+- Matrix rule for ambiguous skills before step C (CV concept among the candidates, or compare the keys)?
+- Embeddings in Actions (CPU torch ~200 MB + cached model) or locally into the same column?
+- If cosine cells are used, where do the job key vectors live (~14 MB; not committed, rebuilt locally)?
+- Analyzer timings (AN2 `duration_ms`, `source`, planned for `SkillGrounding`): inside the JSON entries, or dropped for job skills?
 
 ## How it fits together (walkthrough, since 2026-10-29)
 One skill's path from the data to the screen. For each stage: **what goes in**, **where it comes from**, **which module/function**, **what comes out**, **where it goes next**. *Done* = exists in code; *planned* = not written yet.
@@ -161,12 +209,12 @@ One skill's path from the data to the screen. For each stage: **what goes in**, 
 | 4 | Simplify + exact (A) | normalized string | stage 3 + index built once from `data/esco/*.csv` (`esco/loader.py` → `esco/index.py`) | `exact_match(skill)` (simplifies: hyphens → spaces, trailing qualifier removed) | `MatchResult` — `"python"` → *match*, concept = ESCO URI for Python | done → 7; not found → 5; ambiguous → 6 (candidates) | done 2026-10-27 |
 | 5 | Fuzzy (B) | `"ms excel"` (no exact key) | stage 4 | `grounding.py`, rapidfuzz over index keys | `MatchResult(method="fuzzy")` or not found | found → 7; else → 6 | in progress |
 | 6 | Embedding (C) | string still not found | stage 5 | `embeddings.py`: ESCO labels encoded **once** → vectors saved in `data/cache/`; input encoded → cosine vs all labels (or only the candidates when ambiguous) | best concept if ≥ 0.80, else *unresolved* (raw string kept) | 7 | planned (stretch) |
-| 7 | Cache | skill → `MatchResult` | stages 4–6 | dict (slice) → `grounding.sqlite` (November) | same result reused for every later job/CV | 8 | planned |
+| 7 | Cache | skill → `MatchResult` | stages 4–6 | *(since 2026-11-16, G3)* job skills: `Jobs.grounded_skills` written by the workflow batch; CV skills: looked up there first, kept in memory *(until 2026-11-16: dict (slice) → `grounding.sqlite` (November))* | same result reused for every later job/CV | 8 | planned |
 | 8 | Matrix | job requirements × CV skills, both grounded | stage 7 | `similarity.py` | 2-D table of values 0–1 (same concept or same unresolved string → 1.0) | 9 / 10 | planned |
 | 9 | Seniority | job `experience_level`, CV tier of each skill | `Jobs.experience_level`, CV dict, `seniority` config | `similarity.py` | matrix × multiplier (e.g. CV junior vs Senior job → 0.65) | 10 | planned (after slice) |
 | 10 | Metric | matrix | stage 8/9 | `metrics/chamfer.py` | score 0–100 + best CV skill per requirement | 11 | planned (slice) |
 | 11 | Report | metric output | stage 10 | `report.py` | % score, matched, missing (and later under-qualified, extra skills) | 12 | planned (slice: minimal) |
-| 12 | Serve + show | report | stage 11 | `matcher_service.py` → FastAPI endpoint → SvelteKit match panel | JSON → UI | — | planned (slice) |
+| 12 | Serve + show | report | stage 11 | `matcher_service.py` → FastAPI endpoint → SvelteKit match panel *(since 2026-11-16, G1: scores for all jobs at upload → score on every job card; detail on click)* | JSON → UI | — | planned (slice) |
 
 **Worked example** (job requires `Python (Programming)`, `MS Excel`, `CI/CD`; CV lists `python`, `Excel`):
 - `Python (Programming)` → normalize → simplify to `python` → **exact** hit → ESCO *Python* concept. CV `python` reaches the same concept → cell = 1.0.
@@ -187,9 +235,9 @@ One skill's path from the data to the screen. For each stage: **what goes in**, 
 - Not in ESCO (exact): Kubernetes, Docker, Microsoft Excel, AutoCAD, CI/CD → handled by steps C/D and overrides.
 
 ### Other components
-- `backend/services/skill_grounding_service.py` — grounds a job's skills on first click and a CV's skills at upload; local batch script for paper stats *(since 2026-10-26)*. *(Until 2026-10-26: batch grounding of new job skills after daily extraction.)*
-- `backend/services/matcher_service.py` — thin wrapper: CV + jobs → engine.
-- `backend/database/repositories/skillGroundingRepository.py` — table `SkillGrounding` in a separate git-ignored file `data/cache/grounding.sqlite` *(since 2026-10-26)*; rebuildable cache, never committed (avoids binary merge conflicts with the daily `JobsDatabase.sqlite` commits); also model revision and config fingerprint per row. Columns: raw skill, normalized form, ESCO URI, **relation** (same as / narrower than), method (exact / fuzzy / embedding / llm_parent / manual), score, ESCO version, date. *(Added 2026-10-30, AN2)* `duration_ms` (time of the first lookup), `source` (job / cv).
+- `backend/services/skill_grounding_service.py` — *(since 2026-11-16, G2/G4)* batch run by `extract.yml`: grounds the new or stale skills of every job into `Jobs.grounded_skills`; its stats double as the paper stats. *(2026-10-26 until 2026-11-16: grounds a job's skills on first click and a CV's skills at upload; local batch script for paper stats.)* *(Until 2026-10-26: batch grounding of new job skills after daily extraction.)*
+- `backend/services/matcher_service.py` — thin wrapper: CV + jobs → engine. *(Since 2026-11-16, G7: takes a grounded CV object, independent of its source.)*
+- `backend/database/repositories/skillGroundingRepository.py` — *(since 2026-11-16, G3)* reads and writes `Jobs.grounded_skills` + `grounding_fingerprint` in `JobsDatabase.sqlite`; the separate cache file below is no longer planned. *(2026-10-26 until 2026-11-16:)* table `SkillGrounding` in a separate git-ignored file `data/cache/grounding.sqlite`; rebuildable cache, never committed (avoids binary merge conflicts with the daily `JobsDatabase.sqlite` commits); also model revision and config fingerprint per row. Columns: raw skill, normalized form, ESCO URI, **relation** (same as / narrower than), method (exact / fuzzy / embedding / llm_parent / manual), score, ESCO version, date. *(Added 2026-10-30, AN2)* `duration_ms` (time of the first lookup), `source` (job / cv).
 - `data/esco/` — pinned ESCO English CSVs, committed.
 - `data/esco/overrides` — manual skill → concept / parent corrections (always win).
 - Vectors — local cache, git-ignored, rebuilt when missing.
@@ -229,16 +277,17 @@ Lookup order for every skill: **overrides → `SkillGrounding` table → acronym
 - [ ] *(postponed 2026-10-26, may not be implemented)* **D. Parent link (LLM)** — for skills with no matching concept (e.g. "Claude Code"): embedding search proposes ~10 ESCO candidates, the Groq LLM picks the best **broader** concept or "none"; stored as relation *narrower than*. "None" → unresolved (raw string + embedding).
 - [ ] *(postponed 2026-10-26, may not be implemented)* Optional: for unresolved skills embed a short LLM-written description instead of the bare name.
 - [ ] Abstraction tier derived in memory (skill type, depth, reuse level); never written to source data.
-- [ ] `SkillGrounding` table + repository — in the separate cache file `data/cache/grounding.sqlite` *(since 2026-10-26)*.
-- [ ] On-click grounding: a job's unseen skills are grounded the first time it is opened; results cached for all later clicks and users *(since 2026-10-26)*. One-off local batch over all job skills for the paper stats. *(Until 2026-10-26: batch of all 12.8k job skills once + daily incremental step after extraction.)*
+- [ ] *(2026-10-26 until 2026-11-16, replaced by G3)* `SkillGrounding` table + repository — in the separate cache file `data/cache/grounding.sqlite`.
+- [ ] *(2026-10-26 until 2026-11-16, replaced by G2)* On-click grounding: a job's unseen skills are grounded the first time it is opened; results cached for all later clicks and users. One-off local batch over all job skills for the paper stats. *(Until 2026-10-26: batch of all 12.8k job skills once + daily incremental step after extraction.)*
+- [ ] *(Since 2026-11-16, G2–G4)* Batch grounding of all job skills into `Jobs.grounded_skills` + `grounding_fingerprint` (new or stale rows only), run by `extract.yml` after extraction; CV skills look up these results first.
 - [ ] Report grounding stats per method and the unresolved rate; curate the most frequent unresolved skills in overrides.
 
 ### CV flow (at upload time, no local LLM)
 1. Parse the CV (existing Groq call) → skills + tiers.
-2. Look up overrides and the `SkillGrounding` table (most common skills are already grounded from jobs).
+2. Look up overrides and the `SkillGrounding` table (most common skills are already grounded from jobs). *(Since 2026-11-16, G2/G3: the saved job results in `Jobs.grounded_skills`, e.g. a key → result dict built from the bulk read.)*
 3. Remaining skills: steps A–C locally (embedding model runs on CPU).
 4. Still unresolved: **one batched Groq call** for step D (all skills + candidates in one request). *(postponed 2026-10-26, may not be implemented)* — skills stay unresolved.
-5. Save new results to the grounding cache for reuse. The CV itself stays in the user's session only, never written to a DB *(since 2026-10-26)*; languages are parsed but not scored.
+5. Save new results to the grounding cache for reuse. The CV itself stays in the user's session only, never written to a DB *(since 2026-10-26)*; languages are parsed but not scored. *(Since 2026-11-16: CV groundings are not saved; they stay with the session CV. Whether the session CV is cached in memory or on disk is open.)*
 6. Groq unavailable / rate-limited → those skills stay unresolved (embedding only); result marked partial. *(Not applicable while step D is postponed.)*
 
 ## Phase 3 — Similarity matrix (CV skills × job requirements)
@@ -263,10 +312,11 @@ Lookup order for every skill: **overrides → `SkillGrounding` table → acronym
 - [ ] Per requirement: best CV skill, score, ESCO URI (or unresolved), relation, seniority applied.
 - [ ] Gaps: **missing** (pre-seniority below threshold) vs **under-qualified** (matched, tier too low).
 - [ ] Extra CV skills (not required by the job).
-- [ ] On click: one CV vs one selected job *(since 2026-10-26)*. *(Until 2026-10-26: batch of one CV vs all available jobs, ranked — now optional/future, same per-pair engine in a loop.)*
+- [ ] *(Since 2026-11-16, G1)* At upload: one CV vs all available jobs with skills, a score per job (ranking possible); on click: the detail of that job. Same per-pair engine in a loop over the saved job groundings.
+- [ ] *(2026-10-26 until 2026-11-16)* On click: one CV vs one selected job. *(Until 2026-10-26: batch of one CV vs all available jobs, ranked — then optional/future, same per-pair engine in a loop.)*
 
 ## Phase 6 — Integration (after the API stack decision, week of 2026-10-26) — *(2026-10-29, P4: FastAPI kept; integration starts in the minimal slice)*
-- [ ] Endpoint(s) for CV upload and match results. *(2026-10-26)* CV upload → parsed + grounded CV for the session; score(CV, job id) on click. Job list shows only available jobs with extracted skills.
+- [ ] Endpoint(s) for CV upload and match results. *(2026-10-26)* CV upload → parsed + grounded CV for the session; score(CV, job id) on click. Job list shows only available jobs with extracted skills. *(Since 2026-11-16, G1: CV upload → session id + scores for all jobs; match detail for a job id on click.)*
 - [ ] Analyzer page consumes them.
 
 ---
@@ -276,8 +326,8 @@ Detailed view at `/analyzer` (FE_NOTES L4), mainly for the author and the thesis
 
 | # | Decision (2026-10-30) | Effect |
 |---|---|---|
-| AN1 | Built **after the slice** (November), when `grounding.sqlite` and the batch grounding stats exist | Until 2026-10-30: bonus after March 2027 |
-| AN2 | Three timings measured and stored: **grounding per skill**, **LLM extraction per job**, **CV parsing per upload** | New `SkillGrounding` columns; new `Jobs` columns written by the extraction service (backend change by the user, related to ASSIST_LOG T8); CV timings kept in the session only |
+| AN1 | Built **after the slice** (November), when `grounding.sqlite` and the batch grounding stats exist *(2026-11-16: `grounding.sqlite` → `Jobs.grounded_skills`, G3)* | Until 2026-10-30: bonus after March 2027 |
+| AN2 | Three timings measured and stored: **grounding per skill**, **LLM extraction per job**, **CV parsing per upload** | New `SkillGrounding` columns; new `Jobs` columns written by the extraction service (backend change by the user, related to ASSIST_LOG T8); CV timings kept in the session only. *(2026-11-16: `SkillGrounding` replaced by `Jobs.grounded_skills` (G3); where the grounding timings go is open, see Pre-grounded jobs.)* |
 | AN3 | Skill rankings count **ESCO concepts**; unresolved skills are counted by normalized string | Needs all job skills grounded first (batch script) |
 | AN4 | CV data = **current session only** | Keeps the 2026-10-26 privacy decision; no statistics across CVs |
 
@@ -394,3 +444,4 @@ Detailed view at `/analyzer` (FE_NOTES L4), mainly for the author and the thesis
 | 2026-10-29 | Minimal slice added (deadline ~2026-11-12: exact + fuzzy, Chamfer, end-to-end flow; step C stretch) with decisions P1–P5: grounding in `matching/grounding.py` (shared by job and CV skills), Chamfer first, in-memory cache first, FastAPI kept, slice before the full build order. Reason: user's thesis milestone; nothing dropped, only sequenced. |
 | 2026-10-29 | Docs synced with the code: done ticks (skeleton/config, requirements file, normalization, index, step A), fuzzy in progress, `match_result_object.py` in the tree, config table with real keys + `model_folder` + ESCO 1.2.1, per-machine `data/models` / `data/cache`, step C floor vs gap clarified, "Fără" count scopes, goal line (one clicked job). "How it fits together" walkthrough added. |
 | 2026-10-30 | Analyzer page designed (AN1–AN4): built after the slice; three sections Extraction / Matching / Jobs; timings for grounding per skill, LLM extraction per job and CV parsing per upload; rankings by ESCO concept; CV data session-only. `SkillGrounding` gets `duration_ms` and `source`. |
+| 2026-11-16 | Pre-grounded jobs (G1–G7), after a read-only performance study: CV scored against every available job at upload; job skills grounded ahead of time by a batch in `extract.yml` (rapidfuzz only) into a new `Jobs.grounded_skills` JSON column + `grounding_fingerprint`; CV grounding only at upload; order: saved exact + fuzzy → engine incl. CV side → embeddings + reground; stay on SQLite; matcher takes a source-independent grounded CV. Replaces the 2026-10-26 on-click flow, `grounding.sqlite` and "no grounding in Actions". Reason: ~1 s of backend work per upload instead of ~3 min cold; measurements recorded in the new section. |

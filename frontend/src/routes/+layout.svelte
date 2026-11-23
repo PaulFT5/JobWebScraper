@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ImpeccableLiveRoot from '$lib/impeccable/ImpeccableLiveRoot.svelte?impeccable-live=e3a00929';
     import './layout.css';
     import favicon from '$lib/assets/favicon.svg';
     import Sidebar from '$lib/components/Sidebar.svelte';
@@ -16,6 +17,9 @@
         <div class="absolute top-3 right-4 z-20">
             <MockScoreSwitch />
         </div>
-        {@render children()}
+        <!-- impeccable-live-svelte-start -->
+<ImpeccableLiveRoot />
+<!-- impeccable-live-svelte-end -->
+{@render children()}
     </main>
 </div>

@@ -11,6 +11,7 @@
     import CategoryTreemap from './CategoryTreemap.svelte';
     import ExperienceLadder from './ExperienceLadder.svelte';
     import DomainCityCards from './DomainCityCards.svelte';
+    import SkillsHistogram from './SkillsHistogram.svelte';
     import PreviewSection from './PreviewSection.svelte';
     import type { Job } from '$lib/types';
     import type { CoverageResult } from '$lib/api/fetchCoverage';
@@ -68,6 +69,7 @@
     <div class="flex flex-col gap-4">
         <ExperienceLadder {jobs} />
         <DomainCityCards {jobs} {domains} {coverage} />
+        <SkillsHistogram {jobs} />
     </div>
 {/if}
 

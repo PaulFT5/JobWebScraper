@@ -1,12 +1,10 @@
 <script lang="ts">
     import { cv } from '$lib/cv.svelte';
-    import type { Job } from '$lib/types';
     import type { CoverageResult } from '$lib/api/fetchCoverage';
     import CoverageCard from './CoverageCard.svelte';
-    import SkillsHistogram from './SkillsHistogram.svelte';
     import PreviewSection from './PreviewSection.svelte';
 
-    let { jobs, coverage }: { jobs: Job[]; coverage: CoverageResult | null } = $props();
+    let { coverage }: { coverage: CoverageResult | null } = $props();
     import {
         methodShare, latency, llmTiming, llmHistogram, topUnresolved, sampleCv, cvTiming,
         METHODS, METHOD_LABELS, METHOD_COLORS
@@ -25,7 +23,6 @@
 </div>
 <div class="flex flex-col gap-4">
     <CoverageCard {coverage} />
-    <SkillsHistogram {jobs} />
 </div>
 
 <PreviewSection title="Pending grounding statistics & timings (preview only)" note="Mock data. Fills in after the batch grounding run and once timings are stored (AN2).">

@@ -111,3 +111,17 @@ Tests run on DB copies with HTTP/LLM/SMTP mocked. Real DB verified untouched.
 
 Test scripts (session scratchpad; re-runnable): `dbtests/common.py`, `test_runner.py`, `test_db.py`, `test_extract_api.py`. → *(noted 2026-10-29)* now in the project's `tests/` folder (`common.py`, `test_runner.py`, `test_db.py`, `test_extract_api.py`, plus `test_index.py` for the ESCO index); run with `.venv\Scripts\python.exe tests/<file>.py`.
 
+
+## 2026-11-23 — Accounts proposal (user / company / admin)
+Proposal by the user, discussed 2026-11-23. **Logged only:** no rule is replaced and no other doc is changed until the user adopts it.
+
+| # | Proposal | Status |
+|---|---|---|
+| AC1 | Three account types: user, company, admin. | proposed |
+| AC2 | User: current flow (upload CV → ground → score all jobs → pick a job). An account is required to upload a CV; every CV is saved, has an owner and can be deleted. | proposed |
+| AC3 | Company: reverse flow. The company enters a job description, which is matched against the shared pool of user CVs that opted in to be discoverable. *Assumption:* the description goes through the same Groq extraction (prompt v2) as job ads. | proposed |
+| AC4 | Engine unchanged: the matrix is always CV skills × job requirements, only the corpus flips (user: 1 CV vs N grounded jobs; company: 1 description vs N grounded CVs). CVs are grounded and embedded once, when saved (mirrors G1). | proposed |
+| AC5 | Admin: usage / API-rate page. Some `/analyzer` functions move there; the analyzer stays, slimmed down. Details at implementation time. *Assumption:* needs a new request/usage log (none exists). | proposed |
+| AC6 | Storage: accounts and CVs in a separate git-ignored store, never `JobsDatabase.sqlite` (consistent with G7). | proposed |
+| AC7 | Conflicts if adopted: reverses the session-only CV rule; affects BE_IMPLEMENTATION §8 open question (1) (CV cache in memory or on disk); privacy / GDPR (opt-in, deletion); auth only matters once hosted (see D3, CORS credentials). Open: auth method, hosting, store choice. | proposed |
+| AC8 | Timing: after the minimal slice (PLAN steps 1–2). Order: company flow as an engine feature → CV store + pre-grounding of saved CVs → accounts/roles + admin page. | proposed |

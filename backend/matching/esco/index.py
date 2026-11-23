@@ -57,6 +57,7 @@ def exact_match(skill, table=None):
             simplified_key=key,
         )
 
+    #Ambiguous means the key was found in the ESCO index but has more than one concept
     return MatchResult(
         status="ambiguous",
         candidates=tuple(sorted(uris)),

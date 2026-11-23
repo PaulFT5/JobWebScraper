@@ -1,9 +1,10 @@
 import time
 
+from dataclasses import replace
 from rapidfuzz import process, fuzz
 from functools import lru_cache
 from backend.matching.config import get_config
-from backend.matching.esco.index import index_lookup_table
+from backend.matching.esco.index import index_lookup_table, exact_match
 from backend.matching.match_result_object import MatchResult
 from backend.matching.normalization import qualifier_remover
 import re
@@ -75,6 +76,35 @@ def build_valid_keys(min_len):
     return [k for k, v in table.items() if len(k) >= min_len]
 
 
+_ground_cache = {}
+
+
+@lru_cache(maxsize=1)
+def get_table():
+    return index_lookup_table()
+
+
+def ground(skill):
+    key = qualifier_remover(skill or "")
+    if not key:
+        return MatchResult(status="not found", method="unresolved")
+
+    if key in _ground_cache:
+        return _ground_cache[key]
+
+    table = get_table()
+
+    res = exact_match(skill, table)
+    if res.status != "not found":
+        res = replace(res, score=100.0)
+    else:
+        res = fuzzy_match(skill, table)
+        if res.status == "not found":
+            res = MatchResult(status="not found", simplified_key=key, method="unresolved")
+
+    _ground_cache[key] = res
+    return res
+
 def tester():
 
     t0 = time.perf_counter()
@@ -95,4 +125,4 @@ def tester():
     print(res3)
     print(f"Third call time: {t3 * 1000:.2f} ms")
 
-#tester()
+tester()

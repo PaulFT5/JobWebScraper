@@ -283,3 +283,36 @@ See `docs/MATCHING_ROADMAP.md` → *Analyzer page* → coverage endpoint.
 - svelte-check and the build pass.
 - The rendered page shows 1,757-based numbers (levels 95/220/527/247/61 + 607 unspecified; cities 782/546/429; bins 324/465/358/195/141/141/133).
 - Coverage shows the "endpoint not available yet" state.
+
+---
+
+# Plan — pre-grounded jobs, score every job at CV upload (2026-11-16)
+
+## Context
+The user wants every job card to show its score right after the CV upload, instead of clicking a job to see it. A read-only study on 2026-11-16 measured grounding all 9,219 distinct job keys at ~156 s cold (fuzzy ~17 ms per key), while scoring all 2,149 jobs takes milliseconds. Decision (G1–G7, `docs/MATCHING_ROADMAP.md` → *Pre-grounded jobs*): ground job skills ahead of time in GitHub Actions and store them in `Jobs`; at upload ground only the CV and compare. Backend written by the user; Claude does FE on request.
+
+## Step 1 — saved exact + fuzzy grounding (open)
+- `Jobs` columns `grounded_skills` (JSON parallel to `required_skills`: key, status, concept/candidates, method, score) and `grounding_fingerprint` (hash of the `grounding` config + ESCO version).
+- Repository: rows to ground (skills present, not `[]` / failure marker, column NULL or stale fingerprint); save; one bulk read for all available jobs.
+- Batch service (`skill_grounding_service.py`, `python -m` entry): `json.loads` → `ground()` per skill → write both columns.
+- `extract.yml`: after extraction, install `rapidfuzz==3.14.6` only, run the batch; the existing commit step commits the DB. Check the code on CI Python 3.11.
+- First full run; **save the stats** (share per method, unresolved rate) for the before/after comparison.
+
+## Step 2 — matching engine on the saved data (open)
+- CV side: parser takes the uploaded file (CV1), returns the dict, writes no CV files to `data/cv/`; CV grounding: keys found in the saved job results reuse them, the rest go through `ground()`; results stay in the session.
+- Engine first testable with a hand-written CV dict in the parser's shape.
+- Matrix (same concept or same key = 1.0, else 0) → Chamfer → `matcher_service.py` (scores for all jobs + detail for one job; takes a grounded CV object, G7).
+- Endpoints: CV upload (returns a session id + scores) and match detail; ESCO index built at app startup.
+- FE (Claude, on request): score on every card, sort by score, detail panel.
+
+## Step 3 — embeddings + reground (open)
+- `embeddings.py` + step C (floor 0.80; candidates-only search for ambiguous keys).
+- Fingerprint changes → the batch regrounds every row; compare the stats with step 1.
+
+## Open (user decisions)
+CV cache in memory or on disk; workflow step or separate workflow; scores in the upload response or a separate request; ambiguous skills in the matrix before step C; embeddings in Actions or locally; analyzer grounding timings. Listed in `BE_IMPLEMENTATION.md` §8.
+
+## Verification
+- `db-tester` (DB copy): every available job with skills gets `grounded_skills`; a second run changes nothing; a changed fingerprint regrounds; `[]` and failure-marker rows are skipped.
+- `grounding-evaluator`: shares per method + timings.
+- Time the CV upload end to end (target ≈ parse + 1 s).
