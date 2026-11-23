@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CVMatch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#fbfaf7;
+    --ink:#14141a;
+    --ink-soft:#4a4a55;
+    --cv:#ff7a1a;        /* your CV */
+    --job:#2f5bea;       /* the job */
+    --fit:#2f2b18;       /* the two printed over each other */
+    --act:#ffd21f;       /* the one action */
+    --on-job:#ffffff;
+    --on-job-soft:#dfe6ff;
+    --on-cv-soft:#3a2208;
+    --rule:#d9d6ce;
+    --ease:cubic-bezier(.16,1,.3,1);
+  }
+  *{box-sizing:border-box;margin:0}
+  html{background:var(--paper);color:var(--ink);font-family:"Schibsted Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased;scroll-behavior:smooth;
+       scrollbar-color:var(--ink) var(--paper)}
+  body{background:var(--fit);overflow-x:hidden}
+  .sheet{background:var(--paper)}
+  ::selection{background:var(--job);color:#fff}
+  a{color:inherit}
+  :focus-visible{outline:3px solid var(--act);outline-offset:3px;border-radius:4px}
+
+  /* ---------- hero: one 16:10 sheet, everything measured in sheet units ---------- */
+  .sheet{position:relative;width:100%;aspect-ratio:16/10;container-type:inline-size;overflow:hidden;isolation:isolate}
+  .ink{position:absolute;border-radius:50%;width:105.6cqw;height:105.6cqw}
+  /* --g = how far each ink sits from its merged spot (sheet units); 0 = fully merged. JS drives it from pointer distance to Log in. */
+  /* --s = scroll progress 0..1: the inks slide onto each other and grow until the merged brown fills the sheet */
+  .sheet{--g:0;--t:1;--s:0}
+  .ink.cv {background:var(--cv); left:calc(26.4cqw - 52.8cqw); top:calc(54.2cqw - 52.8cqw);
+           transform:translate(calc(var(--g) * -.717cqw), calc(var(--g) * .697cqw)) scale(calc(1 + var(--s) * .4))}
+  .ink.job,.ink-mask{left:calc(73.6cqw - 52.8cqw); top:calc(8.3cqw - 52.8cqw);
+           transform:translate(calc(var(--g) * .717cqw), calc(var(--g) * -.697cqw)) scale(calc(1 + var(--s) * .4))}
+  .stage{position:relative}
+  @media (min-width:761px) and (prefers-reduced-motion:no-preference){
+    .stage{height:calc(62.5vw + 90vh)}
+    .sheet{position:sticky;top:0;min-height:100vh}
+    /* the next section rises over the pinned brown and fades in (opacity set by script) */
+    main{position:relative;z-index:1;margin-top:-90vh}
+    .top{opacity:calc(1 - var(--s) * 1.8)}
+  }
+  .pitch,.legend.cv{opacity:calc(1 - var(--s) * 2.2)}
+  .brand{color:color-mix(in srgb, var(--paper) calc(var(--s) * 100%), var(--ink))}
+  .ink.job{background:var(--job);mix-blend-mode:multiply}
+  .ink, .ink-mask{will-change:transform}
+
+  /* headline mode A: the part of the headline inside the job ink turns white (a white copy clipped by the job circle) */
+  .ink-mask{position:absolute;border-radius:50%;width:105.6cqw;height:105.6cqw;overflow:hidden;z-index:3;pointer-events:none}
+  .ink-mask .h1{position:absolute;left:calc(26cqw - 20.8cqw);top:calc(17cqw + 44.5cqw);width:64cqw;text-align:center;color:#fff;
+           transform:translate(calc(var(--g) * -.717cqw), calc(var(--g) * .697cqw))}
+  html[data-text="invert"] .pitch h1{color:var(--ink)}
+  /* headline mode B: one colour that fades from ink to white as the inks merge */
+  html[data-text="fade"] .ink-mask{display:none}
+  html[data-text="fade"] .pitch h1{color:color-mix(in srgb, #fff calc(var(--t) * 100%), var(--ink))}
+
+  .top{position:absolute;inset:0 0 auto 0;display:flex;justify-content:space-between;align-items:center;padding:2.6cqw 3.4cqw;z-index:2}
+  .brand{display:flex;align-items:center;gap:.8cqw;text-decoration:none;font-weight:800;font-size:max(18px,1.7cqw);letter-spacing:-.02em}
+  .brand svg{width:max(26px,2.4cqw);height:auto}
+  .nav{display:flex;gap:2.6cqw;font-size:max(15px,1.15cqw);font-weight:500;color:var(--on-job)}
+  .nav a{text-decoration:none;text-underline-offset:.3em}
+  .nav a:hover{text-decoration:underline;text-decoration-thickness:2px}
+  .nav .login{font-weight:700}
+
+  .pitch{position:absolute;left:24cqw;width:52cqw;top:17cqw;text-align:center;color:#fff;z-index:2}
+  h1,.h1{font-weight:800;font-size:5.2cqw;line-height:.98;letter-spacing:-.038em}
+  h1 .ln,.h1 .ln{display:block;white-space:nowrap}
+  .pitch{left:26cqw;width:64cqw}
+  .browse{display:inline-flex;align-items:center;gap:.9cqw;margin-top:3.4cqw;padding:1.25cqw 2.4cqw;border-radius:999px;background:var(--act);color:var(--ink);
+          font-weight:700;font-size:max(16px,1.55cqw);text-decoration:none;transition:transform .35s var(--ease),background-color .2s}
+  .browse svg{width:1.3em;height:1.3em;transition:transform .35s var(--ease)}
+  .browse:hover{background:#ffe04f}
+  .browse:hover svg{transform:translateX(.25em)}
+  .browse:active{transform:scale(.97)}
+
+  .legend{position:absolute;z-index:2;max-width:24cqw;font-size:max(14px,1.12cqw);line-height:1.4}
+  .legend b{display:block;font-weight:800;font-size:max(18px,2.1cqw);letter-spacing:-.02em;margin-bottom:.4cqw}
+  .legend.cv {left:3.4cqw;bottom:3.4cqw;color:var(--ink);max-width:30cqw}
+  .legend.cv span{color:var(--on-cv-soft)}
+  .legend.job{right:3.4cqw;top:9.5cqw;text-align:right;color:var(--on-job)}
+  .legend.job span{color:var(--on-job-soft)}
+
+  /* ---------- below the hero: the page continues on the merged brown ---------- */
+  main,footer{background:var(--fit);color:var(--paper)}
+  footer{max-width:none}
+  .how .lead,.steps p,.steps .n,.example,footer{color:#cfc8b0 !important}
+  .steps li{border-top-color:var(--paper) !important}
+  .close{border-top-color:#4a4530 !important}
+  .close .browse{background:var(--act) !important;color:var(--ink) !important}
+  .steps svg{isolation:isolate}
+  .sk{font-family:"Schibsted Grotesk",sans-serif;font-weight:700;font-size:19px;text-anchor:middle}
+  .sk.sm{font-size:17px}
+  .was{font-family:"Schibsted Grotesk",sans-serif;font-size:14px;fill:#cfc8b0}
+
+  /* variant switch */
+  ol.steps-v{display:none}
+  html[data-steps="rings"] .v-rings, html[data-steps="cut"] .v-cut{display:grid}
+  html[data-steps="type"] .v-type, html[data-steps="bare"] .v-type{display:block}
+  /* "Type, no text": titles and skills only; rows tighten since the copy is gone */
+  html[data-steps="bare"] .v-type .tx p{display:none}
+  html[data-steps="bare"] .v-type > li{align-items:center;padding:22px 0 26px}
+
+  /* Variant C · type rows */
+  .v-type{list-style:none;padding:0;margin-top:clamp(48px,6vw,88px)}
+  .v-type > li{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(24px,4vw,64px);align-items:baseline;
+               border-top:2px solid var(--paper);padding:28px 0 clamp(32px,4vw,56px)}
+  .v-type h3{font-weight:800;font-size:clamp(22px,2vw,30px);letter-spacing:-.02em;line-height:1.1}
+  .v-type .tx p{margin-top:10px;font-size:17px;line-height:1.5;color:#cfc8b0;max-width:38ch}
+  .v-type .n{margin-right:.4em;color:#cfc8b0;font-variant-numeric:tabular-nums}
+  .v-type .spec{font-weight:800;font-size:clamp(28px,3.2vw,46px);letter-spacing:-.03em;line-height:1.1;margin:0;padding:0;list-style:none}
+  .v-type .spec .o{color:var(--cv)}
+  .v-type .spec .sep{color:#8f8770}
+  .v-type .spec .old{color:#8f8770;text-decoration:line-through;text-decoration-thickness:3px}
+  .v-type .arr{width:.7em;height:.7em;margin:0 .25em;vertical-align:.05em;fill:none;stroke:#cfc8b0;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+  .v-type .fit li{display:flex;align-items:center;gap:.3em;color:var(--paper)}
+  .v-type .fit .mk{width:.9em;height:.6em;flex:none;isolation:isolate}
+  .v-type .fit .miss{color:#8f8770}
+  .v-type .fit em{font-style:normal;font-weight:500;font-size:.35em;letter-spacing:0;color:#cfc8b0;margin-left:.4em}
+  @media (max-width:760px){ .v-type > li{grid-template-columns:1fr} }
+
+  /* ---------- how it works ---------- */
+  .how{max-width:1280px;margin:0 auto;padding:clamp(72px,9vw,140px) clamp(16px,4vw,56px) clamp(56px,7vw,110px)}
+  .how h2{font-weight:800;font-size:clamp(40px,5.4vw,80px);letter-spacing:-.035em;line-height:1;max-width:14ch}
+  .how .lead{margin-top:20px;max-width:56ch;font-size:clamp(17px,1.4vw,21px);line-height:1.5;color:var(--ink-soft)}
+  .steps{list-style:none;padding:0;margin-top:clamp(48px,6vw,88px);display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(24px,4vw,64px)}
+  .steps li{border-top:2px solid var(--ink);padding-top:22px}
+  .steps svg{display:block;width:100%;height:auto;margin-bottom:26px}
+  .steps h3{font-weight:800;font-size:clamp(22px,2vw,30px);letter-spacing:-.02em;line-height:1.1}
+  .steps p{margin-top:10px;font-size:17px;line-height:1.5;color:var(--ink-soft);max-width:38ch}
+  .steps .n{font-variant-numeric:tabular-nums;font-weight:700;color:var(--ink-soft);margin-right:.4em}
+  .example{margin-top:28px;font-size:13px;color:var(--ink-soft)}
+
+  .close{border-top:1px solid var(--rule);max-width:1280px;margin:0 auto;padding:clamp(48px,6vw,90px) clamp(16px,4vw,56px);display:flex;flex-wrap:wrap;gap:28px;align-items:center;justify-content:space-between}
+  .close p{font-weight:800;font-size:clamp(26px,3vw,44px);letter-spacing:-.03em;line-height:1.05;max-width:20ch}
+  .close .browse{margin:0;padding:18px 30px;font-size:18px;background:var(--ink);color:#fff}
+  .close .browse:hover{background:#2a2a33}
+  footer{max-width:1280px;margin:0 auto;padding:0 clamp(16px,4vw,56px) 40px;font-size:14px;color:var(--ink-soft);display:flex;flex-wrap:wrap;gap:8px 28px}
+
+  /* ---------- phones: the sheet turns portrait and the pitch leaves the ink ---------- */
+  @media (max-width:760px){
+    .sheet{aspect-ratio:auto;height:auto;overflow:visible;container-type:normal;padding-bottom:28px;display:flex;flex-direction:column}
+    .sheet .top{order:-1}
+    .sheet .art{position:relative;width:100%;aspect-ratio:1/1;overflow:hidden;isolation:isolate;container-type:inline-size}
+    .ink{width:76cqw;height:76cqw}
+    .ink.cv{left:6cqw;top:22cqw}
+    .ink.job{left:28cqw;top:2cqw}
+    .ink-mask{display:none}
+    html[data-text] .pitch h1{color:var(--ink)}
+    .top{position:relative;padding:18px 16px}
+    .nav{color:var(--ink);gap:20px}
+    .pitch{position:relative;left:auto;top:auto;width:auto;padding:8px 16px 0;text-align:left;color:var(--ink)}
+    h1{font-size:clamp(38px,11vw,52px)}
+    h1 .ln{white-space:normal}
+    .browse{margin-top:24px;padding:16px 26px;font-size:17px;width:100%;justify-content:center}
+    .legend{position:static;max-width:none;padding:0 16px;margin-top:20px;text-align:left !important;color:var(--ink) !important}
+    .legend span{color:var(--ink-soft) !important}
+    .legend b{font-size:20px}
+    .legend.cv{max-width:none}
+    .legend.cv b{color:#b04e00}.legend.job b{color:var(--job)}
+    .steps{grid-template-columns:1fr}
+    .steps svg{max-width:340px}
+  }
+
+  /* mock-only switcher: not part of the design */
+  .mockbar{position:fixed;right:16px;bottom:16px;z-index:50;background:var(--ink);color:#fff;border-radius:12px;padding:12px 14px;
+           font:500 13px/1.3 "Schibsted Grotesk",system-ui,sans-serif;display:grid;gap:8px;box-shadow:0 8px 24px rgb(0 0 0 / .25)}
+  .mockbar b{font-weight:700;color:#ffd21f}
+  .mockbar .row{display:flex;gap:6px;align-items:center}
+  .mockbar .row span{width:70px;color:#c9c9d2}
+  .mockbar button{font:inherit;color:#fff;background:#2a2a33;border:0;border-radius:999px;padding:6px 11px;cursor:pointer}
+  .mockbar button[aria-pressed="true"]{background:#fff;color:var(--ink)}
+</style>
+</head>
+<body>
+
+<div class="stage">
+<header class="sheet" id="top">
+  <div class="art" aria-hidden="true">
+    <div class="ink cv"></div>
+    <div class="ink job"></div>
+  </div>
+  <div class="ink-mask" aria-hidden="true"><p class="h1"><span class="ln">See where you fit,</span> <span class="ln">and why.</span></p></div>
+
+  <div class="top">
+    <a class="brand" href="#top" aria-label="CVMatch home">
+      <svg viewBox="0 0 40 34" aria-hidden="true"><circle cx="13" cy="21" r="13" fill="#ff7a1a"/><circle cx="27" cy="13" r="13" fill="#2f5bea" style="mix-blend-mode:multiply"/></svg>
+      CVMatch
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a class="login" href="#jobs">Browse jobs</a>
+      <a href="#how">How it works</a>
+    </nav>
+  </div>
+
+  <div class="pitch">
+    <h1><span class="ln">See where you fit,</span> <span class="ln">and why.</span></h1>
+    <a class="browse" href="#login">Log in
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </a>
+  </div>
+
+  <p class="legend cv"><b>Your CV</b><span>Log in to add it. Where it overlaps a job is your fit.</span></p>
+</header>
+</div>
+
+<main>
+  <section class="how" id="how" aria-labelledby="how-title">
+    <h2 id="how-title">How the fit is worked out</h2>
+    <p class="lead">No black-box score.<br>See where you fit.<br>See where you don’t.</p>
+
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+      <defs>
+        <clipPath id="clip-cv3"><circle cx="140" cy="112" r="90"/></clipPath>
+      </defs>
+    </svg>
+
+    <!-- Variant A · Rings: line-drawn inks; the overlap is the only light shape on the page -->
+    <ol class="steps steps-v v-rings">
+      <li>
+        <svg viewBox="0 0 360 200" role="img" aria-label="Your CV drawn as an orange ring holding the skills read from it">
+          <circle cx="150" cy="100" r="88" fill="none" stroke="#ff7a1a" stroke-width="3"/>
+          <g class="sk" fill="#fbfaf7"><text x="150" y="78">JS</text><text x="150" y="106">Postgres</text><text x="150" y="134">Git</text></g>
+        </svg>
+        <h3><span class="n">1</span>We read your CV</h3>
+        <p>Once you log in and add your CV, we pick out the hard skills it mentions.</p>
+      </li>
+      <li>
+        <svg viewBox="0 0 360 200" role="img" aria-label="The same skills renamed to their standard names">
+          <circle cx="150" cy="100" r="88" fill="none" stroke="#ff7a1a" stroke-width="3"/>
+          <g class="sk" fill="#fbfaf7"><text x="150" y="78">JavaScript</text><text x="150" y="106">PostgreSQL</text><text x="150" y="134">Git</text></g>
+          <g class="was"><text x="258" y="74">was “JS”</text><text x="258" y="102">was “Postgres”</text></g>
+        </svg>
+        <h3><span class="n">2</span>Skills get one name</h3>
+        <p>Every skill, in your CV and in every ad, is matched to the ESCO skills list, so “JS” and “JavaScript” count as the same thing.</p>
+      </li>
+      <li>
+        <svg viewBox="0 -6 360 212" role="img" aria-label="Your CV ring and a job ring overlapping; the shared skills sit in the light overlap">
+          <circle cx="212" cy="88" r="90" fill="#fbfaf7" clip-path="url(#clip-cv3)"/>
+          <circle cx="140" cy="112" r="90" fill="none" stroke="#ff7a1a" stroke-width="3"/>
+          <circle cx="212" cy="88" r="90" fill="none" stroke="#7b97ff" stroke-width="3"/>
+          <g class="sk sm"><text x="176" y="96" fill="#14141a">JavaScript</text><text x="176" y="120" fill="#14141a">Git</text>
+            <text x="249" y="50" fill="#fbfaf7">Docker</text><text x="102" y="156" font-size="15" fill="#fbfaf7">PostgreSQL</text></g>
+        </svg>
+        <h3><span class="n">3</span>The overlap is your fit</h3>
+        <p>Shared skills land in the overlap. Skills only the job has are what you would need to learn.</p>
+      </li>
+    </ol>
+
+    <!-- Variant B · Cut-out: solid inks; the overlap is cut away to the brown, because the brown is the fit -->
+    <ol class="steps steps-v v-cut">
+      <li>
+        <svg viewBox="0 0 360 200" role="img" aria-label="Your CV as a solid orange circle holding the skills read from it">
+          <circle cx="150" cy="100" r="88" fill="#ff7a1a"/>
+          <g class="sk" fill="#14141a"><text x="150" y="78">JS</text><text x="150" y="106">Postgres</text><text x="150" y="134">Git</text></g>
+        </svg>
+        <h3><span class="n">1</span>We read your CV</h3>
+        <p>Once you log in and add your CV, we pick out the hard skills it mentions.</p>
+      </li>
+      <li>
+        <svg viewBox="0 0 360 200" role="img" aria-label="The same skills renamed to their standard names">
+          <circle cx="150" cy="100" r="88" fill="#ff7a1a"/>
+          <g class="sk" fill="#14141a"><text x="150" y="78">JavaScript</text><text x="150" y="106">PostgreSQL</text><text x="150" y="134">Git</text></g>
+          <g class="was"><text x="258" y="74">was “JS”</text><text x="258" y="102">was “Postgres”</text></g>
+        </svg>
+        <h3><span class="n">2</span>Skills get one name</h3>
+        <p>Every skill, in your CV and in every ad, is matched to the ESCO skills list, so “JS” and “JavaScript” count as the same thing.</p>
+      </li>
+      <li>
+        <svg viewBox="0 -6 360 212" role="img" aria-label="Your CV and a job overlapping; the overlap is cut away to the brown background and holds the shared skills">
+          <circle cx="140" cy="112" r="90" fill="#ff7a1a"/>
+          <circle cx="212" cy="88" r="90" fill="#2f5bea"/>
+          <circle cx="212" cy="88" r="90" fill="#2f2b18" clip-path="url(#clip-cv3)"/>
+          <g class="sk sm"><text x="176" y="96" fill="#fbfaf7">JavaScript</text><text x="176" y="120" fill="#fbfaf7">Git</text>
+            <text x="249" y="50" fill="#fbfaf7">Docker</text><text x="102" y="156" font-size="15" fill="#14141a">PostgreSQL</text></g>
+        </svg>
+        <h3><span class="n">3</span>The overlap is your fit</h3>
+        <p>Shared skills land in the overlap. Skills only the job has are what you would need to learn.</p>
+      </li>
+    </ol>
+
+    <!-- Variant C · Type: no diagrams; each step is a full-width row and the skills themselves are the picture -->
+    <ol class="steps-v v-type">
+      <li>
+        <div class="tx"><h3><span class="n">1</span>We read your CV</h3><p>Once you log in and add your CV, we pick out the hard skills it mentions.</p></div>
+        <p class="spec"><span class="o">JS</span><span class="sep">,</span> <span class="o">Postgres</span><span class="sep">,</span> <span class="o">Git</span></p>
+      </li>
+      <li>
+        <div class="tx"><h3><span class="n">2</span>Skills get one name</h3><p>Every skill, in your CV and in every ad, is matched to the ESCO skills list, so “JS” and “JavaScript” count as the same thing.</p></div>
+        <p class="spec"><span class="old">JS</span><svg class="arr" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span class="o">JavaScript</span><br>
+          <span class="old">Postgres</span><svg class="arr" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span class="o">PostgreSQL</span></p>
+      </li>
+      <li>
+        <div class="tx"><h3><span class="n">3</span>The overlap is your fit</h3><p>Shared skills land in the overlap. Skills only the job has are what you would need to learn.</p></div>
+        <ul class="spec fit">
+          <li><svg class="mk" viewBox="0 0 30 20" aria-label="you have it"><circle cx="10" cy="10" r="8" fill="#ff7a1a"/><circle cx="20" cy="10" r="8" fill="#2f5bea" style="mix-blend-mode:multiply"/></svg>JavaScript</li>
+          <li><svg class="mk" viewBox="0 0 30 20" aria-label="you have it"><circle cx="10" cy="10" r="8" fill="#ff7a1a"/><circle cx="20" cy="10" r="8" fill="#2f5bea" style="mix-blend-mode:multiply"/></svg>Git</li>
+          <li class="miss"><svg class="mk" viewBox="0 0 30 20" aria-label="missing"><circle cx="20" cy="10" r="7" fill="none" stroke="#7b97ff" stroke-width="2"/></svg>Docker <em>to learn</em></li>
+        </ul>
+      </li>
+    </ol>
+  </section>
+
+  <section class="close" aria-label="Start">
+    <p>Log in to see your fit. Or just browse the jobs.</p>
+    <a class="browse" href="#login">Log in
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </a>
+  </section>
+</main>
+
+
+<div class="mockbar" role="group" aria-label="Mock options">
+  <b>Mock options</b>
+  <div class="row"><span>Headline</span>
+    <button data-k="text" data-v="invert">Reacts to ink</button>
+    <button data-k="text" data-v="fade">Dark → white</button>
+  </div>
+  <div class="row"><span>Rest gap</span>
+    <button data-k="gap" data-v="thin">Thin overlap</button>
+    <button data-k="gap" data-v="touch">Touching</button>
+  </div>
+  <div class="row"><span>Speed</span>
+    <button data-k="ease" data-v="linear">Linear</button>
+    <button data-k="ease" data-v="out">Fast → slow</button>
+    <button data-k="ease" data-v="in">Slow → fast</button>
+  </div>
+  <div class="row"><span>Steps</span>
+    <button data-k="steps" data-v="rings">Rings</button>
+    <button data-k="steps" data-v="cut">Cut-out</button>
+    <button data-k="steps" data-v="type">Type</button>
+    <button data-k="steps" data-v="bare">Type, no text</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  const sheet = document.querySelector('.sheet');
+  const btn = document.querySelector('.pitch .browse');
+  const params = new URLSearchParams(location.search);
+  const state = { text: params.get('text') || 'fade', gap: params.get('gap') || 'touch', ease: params.get('ease') || 'in', steps: params.get('steps') || 'bare' };
+  const stage = document.querySelector('.stage');
+  const mainEl = document.querySelector('main');
+  const topBar = document.querySelector('.top');
+  if (params.has('only')) { stage.style.display = 'none'; mainEl.style.marginTop = '0'; }   // screenshot hook
+  // full overlap: both inks on the sheet centre (50, 31.25), i.e. g = -32.92 along the shared diagonal
+  const G_FULL = -32.92;
+
+  // How the merge follows the pointer, p = 0 (far) .. 1 (on the button):
+  // linear = even; out = moves a lot as you start approaching, settles near the button; in = barely moves until you are close.
+  const EASE = {
+    linear: p => p,
+    out: p => 1 - Math.pow(1 - p, 3),
+    in: p => p * p * p
+  };
+
+  // Offsets in sheet units, per ink, measured outward from the original full-overlap spot.
+  // BASE: where the inks stop when fully merged (overlap = half of the original).
+  // SHIFT: extra travel at rest: a thin sliver of overlap, or edges just touching.
+  const GEO = {
+    desktop: { BASE: 14.93, SHIFT: { thin: 1.97, touch: 4.97 } },
+    phone:   { BASE: 17.4,  SHIFT: { thin: 3.25, touch: 5.75 } }
+  };
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const noHover = matchMedia('(hover: none)').matches;
+  const phone = matchMedia('(max-width: 760px)');
+
+  function apply() {
+    root.dataset.text = state.text;
+    root.dataset.gap = state.gap;
+    root.dataset.steps = state.steps;
+    document.querySelectorAll('.mockbar button').forEach(b =>
+      b.setAttribute('aria-pressed', String(state[b.dataset.k] === b.dataset.v)));
+    history.replaceState(null, '', `?text=${state.text}&gap=${state.gap}&ease=${state.ease}&steps=${state.steps}${params.has('max') ? '&max=1' : ''}${location.hash}`);
+  }
+  document.querySelectorAll('.mockbar button').forEach(b =>
+    b.addEventListener('click', () => { state[b.dataset.k] = b.dataset.v; apply(); }));
+  apply();
+
+  let t = (reduce || params.has('max')) ? 1 : 0, target = t, focused = false;
+
+  function proximity(x, y) {
+    const r = btn.getBoundingClientRect();
+    const dx = Math.max(r.left - x, 0, x - r.right);
+    const dy = Math.max(r.top - y, 0, y - r.bottom);
+    const reach = sheet.clientWidth * 0.42;
+    return Math.min(Math.max(1 - Math.hypot(dx, dy) / reach, 0), 1);
+  }
+  let lastP = 0;
+
+  if (!reduce) {
+    if (noHover) {
+      setTimeout(() => { target = 1; }, 450);
+    } else {
+      addEventListener('pointermove', e => { lastP = proximity(e.clientX, e.clientY); }, { passive: true });
+      document.addEventListener('pointerleave', () => { lastP = 0; });
+    }
+    btn.addEventListener('focus', () => { focused = true; target = 1; });
+    btn.addEventListener('blur', () => { focused = false; target = 0; });
+  }
+
+  function frame() {
+    // pointer devices: re-read the curve every frame so switching Speed applies at once
+    if (!reduce && !noHover && !focused && !params.has('max')) target = EASE[state.ease](lastP);
+    t += (target - t) * 0.2;
+    if (Math.abs(target - t) < 0.001) t = target;
+    const geo = phone.matches ? GEO.phone : GEO.desktop;
+    // scroll progress through the pinned stage (desktop only; phones and reduced motion skip it)
+    const travel = stage.offsetHeight - sheet.offsetHeight;
+    let s = travel > 1 ? Math.min(Math.max(scrollY / travel, 0), 1) : 0;
+    if (params.has('s')) s = +params.get('s');   // screenshot hook
+    s = s * s * (3 - 2 * s);
+    const gPointer = geo.BASE + (1 - t) * geo.SHIFT[state.gap];
+    sheet.style.setProperty('--g', (gPointer + (G_FULL - gPointer) * s).toFixed(3));
+    sheet.style.setProperty('--t', Math.max(t, s).toFixed(3));
+    sheet.style.setProperty('--s', s.toFixed(3));
+    topBar.style.pointerEvents = s > 0.5 ? 'none' : '';
+    if (travel > 1) {
+      // fade the section in over the last stretch of the merge: starts one scroll step before the
+      // slivers frame (merge 72%) and is fully shown by 90%, while a little orange and blue still show
+      const fi = Math.min(Math.max((s - 0.72) / 0.18, 0), 1);
+      mainEl.style.opacity = fi.toFixed(3);
+      // invisible, it still lies over the hero: let clicks reach Log in until it is mostly shown
+      mainEl.style.pointerEvents = fi > 0.5 ? '' : 'none';
+    } else {
+      mainEl.style.opacity = '';
+    }
+    requestAnimationFrame(frame);
+  }
+  if (params.has('y')) addEventListener('load', () => scrollTo(0, +params.get('y')));   // screenshot hook
+  frame();
+})();
+</script>
+
+</body>
+</html>
