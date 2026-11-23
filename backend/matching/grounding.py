@@ -125,4 +125,4 @@ def tester():
     print(res3)
     print(f"Third call time: {t3 * 1000:.2f} ms")
 
-tester()
+#tester()

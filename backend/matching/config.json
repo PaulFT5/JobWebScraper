@@ -17,6 +17,7 @@
   },
   "grounding": {
     "fuzzy_threshold": 90,
+    "methods": ["exact", "fuzzy"],
     "gap_acceptance_min": 5,
     "fuzzy_min_length": 4,
     "embedding_floor": 0.80

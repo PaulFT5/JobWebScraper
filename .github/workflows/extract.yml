@@ -29,6 +29,13 @@ jobs:
           EMAIL_ACCOUNT_RECEIVER: ${{ secrets.EMAIL_ACCOUNT_RECEIVER }}
         run: python -m backend.services.skill_extraction_service
 
+      - name: Install grounding dependencies
+        run: pip install rapidfuzz==3.14.6
+
+      - name: Run grounding
+        continue-on-error: true   # a failed grounding must not block committing the extracted skills
+        run: python -m backend.services.skill_grounding_service
+
       - name: Commit updated database
         run: |
           git config user.name "github-actions"
