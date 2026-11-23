@@ -1,6 +1,7 @@
 <script lang="ts">
     import { page } from '$app/state';
-    import { cv } from '$lib/cv.svelte';
+    import { cv, clearCv } from '$lib/cv.svelte';
+    import { uploadCv } from '$lib/api/match';
     import { selected, applyFilters, resetFilters, isDirty, appliedCount, salaryOptions, experienceOptions, type Option } from '$lib/filters.svelte';
     import FilterGroup from './FilterGroup.svelte';
 
@@ -25,14 +26,39 @@
             return;
         }
         cvError = null;
+        analyze(file);
+    }
+
+    // only the newest upload may write results (a replaced or removed CV must not come back)
+    let latestUpload = 0;
+
+    async function analyze(file: File) {
+        const upload = ++latestUpload;
+        clearCv();
         cv.fileName = file.name;
+        cv.status = 'analyzing';
+        try {
+            const result = await uploadCv(file);
+            if (upload !== latestUpload) return;
+            cv.sessionId = result.session_id;
+            cv.skills = result.skills;
+            cv.scores = result.scores;
+            cv.status = 'ready';
+        } catch (err) {
+            if (upload !== latestUpload) return;
+            cv.status = 'error';
+            cv.error = err instanceof Error && err.message !== 'Failed to fetch' ? err.message : 'Could not reach the API. Is it running?';
+        }
     }
 
     function removeCv() {
-        cv.fileName = null;
+        latestUpload++;
+        clearCv();
         cvError = null;
         if (fileInput) fileInput.value = '';
     }
+
+    const groundedCount = $derived(cv.skills.filter((s) => s.status === 'match').length);
 
     const navClass = (active: boolean, activeStyle: string) =>
         `flex flex-1 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold
@@ -75,6 +101,17 @@
         </div>
         {#if cvError}
             <p class="mt-1.5 text-xs text-red-300" role="alert">{cvError}</p>
+        {:else if cv.status === 'analyzing'}
+            <p class="mt-1.5 flex items-center gap-1.5 text-xs text-slate-300" aria-live="polite">
+                <span class="size-3 animate-spin rounded-full border-2 border-slate-500 border-t-teal-400" aria-hidden="true"></span>
+                Reading skills and scoring jobs…
+            </p>
+        {:else if cv.status === 'ready'}
+            <p class="mt-1.5 text-xs text-slate-400" aria-live="polite">
+                {cv.skills.length} skills found · {groundedCount} linked to ESCO
+            </p>
+        {:else if cv.status === 'error'}
+            <p class="mt-1.5 text-xs text-red-300" role="alert">{cv.error}</p>
         {/if}
     </section>
 

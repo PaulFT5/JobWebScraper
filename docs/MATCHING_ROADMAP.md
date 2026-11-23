@@ -140,11 +140,11 @@ data/
 - [ ] CV parser minimum (ASSIST_LOG CV1, CV4, CV5, CV6): file path/stream as input, fixed JSON shape with the `cv_tier_map` names, parsed and validated reply, returns a dict. — *(2026-11-11)* CV4, CV5 done, CV6 partly (returns dict); CV1 still open.
 
 **Week 2 (2026-11-05 → 11-11)** — open
-- [ ] Matrix: rows = job requirements, columns = CV skills, cell rule as in the assumption above.
-- [ ] `metrics/chamfer.py`: per requirement, the best value in its row (and which CV skill gave it); score = mean of those bests × 100.
-- [ ] Minimal report: % score, best CV skill per requirement, missing requirements (best = 0).
-- [ ] FastAPI (user): CV upload → parsed + grounded CV for the session; score for a job id. *(2026-11-16, G1: the upload returns scores for all jobs; the job-id call returns the detail.)*
-- [ ] Frontend (Claude, on request): real score instead of the mock 72 (FE_NOTES L5/I5), missing skills, PDF-only upload (I4/CV11).
+- [x] Matrix: rows = job requirements, columns = CV skills, cell rule as in the assumption above. — open → done 2026-11-23 (`matching/similarity.py`: same concept, else same `simplified_key` = 1.0, else 0; ambiguous skills compare by key only)
+- [x] `metrics/chamfer.py`: per requirement, the best value in its row (and which CV skill gave it); score = mean of those bests × 100. — open → done 2026-11-23 (no requirements → `None`; best column `None` when the value is 0)
+- [x] Minimal report: % score, best CV skill per requirement, missing requirements (best = 0). — open → done 2026-11-23 (`matching/report.py`)
+- [x] FastAPI (user): CV upload → parsed + grounded CV for the session; score for a job id. — open → done 2026-11-23 (written by Claude at the user's request: `POST /api/match`, `GET /api/match/{session}/{source}/{slug}`, `matcher_service.py`) *(2026-11-16, G1: the upload returns scores for all jobs; the job-id call returns the detail.)*
+- [x] Frontend (Claude, on request): real score instead of the mock 72 (FE_NOTES L5/I5), missing skills, PDF-only upload (I4/CV11). — open → done 2026-11-23 (scores on every card, best-match sort, matched/missing in the score card)
 
 **Stretch** — open
 - [ ] `embeddings.py` (bge-small, `model_folder` + `revision` from config) + step C full search with floor 0.80; matrix cell = cosine for unmatched pairs.
@@ -165,7 +165,7 @@ data/
 | G7 | The matcher takes a **grounded CV object**, independent of where it comes from (session now; user accounts later, in a separate git-ignored store, never in `JobsDatabase.sqlite`) | — (new) |
 
 **Steps (G5)** — open
-- [ ] **1. Saved exact + fuzzy grounding.** `Jobs.grounded_skills` + `grounding_fingerprint`; repository (rows to ground: skills present, not `[]` / failure marker, column NULL or stale fingerprint; save; bulk read); batch service with `ground()`; workflow step in `extract.yml`; first full run; **save the stats** (share per method, unresolved rate) for the before/after comparison. — *(2026-11-23)* in progress: columns added, grounding fingerprint (`EF0-ec052223`) and the select query done; open: save function, batch service, `extract.yml` step, first run + stats. → 2026-11-23: save function, batch service and `extract.yml` step done (baseline on a DB copy: 18.2% match, 0.2% ambiguous, 81.6% not found of 47,554 skills); open: first run in Actions.
+- [ ] **1. Saved exact + fuzzy grounding.** `Jobs.grounded_skills` + `grounding_fingerprint`; repository (rows to ground: skills present, not `[]` / failure marker, column NULL or stale fingerprint; save; bulk read); batch service with `ground()`; workflow step in `extract.yml`; first full run; **save the stats** (share per method, unresolved rate) for the before/after comparison. — *(2026-11-23)* in progress: columns added, grounding fingerprint (`EF0-ec052223`) and the select query done; open: save function, batch service, `extract.yml` step, first run + stats. → 2026-11-23: save function, batch service and `extract.yml` step done (baseline on a DB copy: 18.2% match, 0.2% ambiguous, 81.6% not found of 47,554 skills); open: first run in Actions. → done 2026-11-23 (first run in Actions: 4,899 rows grounded, fingerprint `EF0-ec052223`, stats identical to the copy run; step 1 done).
 - [ ] **2. Matching engine on the saved data.**
   - CV side: parser takes the uploaded file (CV1), returns the dict, writes no CV files to `data/cv/`; CV grounding (saved job results first, then `ground()`). The engine can be built and tested first with a hand-written CV dict in the parser's shape.
   - Comparison: matrix (same concept or same key = 1.0, else 0), Chamfer, `matcher_service.py` (all jobs + one job's detail), endpoints (CV upload, match detail), ESCO index built at app startup.

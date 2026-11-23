@@ -1,13 +1,14 @@
 import json
 from backend.services.llm_service import llm_service
 from backend.services.llm_output_validator import validate_cv_skills
+import io
 import pdfplumber
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 pathToCV = BASE_DIR / "data" / "cv" / "raw" / "Test.pdf"
 pathToRawData = BASE_DIR / "data" / "cv" / "raw" / "CV_Raw_Extracted_Data.txt"
-pathToProcessedData = BASE_DIR / "data" / "cv" / "processed" / "CV_Processed_Extracted_Data.txt"
+pathToProcessedData = BASE_DIR / "data" / "cv" / "processed" / "CV_Processed_Extracted_Data.json"
 
 CV_PROMPT = """
     You are a professional recruiter analyzing a candidate's CV.
@@ -18,9 +19,11 @@ CV_PROMPT = """
 
     Each list item must be exactly one skill, written as a short noun phrase. If the text lists several skills together (in brackets, with commas, or joined by "and" or "/"), return each one as its own item. Keep a name as written when it is a single tool, standard or concept (e.g. CI/CD, TCP/IP, SAP S/4HANA). Do not include duties, tasks or degrees.
 
-    Put each hard skill in exactly one experience tier, based on explicit dates or clear context in the CV for how long the candidate has used it:
+    Put each hard skill in exactly one experience tier, based only on professional work experience: paid jobs, internships and freelance work, using their dates in the CV.
     entry (0-2 years), junior (2-3 years), mid (3-5 years), senior (5+ years).
-    If the experience with a skill cannot be determined, put it in unknown.
+    Education, courses, certifications, university projects and personal projects never count as years of experience, even when they have dates; a skill that appears only there goes in entry.
+    A skill used in a job counts only the duration of the jobs where it is used, not the candidate's whole career.
+    If a skill is mentioned without any job or education context to place it, put it in unknown.
 
     Also list the spoken/written languages the candidate knows, in English (e.g. "English", "German").
 
@@ -60,4 +63,15 @@ def process_write_extracted_data(input_raw_text):
         json.dump(cv_skills, f, ensure_ascii=False, indent=2)
     return cv_skills
 
+
+def parse_cv_pdf(pdf_bytes):
+    """Uploaded PDF (bytes) -> validated CV dict. Reads in memory and writes no files (session-only CV)."""
+    with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+        text = "".join(page.extract_text(x_tolerance=3, y_tolerance=3) or "" for page in pdf.pages)
+    if not text.strip():
+        raise ValueError("The PDF has no extractable text (scanned image?)")
+    return validate_cv_skills(llm_service(CV_PROMPT, text))
+
+
+if __name__ == "__main__": print(parse_cv())
 

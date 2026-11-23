@@ -24,7 +24,7 @@ Logged from the design review of 2026-10-27. Each item is filled in as the user 
 - L2 Colors are hardcoded, with no theme tokens and no dark mode for the content area. *open 2026-10-27* → partly addressed 2026-10-30: color tokens in `routes/layout.css` (sidebar, Apply button, card headers, bars); the rest is still hardcoded, no dark mode.
 - L3 The nav items use different active styles (slate vs teal). *open 2026-10-27*
 - L4 The score card is an unused placeholder, and the Analyzer page is a placeholder. *open 2026-10-27*. Score card: *open → done 2026-10-27*. It's now a compact CV match panel on the Jobs page, based on the Figma Make mock "CV Scraper App UI Design". Analyzer: still open. *(2026-10-30)* Designed (Extraction / Matching / Jobs sections, see `docs/MATCHING_ROADMAP.md` → *Analyzer page*); built after the minimal slice.
-- L5 *(2026-10-27)* The match panel's overall % is a fixed mock value (72) shown once a CV is picked, and 0 / "No CV" before that. Replace it with the real score once the matcher is wired to the API. *open 2026-10-27*
+- L5 *(2026-10-27)* The match panel's overall % is a fixed mock value (72) shown once a CV is picked, and 0 / "No CV" before that. Replace it with the real score once the matcher is wired to the API. *open 2026-10-27 → done 2026-11-23* (real Chamfer score from `POST /api/match`)
 
 ### Design decisions from the Figma mock (2026-10-27)
 - Match panel: compact (no ⅓-height panel), keeps the app's font (no Fraunces), no "N jobs found" count.
@@ -34,8 +34,8 @@ Logged from the design review of 2026-10-27. Each item is filled in as the user 
 - I1 Nav uses buttons instead of links (no open in new tab). *open 2026-10-27*
 - I2 Filters: Apply/Reset sit above the list, there's no per-group count, and filters aren't kept in the URL. *open 2026-10-27*
 - I3 "View details" has no action. The ad link and experience level aren't shown. *open 2026-10-27*
-- I4 CV upload keeps only the file name and accepts `.pdf,.csv`. *open 2026-10-27*
-- I5 The score badge and bar can't receive a value yet. *open 2026-10-27*
+- I4 CV upload keeps only the file name and accepts `.pdf,.csv`. *open 2026-10-27 → done 2026-11-23* (PDF only; the file is sent to the API and scored)
+- I5 The score badge and bar can't receive a value yet. *open 2026-10-27 → done 2026-11-23* (fed from the upload's scores)
 - I6 Job search bar. *deferred 2026-10-27*. Agreed so far: runs in the browser on the loaded jobs, updates live while typing, searches the title by default, with a "Search in" option to switch to company or skills. Still open: whether "Search in" picks one field or several. → done 2026-10-30: several (checkboxes Title / Company / Skills, default Title + Company, at least one stays on), inside the new search bar's options panel.
 
 ### Data & states (not yet discussed)
@@ -95,6 +95,7 @@ Logged from the design review of 2026-10-27. Each item is filled in as the user 
 | 2026-11-16 | "Skills per job": footnote "*x-axis: skills per ad · hover a point for its count and share" removed (user). (Footnote: since 2026-11-16, until 2026-11-16.) |
 | 2026-11-16 | "Skills per job" point counts: the line ran through the numbers (user). Each count now sits in a **raised white tag** (Impeccable live, variant 3, user): 12px above the dot, white fill, 1px slate-200 border, 4px radius, drawn above the line. (Until 2026-11-16: bare text 9px above the dot.) |
 | 2026-11-16 | "Skills per job": "Most skills in one ad" box (count, title, domain, View ad link) removed (user); the card now goes straight from the header to the chart. (Box: until 2026-11-16.) |
+| 2026-11-23 | **Real match scores** (user request). Sidebar upload sends the PDF to `POST /api/match` (raw body) and shows "Reading skills and scoring jobs…", then "N skills found · M linked to ESCO", or the API error. `lib/cv.svelte.ts` now holds status, session id, CV skills and a score per job key (`clearCv()`); a replaced or removed CV never gets an older upload's result. Job cards show the real score (`lib/api/match.ts`, types `CvSkill` / `MatchResponse` / `MatchReport`). New sort **Best match first** (jobs without a score last). Score card: real score of the compared job, "your CV covers X of Y required skills", **Matched** (teal tags; hover shows the CV skill when it differs) and **Missing** (slate tags) from `GET /api/match/{session}/{source}/{slug}`. Mock score switch removed (`MockScoreSwitch.svelte`, `mockScore.svelte.ts` deleted; until 2026-11-23). Check: no new type errors (21 pre-existing in the impeccable live files); build passes. |
 
 ## 5. Superseded versions
 _None yet._

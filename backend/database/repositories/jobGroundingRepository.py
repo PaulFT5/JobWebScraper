@@ -16,3 +16,12 @@ def save_job_grounding (cursor, slug, grounded_skills, grounding_fingerprint):
         "WHERE slug = ?",
         (grounded_skills, grounding_fingerprint, slug)
     )
+
+
+def get_grounded_available_jobs(cursor):
+    """Every available job that has saved groundings: (source, slug, required_skills, grounded_skills) as JSON strings."""
+    cursor.execute(
+        "SELECT source, slug, required_skills, grounded_skills FROM Jobs "
+        "WHERE available = 1 AND grounded_skills IS NOT NULL"
+    )
+    return cursor.fetchall()

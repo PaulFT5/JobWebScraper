@@ -3,7 +3,6 @@
     import { fetchJobs } from '$lib/api/fetchJobs';
     import { selection, selectJob, showDetails } from '$lib/selection.svelte';
     import { cv } from '$lib/cv.svelte';
-    import { mockScore } from '$lib/mockScore.svelte';
     import { jobKey, salaryFloor, salaryKind, experienceKind, parseSkills } from '$lib/jobs';
     import type { Job } from '$lib/types';
     import JobCard from './JobCard.svelte';
@@ -61,6 +60,10 @@
                 (!term || matches(j, term))
         );
 
+        if (sort === 'score') {
+            // jobs without a score always go last
+            list.sort((a, b) => (cv.scores[jobKey(b)] ?? -1) - (cv.scores[jobKey(a)] ?? -1));
+        }
         if (sort === 'title') list.sort((a, b) => a.title.localeCompare(b.title));
         if (sort === 'salary-desc' || sort === 'salary-asc') {
             const dir = sort === 'salary-desc' ? -1 : 1;
@@ -141,7 +144,7 @@
         {:else if loadedOnce}
             <div class="grid grid-cols-1 items-start gap-3 transition-opacity md:grid-cols-2 xl:grid-cols-3 {status === 'loading' ? 'opacity-60' : ''}">
                 {#each page as job (jobKey(job))}
-                    <JobCard {job} score={mockScore.value ?? undefined} selected={jobKey(job) === selectedKey} onSelect={selectJob} onDetails={showDetails} />
+                    <JobCard {job} score={cv.scores[jobKey(job)]} selected={jobKey(job) === selectedKey} onSelect={selectJob} onDetails={showDetails} />
                 {/each}
             </div>
 

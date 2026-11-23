@@ -1,7 +1,7 @@
 <script lang="ts">
     import { SlidersHorizontal, Search } from '@lucide/svelte';
 
-    export type SortKey = 'default' | 'salary-desc' | 'salary-asc' | 'title';
+    export type SortKey = 'default' | 'score' | 'salary-desc' | 'salary-asc' | 'title';
     export type SearchFields = { title: boolean; company: boolean; skills: boolean };
 
     let {
@@ -13,6 +13,7 @@
 
     const SORTS: { value: SortKey; label: string }[] = [
         { value: 'default', label: 'Default order' },
+        { value: 'score', label: 'Best match first' },
         { value: 'salary-desc', label: 'Salary: high → low' },
         { value: 'salary-asc', label: 'Salary: low → high' },
         { value: 'title', label: 'Title A–Z' }
