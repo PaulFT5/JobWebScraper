@@ -31,25 +31,36 @@
   a{color:inherit}
   :focus-visible{outline:3px solid var(--act);outline-offset:3px;border-radius:4px}
 
-  /* ---------- hero: one 16:10 sheet, everything measured in sheet units ---------- */
-  .sheet{position:relative;width:100%;aspect-ratio:16/10;container-type:inline-size;overflow:hidden;isolation:isolate}
+  /* ---------- hero: the sheet is the viewport; the art lives in a 16:10 frame sized by the smaller side ---------- */
+  /* top bar and legends sit on the sheet (anchored to the viewport corners, units = viewport width);
+     inks, headline and button sit in .frame (units = frame width), so nothing is cropped on short laptop screens */
+  .sheet{position:relative;width:100%;height:100vh;height:100svh;display:grid;place-items:center;container-type:inline-size;overflow:hidden;isolation:isolate}
+  .frame{position:relative;width:min(100%,160vh);width:min(100%,160svh);aspect-ratio:16/10;container-type:inline-size}
   .ink{position:absolute;border-radius:50%;width:105.6cqw;height:105.6cqw}
   /* --g = how far each ink sits from its merged spot (sheet units); 0 = fully merged. JS drives it from pointer distance to Log in. */
   /* --s = scroll progress 0..1: the inks slide onto each other and grow until the merged brown fills the sheet */
-  .sheet{--g:0;--t:1;--s:0}
+  .sheet{--g:0;--s:0}
   .ink.cv {background:var(--cv); left:calc(26.4cqw - 52.8cqw); top:calc(54.2cqw - 52.8cqw);
            transform:translate(calc(var(--g) * -.717cqw), calc(var(--g) * .697cqw)) scale(calc(1 + var(--s) * .4))}
   .ink.job,.ink-mask{left:calc(73.6cqw - 52.8cqw); top:calc(8.3cqw - 52.8cqw);
            transform:translate(calc(var(--g) * .717cqw), calc(var(--g) * -.697cqw)) scale(calc(1 + var(--s) * .4))}
   .stage{position:relative}
   @media (min-width:761px) and (prefers-reduced-motion:no-preference){
-    .stage{height:calc(62.5vw + 90vh)}
-    .sheet{position:sticky;top:0;min-height:100vh}
+    .stage{height:calc(100vh + 90vh)}
+    .sheet{position:sticky;top:0}
     /* the next section rises over the pinned brown and fades in (opacity set by script) */
     main{position:relative;z-index:1;margin-top:-90vh}
     .top{opacity:calc(1 - var(--s) * 1.8)}
   }
   .pitch,.legend.cv{opacity:calc(1 - var(--s) * 2.2)}
+  /* the line in the brown: names the overlap while it grows, between the headline leaving (s≈.45) and the next section
+     arriving (s≈.72). Scroll-linked both ways: in over .42–.52, out over .62–.72 (gone before the section starts to show),
+     rising 1.2 frame units as it arrives */
+  .fitline{position:absolute;left:0;right:0;top:31.25cqw;z-index:2;pointer-events:none;text-align:center;color:var(--paper);
+           font-weight:800;font-size:3.4cqw;line-height:1.05;letter-spacing:-.03em;
+           --in:clamp(0, (var(--s) - .42) / .1, 1); --out:clamp(0, (.72 - var(--s)) / .1, 1);
+           opacity:calc(var(--in) * var(--out));transform:translateY(calc(-50% + (1 - var(--in)) * 1.2cqw))}
+  @media (max-width:760px), (prefers-reduced-motion:reduce){ .fitline{display:none} }
   .brand{color:color-mix(in srgb, var(--paper) calc(var(--s) * 100%), var(--ink))}
   .ink.job{background:var(--job);mix-blend-mode:multiply}
   .ink, .ink-mask{will-change:transform}
@@ -59,9 +70,11 @@
   .ink-mask .h1{position:absolute;left:calc(26cqw - 20.8cqw);top:calc(17cqw + 44.5cqw);width:64cqw;text-align:center;color:#fff;
            transform:translate(calc(var(--g) * -.717cqw), calc(var(--g) * .697cqw))}
   html[data-text="invert"] .pitch h1{color:var(--ink)}
-  /* headline mode B: one colour that fades from ink to white as the inks merge */
+  /* headline mode B: ink until the merge passes halfway, then white; a short crossfade instead of a long grey middle */
   html[data-text="fade"] .ink-mask{display:none}
-  html[data-text="fade"] .pitch h1{color:color-mix(in srgb, #fff calc(var(--t) * 100%), var(--ink))}
+  html[data-text="fade"] .pitch h1{color:var(--ink);transition:color .18s var(--ease)}
+  html[data-text="fade"] .sheet[data-lit] .pitch h1{color:#fff}
+  @media (prefers-reduced-motion:reduce){ html[data-text="fade"] .pitch h1{transition:none} }
 
   .top{position:absolute;inset:0 0 auto 0;display:flex;justify-content:space-between;align-items:center;padding:2.6cqw 3.4cqw;z-index:2}
   .brand{display:flex;align-items:center;gap:.8cqw;text-decoration:none;font-weight:800;font-size:max(18px,1.7cqw);letter-spacing:-.02em}
@@ -69,8 +82,6 @@
   .nav{display:flex;gap:2.6cqw;font-size:max(15px,1.15cqw);font-weight:500;color:var(--on-job)}
   .nav a{text-decoration:none;text-underline-offset:.3em}
   .nav a:hover{text-decoration:underline;text-decoration-thickness:2px}
-  .nav .login{font-weight:700}
-
   .pitch{position:absolute;left:24cqw;width:52cqw;top:17cqw;text-align:center;color:#fff;z-index:2}
   h1,.h1{font-weight:800;font-size:5.2cqw;line-height:.98;letter-spacing:-.038em}
   h1 .ln,.h1 .ln{display:block;white-space:nowrap}
@@ -143,11 +154,35 @@
   .close p{font-weight:800;font-size:clamp(26px,3vw,44px);letter-spacing:-.03em;line-height:1.05;max-width:20ch}
   .close .browse{margin:0;padding:18px 30px;font-size:18px;background:var(--ink);color:#fff}
   .close .browse:hover{background:#2a2a33}
+  .close .actions{display:flex;flex-wrap:wrap;align-items:center;gap:16px 32px}
+  /* the second path: a plain text link, so Log in stays the one filled action */
+  .alt{display:inline-flex;align-items:center;gap:.4em;font-weight:700;font-size:18px;color:var(--paper);text-decoration:underline;
+       text-decoration-thickness:2px;text-underline-offset:.3em;text-decoration-color:#8f8770;transition:text-decoration-color .2s,color .2s}
+  .alt svg{width:1.1em;height:1.1em;transition:transform .35s var(--ease)}
+  .alt:hover{text-decoration-color:var(--act)}
+  .alt:hover svg{transform:translateX(.2em)}
+
+  /* ---------- compact header: comes back on the brown once the hero's top bar has faded ---------- */
+  .minibar{position:fixed;inset:0 0 auto 0;z-index:40;background:var(--fit);color:var(--paper);border-bottom:1px solid #4a4530;
+           transform:translateY(-100%);visibility:hidden;transition:transform .35s var(--ease),visibility 0s .35s}
+  .minibar[data-on]{transform:none;visibility:visible;transition:transform .35s var(--ease),visibility 0s}
+  .minibar .in{max-width:1280px;margin:0 auto;height:60px;padding:0 clamp(16px,4vw,56px);display:flex;align-items:center;justify-content:space-between;gap:24px}
+  .minibar .brand{font-size:18px;color:var(--paper)}
+  .minibar .brand svg{width:26px;isolation:isolate}  /* blend the two inks with each other only, not with the brown bar */
+  #how{scroll-margin-top:60px}
+  .minibar nav{display:flex;align-items:center;gap:clamp(16px,2.4vw,32px);font-size:15px;font-weight:500}
+  .minibar nav a{text-decoration:none;text-underline-offset:.3em;white-space:nowrap}
+  .minibar nav a:not(.go):hover{text-decoration:underline;text-decoration-thickness:2px}
+  .minibar .go{background:var(--act);color:var(--ink);font-weight:700;border-radius:999px;padding:8px 16px;transition:background-color .2s}
+  .minibar .go:hover{background:#ffe04f}
+  @media (max-width:600px){ .minibar .how-link{display:none} }
+  @media (prefers-reduced-motion:reduce){ .minibar,.minibar[data-on]{transition:none} }
   footer{max-width:1280px;margin:0 auto;padding:0 clamp(16px,4vw,56px) 40px;font-size:14px;color:var(--ink-soft);display:flex;flex-wrap:wrap;gap:8px 28px}
 
   /* ---------- phones: the sheet turns portrait and the pitch leaves the ink ---------- */
   @media (max-width:760px){
-    .sheet{aspect-ratio:auto;height:auto;overflow:visible;container-type:normal;padding-bottom:28px;display:flex;flex-direction:column}
+    .sheet{aspect-ratio:auto;height:auto;overflow:visible;container-type:normal;padding-bottom:28px;display:flex;flex-direction:column;place-items:stretch}
+    .frame{display:contents}
     .sheet .top{order:-1}
     .sheet .art{position:relative;width:100%;aspect-ratio:1/1;overflow:hidden;isolation:isolate;container-type:inline-size}
     .ink{width:76cqw;height:76cqw}
@@ -182,33 +217,49 @@
 </head>
 <body>
 
+<div class="minibar" inert>
+  <div class="in">
+    <a class="brand" href="#top" aria-label="CVMatch home">
+      <svg viewBox="0 0 40 34" aria-hidden="true"><circle cx="13" cy="21" r="13" fill="#ff7a1a"/><circle cx="27" cy="13" r="13" fill="#2f5bea" style="mix-blend-mode:multiply"/></svg>
+      CVMatch
+    </a>
+    <nav aria-label="Main (compact)">
+      <a href="#jobs">Browse jobs</a>
+      <a class="how-link" href="#how">How it works</a>
+      <a class="go" href="#login">Log in / Sign up</a>
+    </nav>
+  </div>
+</div>
+
 <div class="stage">
 <header class="sheet" id="top">
-  <div class="art" aria-hidden="true">
-    <div class="ink cv"></div>
-    <div class="ink job"></div>
-  </div>
-  <div class="ink-mask" aria-hidden="true"><p class="h1"><span class="ln">See where you fit,</span> <span class="ln">and why.</span></p></div>
-
   <div class="top">
     <a class="brand" href="#top" aria-label="CVMatch home">
       <svg viewBox="0 0 40 34" aria-hidden="true"><circle cx="13" cy="21" r="13" fill="#ff7a1a"/><circle cx="27" cy="13" r="13" fill="#2f5bea" style="mix-blend-mode:multiply"/></svg>
       CVMatch
     </a>
     <nav class="nav" aria-label="Main">
-      <a class="login" href="#jobs">Browse jobs</a>
+      <a href="#jobs">Browse jobs</a>
       <a href="#how">How it works</a>
     </nav>
   </div>
 
+  <div class="frame">
+  <div class="art" aria-hidden="true">
+    <div class="ink cv"></div>
+    <div class="ink job"></div>
+  </div>
+  <div class="ink-mask" aria-hidden="true"><p class="h1"><span class="ln">See where you fit,</span> <span class="ln">and why.</span></p></div>
+  <p class="fitline" aria-hidden="true">Where your CV overlaps a job<br>is your fit.</p>
+
   <div class="pitch">
-    <h1><span class="ln">See where you fit,</span> <span class="ln">and why.</span></h1>
-    <a class="browse" href="#login">Log in
+    <h1><span class="ln">See where you fit,</span> <span class="ln">and why.</span></h1>    <a class="browse" href="#login">Log in / Sign up
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
     </a>
   </div>
+  </div>
 
-  <p class="legend cv"><b>Your CV</b><span>Log in to add it. Where it overlaps a job is your fit.</span></p>
+  <p class="legend cv"><b>Your CV</b><span>Log in or sign up to add it. Where it overlaps a job is your fit.</span></p>
 </header>
 </div>
 
@@ -310,10 +361,15 @@
   </section>
 
   <section class="close" aria-label="Start">
-    <p>Log in to see your fit. Or just browse the jobs.</p>
-    <a class="browse" href="#login">Log in
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-    </a>
+    <p>Log in or sign up to see your fit. Or just browse the jobs.</p>
+    <div class="actions">
+      <a class="browse" href="#login">Log in / Sign up
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+      <a class="alt" href="#jobs">Browse jobs
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
   </section>
 </main>
 
@@ -345,12 +401,15 @@
 (() => {
   const root = document.documentElement;
   const sheet = document.querySelector('.sheet');
+  const frameEl = document.querySelector('.frame');
   const btn = document.querySelector('.pitch .browse');
   const params = new URLSearchParams(location.search);
   const state = { text: params.get('text') || 'fade', gap: params.get('gap') || 'touch', ease: params.get('ease') || 'in', steps: params.get('steps') || 'bare' };
   const stage = document.querySelector('.stage');
   const mainEl = document.querySelector('main');
   const topBar = document.querySelector('.top');
+  const miniBar = document.querySelector('.minibar');
+  let miniOn = false;
   if (params.has('only')) { stage.style.display = 'none'; mainEl.style.marginTop = '0'; }   // screenshot hook
   // full overlap: both inks on the sheet centre (50, 31.25), i.e. g = -32.92 along the shared diagonal
   const G_FULL = -32.92;
@@ -392,7 +451,7 @@
     const r = btn.getBoundingClientRect();
     const dx = Math.max(r.left - x, 0, x - r.right);
     const dy = Math.max(r.top - y, 0, y - r.bottom);
-    const reach = sheet.clientWidth * 0.42;
+    const reach = frameEl.clientWidth * 0.42;
     return Math.min(Math.max(1 - Math.hypot(dx, dy) / reach, 0), 1);
   }
   let lastP = 0;
@@ -420,10 +479,25 @@
     if (params.has('s')) s = +params.get('s');   // screenshot hook
     s = s * s * (3 - 2 * s);
     const gPointer = geo.BASE + (1 - t) * geo.SHIFT[state.gap];
-    sheet.style.setProperty('--g', (gPointer + (G_FULL - gPointer) * s).toFixed(3));
-    sheet.style.setProperty('--t', Math.max(t, s).toFixed(3));
+    const shift = geo.SHIFT[state.gap];
+    const g = gPointer + (G_FULL - gPointer) * s;
     sheet.style.setProperty('--s', s.toFixed(3));
+    // headline colour follows where the inks really are (pointer or scroll): 0 = at rest, 1 = merged to BASE or past it.
+    // It flips at halfway; the 0.45..0.55 dead band stops it flickering at the edge.
+    const merge = Math.min(Math.max((geo.BASE + shift - g) / shift, 0), 1);
+    if (merge > 0.55) sheet.dataset.lit = '';
+    else if (merge < 0.45) delete sheet.dataset.lit;
+    sheet.style.setProperty('--g', g.toFixed(3));
+    // the hero's top bar fades with the merge; once mostly gone it leaves the tab order and the compact bar takes over
+    // (on phones and with reduced motion nothing is pinned: the bar returns once the hero's top bar has scrolled away)
+    const heroBarGone = s > 0.5 || topBar.getBoundingClientRect().bottom < 0;
     topBar.style.pointerEvents = s > 0.5 ? 'none' : '';
+    topBar.inert = s > 0.5;
+    if (heroBarGone !== miniOn) {
+      miniOn = heroBarGone;
+      miniBar.inert = !miniOn;
+      if (miniOn) miniBar.dataset.on = ''; else delete miniBar.dataset.on;
+    }
     if (travel > 1) {
       // fade the section in over the last stretch of the merge: starts one scroll step before the
       // slivers frame (merge 72%) and is fully shown by 90%, while a little orange and blue still show
