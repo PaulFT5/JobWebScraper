@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jobs · CVMatch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+  // theme and grouping before first paint: URL, then saved choice, then system setting / off
+  (() => { const p = new URLSearchParams(location.search), r = document.documentElement;
+    let t = p.get('theme'), g = p.get('group');
+    try { t = t || localStorage.getItem('cvm-theme'); g = g || localStorage.getItem('cvm-group'); } catch (e) {}
+    r.dataset.theme = t || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    r.dataset.group = g === 'on' ? 'on' : 'off'; })();
+</script>
+<style>
+  /* Graphite (light) / Night (dark) */
+  :root{--bg:#ffffff;--bar:#ffffff;--field:#f6f6f6;--line:#e7e7e7;--card:#ffffff;--card-line:#dedede;--hover:#9c9c9c;--sel:#f6f6f6;
+        --text:#111111;--muted:#666666;--fit:#167a46;--act:#111111;--on-act:#ffffff;color-scheme:light}
+  :root[data-theme="dark"]{--bg:#0f1114;--bar:#14171b;--field:#1b1f24;--line:#262b32;--card:#16191e;--card-line:#252a31;--hover:#4f5866;--sel:#1d2127;
+        --text:#eceef1;--muted:#98a0ab;--fit:#7fe0a6;--act:#7fe0a6;--on-act:#0f1114;color-scheme:dark}
+  /* card sizes (the critique's guide, 4/8px rhythm) */
+  :root{--pad:20px;--gap:16px;--radius:12px}
+  @media (min-width:1280px){ :root{--pad:24px} }
+
+  *{box-sizing:border-box;margin:0}
+  html{font-family:"Schibsted Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased;background:var(--bg);color:var(--text);scrollbar-color:var(--hover) transparent}
+  body{background:var(--bg);min-height:100dvh}
+  ::selection{background:var(--text);color:var(--bg)}
+  :focus-visible{outline:2px solid var(--text);outline-offset:2px}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+  /* ---------- top bar ---------- */
+  .abar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:16px;height:60px;padding:0 clamp(16px,2.4vw,28px);background:var(--bar);border-bottom:1px solid var(--line)}
+  .logo{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:17px;letter-spacing:-.02em;color:var(--text);text-decoration:none;flex:none}
+  .logo svg{width:24px;height:auto}
+  .search{flex:1;max-width:460px;display:flex;align-items:center;gap:8px;height:38px;padding:0 12px;border-radius:9px;background:var(--field);border:1px solid var(--line)}
+  .search:focus-within{border-color:var(--text)}
+  .search svg{width:16px;height:16px;flex:none;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round}
+  .search input{flex:1;min-width:0;border:0;background:none;font:inherit;font-size:14px;color:var(--text);outline:none}
+  .search input::placeholder{color:var(--muted)}
+  .ghost{height:38px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:none;color:var(--text);font:inherit;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px;flex:none}
+  .ghost:hover{border-color:var(--hover)}
+  .ghost[aria-expanded="true"]{border-color:var(--text)}
+  .ghost svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+  .ghost .dot{width:7px;height:7px;border-radius:50%;background:var(--fit)}
+  .act{margin-left:auto;height:38px;padding:0 16px;border-radius:9px;border:0;background:var(--act);color:var(--on-act);font:inherit;font-size:14px;font-weight:700;cursor:pointer;flex:none}
+  .act:hover{filter:brightness(1.08)}
+  .theme{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 6px 0 10px;border-radius:9px;border:1px solid var(--line);background:none;color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer;flex:none}
+  .theme:hover{border-color:var(--hover)}
+  .theme .track{position:relative;width:34px;height:20px;border-radius:999px;background:var(--field);border:1px solid var(--line)}
+  .theme .knob{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--text);transition:transform .2s cubic-bezier(.16,1,.3,1)}
+  .theme[aria-checked="true"] .knob{transform:translateX(14px)}
+  .theme svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  /* ---------- filters panel ("Group by fit" lives here) ---------- */
+  .fwrap{position:relative;flex:none}
+  .fpanel{position:absolute;top:calc(100% + 8px);left:0;z-index:20;width:320px;padding:16px;border-radius:12px;background:var(--card);border:1px solid var(--line);box-shadow:0 12px 32px rgb(0 0 0 / .14)}
+  .fpanel[hidden]{display:none}
+  .fpanel h2{font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+  .fpanel .x{width:32px;height:32px;border-radius:8px;border:1px solid transparent;background:none;color:var(--muted);cursor:pointer;display:grid;place-items:center}
+  .fpanel .x:hover{border-color:var(--line);color:var(--text)}
+  .fpanel .x svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+  .fpanel .sec{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+  .fpanel .sec h3{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px}
+  .opt{all:unset;box-sizing:border-box;width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px;align-items:center;cursor:pointer;padding:4px 0}
+  .opt:focus-visible{outline:2px solid var(--text);outline-offset:4px;border-radius:6px}
+  .opt b{font-size:14px;font-weight:600}
+  .opt small{grid-column:1;font-size:12.5px;color:var(--muted);line-height:1.4}
+  .opt .track{grid-column:2;grid-row:1 / span 2;position:relative;width:34px;height:20px;border-radius:999px;background:var(--field);border:1px solid var(--line)}
+  .opt .knob{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:transform .2s cubic-bezier(.16,1,.3,1)}
+  .opt[aria-checked="true"] .track{background:var(--fit);border-color:var(--fit)}
+  .opt[aria-checked="true"] .knob{transform:translateX(14px);background:var(--card)}
+  .fpanel .later{font-size:12.5px;color:var(--muted);line-height:1.45}
+
+  /* ---------- list ---------- */
+  .body{max-width:1200px;margin:0 auto;padding:20px clamp(16px,2.4vw,28px) 64px}
+  .head-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-bottom:16px}
+  .count{font-size:14px;color:var(--muted)}
+  .count b{color:var(--text);font-weight:700}
+  .sample{font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--text)}
+  /* "How fit works": the band legend, reachable by mouse, keyboard and touch */
+  .lwrap{position:relative}
+  .qbtn{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:13px;font-weight:600;color:var(--muted);background:none;border:0;padding:4px 2px;cursor:pointer;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
+  .qbtn:hover,.qbtn[aria-expanded="true"]{color:var(--text);text-decoration-color:var(--text)}
+  .qbtn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .legend{position:absolute;top:calc(100% + 8px);left:0;z-index:20;width:280px;padding:14px 16px;border-radius:12px;background:var(--card);border:1px solid var(--line);box-shadow:0 12px 32px rgb(0 0 0 / .14)}
+  .legend[hidden]{display:none}
+  .legend .lead{font-size:13px;color:var(--muted);line-height:1.45}
+  .legend dl{margin-top:10px;display:grid;gap:8px}
+  .legend dl > div{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .legend dd{margin:0;font-size:13px;color:var(--text);font-variant-numeric:tabular-nums}
+  @media (max-width:760px){ .legend{left:auto;right:0} }
+  .sample a{color:inherit}
+  /* two cards per row at most; cards in a row share a height, on phones each card keeps its own */
+  /* every card the same height: all rows match the tallest card (a wrapped title adds room above the icon line) */
+  .grid{list-style:none;padding:0;display:grid;grid-template-columns:minmax(0,1fr);grid-auto-rows:1fr;gap:var(--gap)}
+  @media (min-width:720px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  .group + .group{margin-top:32px}
+  .group h2{display:flex;align-items:baseline;gap:8px;font-size:14px;font-weight:700;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  .group h2 .k,.group h2 .d{font-weight:500;color:var(--muted)}
+  .group h2 .k{font-variant-numeric:tabular-nums}
+  .group h2 .d{font-size:12.5px}
+
+  /* ---------- card: header line, icon strip, skills ---------- */
+  .card{all:unset;box-sizing:border-box;display:flex;flex-direction:column;width:100%;height:100%;padding:var(--pad);border-radius:var(--radius);background:var(--card);border:1px solid var(--card-line);cursor:pointer;transition:border-color .15s,background-color .15s}
+  .card:hover{border-color:var(--hover)}
+  .card[aria-current="true"]{border-color:var(--text);background:var(--sel)}
+  .card:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+  .row1{display:flex;gap:12px;align-items:flex-start}
+  .left{flex:1;min-width:0}
+  .t{font-size:17px;font-weight:600;line-height:24px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .t .nw{white-space:nowrap}   /* a dash travels with the next word */
+  .c{display:block;margin-top:4px;font-size:14px;line-height:20px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* fit: number, /100 and word on one line; 50+ green, strong as a filled pill, under 50 grey */
+  .fit{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:5px;line-height:1;cursor:help}   /* word under the score */
+  .n{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--fit)}
+  .n small{font-size:12px;font-weight:600;color:var(--muted);margin-left:1px;letter-spacing:0}
+  .w{font-size:13px;font-weight:600;color:var(--fit)}
+  .weak .n{color:var(--muted);font-weight:600}
+  .low .n{font-weight:500;opacity:.8}   /* very low scores (under 25) recede further than 40-ish ones; still >3:1 at 24px */
+  .weak .w{color:var(--muted)}
+  .strong .w{display:inline-flex;align-items:center;gap:3px;padding:3px 7px 3px 6px;border-radius:999px;background:var(--fit);color:var(--card)}
+  .strong .w svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+
+  /* icon strip: facts left (each only when the ad gives it, shrinking with "…"), salary right */
+  /* header at the top; icon strip and skills line stay together at the bottom, so they line up across a row */
+  .row1{margin-bottom:12px}
+  .strip{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto}
+  .facts{display:flex;gap:14px;overflow:hidden;font-size:14px;color:var(--muted);min-width:0}
+  .facts > span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;min-width:0}
+  .facts > span[data-f="city"]{flex-shrink:0}   /* the city is never cut */
+  .facts > span[data-f="work"]{flex-shrink:4}
+  .facts > span[data-f="level"]{flex-shrink:12}
+  .facts em{font-style:normal;overflow:hidden;text-overflow:ellipsis}
+  .facts svg,.sal svg{width:14px;height:14px;flex:none;fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .sal{flex:none;display:inline-flex;align-items:center;gap:5px;font-size:15px;font-weight:700;white-space:nowrap}
+  .sal.none{font-size:14px;font-weight:400;color:var(--muted)}
+  /* narrow cards (two columns on a ~1000px screen, phones): the salary takes its own line under the facts,
+     so city, work hours and experience get the full width instead of being cut */
+  .card{container-type:inline-size}
+  @container (max-width:480px){
+    .strip{flex-direction:column;align-items:flex-start;gap:8px}
+    .facts{width:100%}
+  }
+
+  /* the why, at the bottom edge */
+  .why{margin-top:16px;font-size:13.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .why b{font-weight:600}
+
+  @media (max-width:760px){
+    .abar{flex-wrap:wrap;height:auto;padding-top:10px;padding-bottom:10px;row-gap:10px}
+    .search{order:5;flex-basis:100%;max-width:none}
+    .theme .lbl,.ghost .lbl{display:none}
+    .fpanel{position:fixed;top:64px;left:16px;right:16px;width:auto}
+  }
+  @media (prefers-reduced-motion:reduce){ .theme .knob,.opt .knob,.card{transition:none} }
+</style>
+</head>
+<body>
+
+<header class="abar">
+  <a class="logo" href="../start-page/index.html" aria-label="CVMatch, start page">
+    <svg viewBox="0 0 40 34" aria-hidden="true"><circle cx="13" cy="21" r="12" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="27" cy="13" r="12" fill="currentColor"/></svg>
+    CVMatch
+  </a>
+  <label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <span class="sr">Search jobs</span><input type="search" placeholder="Search jobs or skills"></label>
+  <span class="fwrap">
+    <button class="ghost" type="button" id="fbtn" aria-label="Filters" aria-expanded="false" aria-controls="fpanel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span class="lbl" aria-hidden="true">Filters</span><span class="dot" id="fdot" hidden aria-hidden="true"></span></button>
+    <div class="fpanel" id="fpanel" role="dialog" aria-label="Filters" hidden>
+      <h2>Filters <button class="x" type="button" id="fclose" aria-label="Close filters"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2>
+      <div class="sec"><h3>View</h3>
+        <button class="opt" type="button" role="switch" id="groupSw" aria-checked="false">
+          <b>Group by fit</b><small>Good fits, weak fits and no match as separate sections.</small>
+          <span class="track" aria-hidden="true"><span class="knob"></span></span></button>
+      </div>
+      <div class="sec"><h3>Filters</h3><p class="later">Domain, location, work type, experience and salary go here.</p></div>
+    </div>
+  </span>
+  <button class="act" type="button">Add your CV</button>
+  <button class="theme" type="button" role="switch" id="theme" aria-checked="false" aria-label="Dark mode">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    <span class="lbl" aria-hidden="true">Dark</span><span class="track" aria-hidden="true"><span class="knob"></span></span>
+  </button>
+</header>
+
+<main class="body">
+  <div class="head-row">
+    <p class="count"><b id="n"></b> job ads in Romania · best fit first, then salary</p>
+    <p class="sample">Scores from a sample CV · <a href="you.html">use yours</a></p>
+    <span class="lwrap">
+      <button class="qbtn" type="button" id="lbtn" aria-expanded="false" aria-controls="legend">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01"/></svg>How fit works</button>
+      <div class="legend" id="legend" role="region" aria-label="How fit works" hidden>
+        <p class="lead">The score is the share of the ad's skills found in your CV.</p>
+        <dl>
+          <div class="strong"><dt><span class="w"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Strong</span></dt><dd>over 70</dd></div>
+          <div><dt><span class="w">Partial</span></dt><dd>50 to 70</dd></div>
+          <div class="weak"><dt><span class="w">Weak</span></dt><dd>under 50</dd></div>
+          <div class="weak"><dt><span class="w">No match</span></dt><dd>none of the skills</dd></div>
+        </dl>
+      </div>
+    </span>
+  </div>
+  <div id="list"></div>
+</main>
+
+<script src="data.js"></script>
+<script src="shell.js"></script>
+<script>
+(() => {
+  const root = document.documentElement, sw = document.getElementById('theme');
+  const syncTheme = () => sw.setAttribute('aria-checked', String(root.dataset.theme === 'dark'));
+  sw.onclick = () => { root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark'; try { localStorage.setItem('cvm-theme', root.dataset.theme); } catch (e) {} syncTheme(); };
+  syncTheme();
+
+  const nf = new Intl.NumberFormat('en-US');
+
+  // text from the ads: ALL CAPS -> normal case (abbreviations like SRL, HR, SAP stay), uneven slash spacing tidied,
+  // a spaced hyphen becomes an en dash; mixed-case text is left as the ad wrote it
+  const SMALL = new Set(['de', 'si', 'și', 'la', 'in', 'în', 'cu', 'pe', 'a', 'al', 'din', 'pentru', 'and', 'of', 'for', 'with', 'the']);
+  const ABBR = new Set(['SAP', 'IT', 'SA', 'CAT', 'EDP', 'ADR', 'CV', 'QA', 'UI', 'UX', 'PR', 'AI', 'ERP', 'CEO', 'CFO', 'BI']);
+  const isAbbr = w => ABBR.has(w) || (/^\p{Lu}{2,4}$/u.test(w) && !/[AEIOUĂÂÎ]/.test(w));
+  const tidy = raw => {
+    const s = raw.replace(/(\S)\/\s+/g, '$1 / ').replace(/\s+\/(\S)/g, ' / $1').replace(/\s+-\s+/g, ' – ');
+    const letters = s.replace(/[^\p{L}]/gu, '');
+    if (letters.length < 6 || letters !== letters.toUpperCase()) return s;
+    return s.split(/(\s+|-|\/)/).map((w, i) => { const lw = w.toLowerCase();
+      if (i > 0 && SMALL.has(lw)) return lw; if (isAbbr(w)) return w; return lw.charAt(0).toUpperCase() + lw.slice(1); }).join('');
+  };
+
+  const ICON = {
+    city: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+    work: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    level: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>',
+    eur: '<path d="M17.5 6.5A7 7 0 1 0 17.5 17.5"/><path d="M4 10h9M4 14h9"/>',
+    tick: '<path d="M5 12.5l4.5 4.5L19 7.5"/>'
+  };
+  const svg = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]}</svg>`;
+  const LEGEND = 'Fit: strong over 70, partial 50–70, weak under 50';
+
+  // best fit first; equal fits by salary (top of the range, highest first; no salary last)
+  const topPay = j => j.salary ? Math.max(...j.salary.split(/\s*-\s*/).map(Number)) : -1;
+  // The sample CV never reaches "strong" (best is 50), so one clearly labelled EXAMPLE card shows that state:
+  // a real ad with 3 of its 4 skills assumed matched (= 75). The real, weak version of the ad stays in the list.
+  const base = D.jobs.find(j => j.title.startsWith('Continuous Improvement Specialist'));
+  const example = base && { ...base, key: base.key + '#example', example: true, score: 75,
+    matched: [...base.matched, ...base.missing.slice(0, 2)], missing: base.missing.slice(2) };
+  const ranked = [...D.jobs, ...(example ? [example] : [])].sort((a, b) => b.score - a.score || topPay(b) - topPay(a));
+  let open = ranked[0].key;
+
+  const word = s => s === 0 ? 'No match' : band(s).replace(' fit', '');
+  const RANGE = s => s > 70 ? 'over 70' : s >= 50 ? '50 to 70' : s > 0 ? 'under 50' : 'none of the skills';   // read out after the word
+  const salary = j => j.salary
+    ? `<span class="sal">${svg('eur')}<span class="sr">Salary: </span>${j.salary.split(/\s*-\s*/).map(x => nf.format(+x)).join('–')} EUR</span>`
+    : `<span class="sal none">${svg('eur')}<span class="sr">Salary: </span>No salary listed</span>`;
+  const facts = j => [['city', j.city, 'Location'], ['work', j.worktype, 'Work hours'], ['level', j.level && levelName(j.level), 'Experience']].filter(f => f[1]);
+
+  const card = j => {
+    const t = tidy(j.title), co = tidy(j.company);
+    return `<li class="${j.score < 50 ? 'weak' : j.score > 70 ? 'strong' : ''}"><button class="card" type="button" aria-current="${j.key === open}" data-k="${j.key}" title="${(t + ' · ' + co).replace(/"/g, '&quot;')}">
+      <span class="row1"><span class="left"><span class="t">${t.replace(/ – (\S+)/, ' <span class="nw">– $1</span>')}</span><span class="c">${co}</span></span>
+        <span class="fit${j.score < 25 ? ' low' : ''}" title="${LEGEND}"><span class="n">${j.score}<small aria-hidden="true">/100</small></span><span class="w">${j.score > 70 ? svg('tick') : ''}${word(j.score)}</span><span class="sr">, ${RANGE(j.score)}</span></span></span>
+      <span class="strip"><span class="facts">${facts(j).map(([k, v, l]) => `<span data-f="${k}">${svg(k)}<span class="sr">${l}: </span><em>${v}</em></span>`).join('')}</span>${salary(j)}</span>
+      <span class="why">${j.example ? 'Example: ' : ''}<b>${j.matched.length} of ${j.matched.length + j.missing.length}</b> skills ${j.example ? 'assumed matched' : 'matched'}</span></button></li>`;
+  };
+
+  const GROUPS = [
+    ['Good fits', '50 or more', j => j.score >= 50],
+    ['Weak fits', 'under 50', j => j.score > 0 && j.score < 50],
+    ['No match', 'none of the skills', j => j.score === 0]
+  ];
+  const groupSw = document.getElementById('groupSw');
+
+  function render() {
+    const grouped = root.dataset.group === 'on';
+    groupSw.setAttribute('aria-checked', String(grouped));
+    document.getElementById('fdot').hidden = !grouped;
+    document.getElementById('list').innerHTML = grouped
+      ? GROUPS.map(([name, desc, test], i) => { const js = ranked.filter(test);
+          return js.length ? `<section class="group" aria-labelledby="g${i}"><h2 id="g${i}">${name} <span class="k">${js.length}</span><span class="d">· ${desc}</span></h2>
+            <ol class="grid">${js.map(card).join('')}</ol></section>` : ''; }).join('')
+      : `<ol class="grid">${ranked.map(card).join('')}</ol>`;
+  }
+
+  // selection updates in place, so keyboard focus stays on the card
+  document.getElementById('list').addEventListener('click', e => {
+    const b = e.target.closest('.card'); if (!b) return;
+    document.querySelectorAll('.card[aria-current="true"]').forEach(x => x.setAttribute('aria-current', 'false'));
+    b.setAttribute('aria-current', 'true'); open = b.dataset.k;
+  });
+
+  // filters panel: Esc or a click outside closes it and returns focus to the button
+  const fbtn = document.getElementById('fbtn'), fpanel = document.getElementById('fpanel');
+  const setPanel = on => { fpanel.hidden = !on; fbtn.setAttribute('aria-expanded', String(on)); (on ? groupSw : fbtn).focus(); };
+  fbtn.onclick = () => setPanel(fpanel.hidden);
+  document.getElementById('fclose').onclick = () => setPanel(false);
+  // "How fit works": opens and closes like the filters panel
+  const lbtn = document.getElementById('lbtn'), lpanel = document.getElementById('legend');
+  const setLegend = on => { lpanel.hidden = !on; lbtn.setAttribute('aria-expanded', String(on)); if (!on) lbtn.focus(); };
+  lbtn.onclick = () => setLegend(lpanel.hidden);
+  addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (!fpanel.hidden) setPanel(false);
+    if (!lpanel.hidden) setLegend(false);
+  });
+  addEventListener('pointerdown', e => {
+    if (!fpanel.hidden && !e.target.closest('.fwrap')) { fpanel.hidden = true; fbtn.setAttribute('aria-expanded', 'false'); }
+    if (!lpanel.hidden && !e.target.closest('.lwrap')) { lpanel.hidden = true; lbtn.setAttribute('aria-expanded', 'false'); }
+  });
+  groupSw.onclick = () => { root.dataset.group = root.dataset.group === 'on' ? 'off' : 'on'; try { localStorage.setItem('cvm-group', root.dataset.group); } catch (e) {} render(); };
+
+  document.getElementById('n').textContent = nf.format(D.available);
+  render();
+  if (new URLSearchParams(location.search).get('legend') === 'open') lpanel.hidden = false, lbtn.setAttribute('aria-expanded', 'true');   // screenshot hook
+})();
+</script>
+</body>
+</html>

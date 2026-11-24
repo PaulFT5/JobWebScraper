@@ -1,0 +1,106 @@
+/* Shared shell for the main-page mocks (Jobs, You): tokens, top bar, buttons, focus, mock switcher. */
+:root{
+  --paper:#fbfaf7;        /* work surfaces */
+  --paper-2:#f4f1ea;      /* side panels */
+  --card-on:#f6f2e8;      /* the opened card */
+  --ink:#14141a;
+  --ink-soft:#55534c;     /* secondary text on paper: 7.4:1 */
+  --ink-faint:#8a867b;    /* checkbox edges only, never text */
+  --rule:#e4e0d6;
+  --rule-strong:#c9c3b4;
+  --cv:#ff7a1a;           /* your CV */
+  --job:#2f5bea;          /* the job */
+  --job-wash:#e6ecfd;
+  --job-ink:#2546b8;
+  --fit:#2f2b18;          /* CV and job printed over each other */
+  --fit-2:#3b3620;        /* raised surfaces on the brown bar */
+  --on-fit:#fbfaf7;
+  --on-fit-soft:#d6cfb6;  /* secondary text on the brown bar: 9.6:1 */
+  --act:#ffd21f;          /* the one action */
+  --act-hover:#ffe04f;
+  --bar-h:64px;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box;margin:0}
+html{background:var(--paper);color:var(--ink);font-family:"Schibsted Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased;
+     scrollbar-color:var(--rule-strong) transparent;accent-color:var(--ink)}
+body{background:var(--paper);min-height:100dvh}
+::selection{background:var(--job);color:#fff}
+input,textarea{caret-color:var(--job)}
+a{color:inherit}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* two-tone focus ring: ink line + yellow halo, readable on paper and on the brown bar */
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px;box-shadow:0 0 0 5px var(--act);border-radius:6px}
+.bar :focus-visible{outline-color:var(--act);box-shadow:none}
+
+/* ---------- top bar: the brown is the shell ---------- */
+.bar{position:sticky;top:0;z-index:40;height:var(--bar-h);display:flex;align-items:center;gap:clamp(12px,2vw,28px);padding:0 clamp(16px,2.4vw,32px);
+     background:var(--fit);color:var(--on-fit)}
+.brand{display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:19px;letter-spacing:-.02em;text-decoration:none;flex:none}
+.brand svg{width:28px;height:auto;isolation:isolate}
+.tabs{display:flex;gap:4px;flex:none}
+.tabs a{position:relative;padding:8px 10px;font-size:15px;font-weight:600;color:var(--on-fit-soft);text-decoration:none;border-radius:6px}
+.tabs a:hover{color:var(--on-fit)}
+.tabs a[aria-current="page"]{color:var(--on-fit)}
+.tabs a[aria-current="page"]::after{content:"";position:absolute;left:10px;right:10px;bottom:-12px;height:3px;border-radius:3px;background:var(--act)}
+.search{flex:1 1 auto;max-width:520px;display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;border-radius:10px;background:var(--fit-2);border:1px solid #57502f}
+.search:focus-within{border-color:var(--act)}
+.search svg{width:18px;height:18px;flex:none;fill:none;stroke:var(--on-fit-soft);stroke-width:2;stroke-linecap:round}
+.search input{flex:1;min-width:0;font:inherit;font-size:15px;color:var(--on-fit);background:none;border:0;outline:none}
+.search input::placeholder{color:#b3ab90}
+.barbtn{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;font:inherit;font-size:15px;font-weight:600;color:var(--on-fit);
+        background:none;border:1px solid #57502f;border-radius:10px;cursor:pointer;flex:none}
+.barbtn:hover{background:var(--fit-2)}
+.barbtn[aria-expanded="true"]{background:var(--fit-2);border-color:var(--on-fit-soft)}
+.barbtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.badge[hidden]{display:none}
+.badge{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--act);color:var(--ink);font-size:12px;font-weight:800;display:inline-grid;place-items:center;font-variant-numeric:tabular-nums}
+.you{margin-left:auto;display:inline-flex;align-items:center;gap:10px;height:44px;padding:0 14px 0 8px;border-radius:999px;text-decoration:none;flex:none;
+     border:1px solid #57502f}
+.you:hover{background:var(--fit-2)}
+.you[aria-current="page"]{background:var(--fit-2);border-color:var(--act)}
+.you .mk{width:30px;height:30px;display:grid;place-items:center}
+.you-l{font-size:15px;font-weight:700}
+.you-s{font-size:12.5px;color:var(--on-fit-soft)}
+
+/* ---------- buttons ---------- */
+.go{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 18px;border-radius:999px;background:var(--act);color:var(--ink);font:inherit;font-size:15px;font-weight:700;
+    text-decoration:none;border:0;cursor:pointer;transition:background-color .15s}
+.go:hover{background:var(--act-hover)}
+.go svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.go[aria-disabled="true"],.go:disabled{background:var(--paper-2);color:var(--ink-soft);border:1px dashed var(--rule-strong);cursor:not-allowed}
+.ghost{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:999px;background:var(--paper);color:var(--ink);font:inherit;font-size:14px;font-weight:600;
+       border:1px solid var(--rule-strong);cursor:pointer;text-decoration:none}
+.ghost:hover{border-color:var(--ink)}
+.iconbtn{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:999px;background:var(--paper);border:1px solid var(--rule);cursor:pointer;color:var(--ink)}
+.iconbtn:hover{border-color:var(--ink)}
+.iconbtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.detail .close{float:right;margin:-4px -4px 8px 12px}
+
+/* the signature mark: CV ink and job ink overlapping by the fit */
+svg.ov{display:block;flex:none;isolation:isolate}
+
+/* ---------- top bar on narrow screens ---------- */
+@media (max-width:1000px){ .you-s{display:none} .tabs a{padding:8px 6px} }
+@media (max-width:760px){
+  :root{--bar-h:112px}
+  .bar{flex-wrap:wrap;height:var(--bar-h);align-content:center;row-gap:10px}
+  .search{order:5;flex-basis:100%;max-width:none}
+  .tabs{order:1}
+  .barbtn{order:2;margin-left:auto}
+  .you{order:3;margin-left:auto;padding:0 6px;gap:0}
+  .barbtn + .you{margin-left:0}
+  .you-l{display:none}
+}
+@media (max-width:440px){ .brand .wm,.barbtn .bl{display:none} .barbtn{padding:0 10px} }
+
+/* ---------- mock-only switcher: not part of the design ---------- */
+.mockbar{position:fixed;right:16px;bottom:16px;z-index:60;max-width:300px;background:var(--ink);color:#fff;border-radius:12px;padding:12px 14px;
+         font:500 13px/1.35 "Schibsted Grotesk",system-ui,sans-serif;display:grid;gap:8px;box-shadow:0 8px 24px rgb(0 0 0 / .25)}
+.mockbar b{font-weight:700;color:var(--act)}
+.mockbar .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.mockbar .row span{width:44px;color:#c9c9d2}
+.mockbar button{font:inherit;color:#fff;background:#2a2a33;border:0;border-radius:999px;padding:6px 11px;cursor:pointer}
+.mockbar button[aria-pressed="true"]{background:#fff;color:var(--ink)}
+.mockbar small{color:#c9c9d2;font-size:12px}

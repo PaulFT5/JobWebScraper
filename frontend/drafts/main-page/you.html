@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your CV · CVMatch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shell.css">
+<style>
+  .page{max-width:1120px;margin:0 auto;padding:clamp(24px,4vw,48px) clamp(16px,3vw,40px) 96px}
+  .intro h1{font-size:clamp(30px,3.4vw,44px);font-weight:800;letter-spacing:-.03em;line-height:1.05}
+  .intro p{margin-top:10px;font-size:16px;color:var(--ink-soft);max-width:60ch;line-height:1.5}
+
+  /* step rail: where you are in upload → review → apply */
+  ol.steps{list-style:none;padding:0;margin:28px 0 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border-top:2px solid var(--rule)}
+  ol.steps li{position:relative;padding:14px 16px 0 0;font-size:14px;color:var(--ink-soft)}
+  ol.steps li b{display:block;font-size:15px;color:var(--ink-soft);font-weight:700}
+  ol.steps li::before{content:"";position:absolute;top:-2px;left:0;right:0;height:2px;background:transparent}
+  ol.steps li[data-s="done"]::before{background:var(--fit)}
+  ol.steps li[data-s="now"]::before{background:var(--act);height:4px;top:-3px}
+  ol.steps li[data-s="done"] b,ol.steps li[data-s="now"] b{color:var(--ink)}
+  ol.steps .n{font-variant-numeric:tabular-nums;margin-right:6px}
+
+  section.step{margin-top:40px}
+  section.step > h2{font-size:22px;font-weight:800;letter-spacing:-.02em;display:flex;align-items:baseline;gap:10px}
+  section.step > h2 .n{font-size:15px;color:var(--ink-soft);font-weight:700}
+  .lede{margin-top:6px;font-size:15px;color:var(--ink-soft);line-height:1.5;max-width:68ch}
+
+  /* upload */
+  .file{margin-top:16px;display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;padding:16px 18px;border:1px solid var(--rule);border-radius:12px;background:var(--paper)}
+  .file .doc{width:40px;height:48px;flex:none}
+  .file .meta{flex:1 1 220px}
+  .file .name{font-weight:700;font-size:16px}
+  .file .sub{font-size:14px;color:var(--ink-soft);margin-top:2px}
+  .drop{margin-top:16px;display:grid;justify-items:center;gap:10px;padding:36px 20px;border:1.5px dashed var(--rule-strong);border-radius:12px;background:var(--paper-2);text-align:center}
+  .drop p{font-size:15px;color:var(--ink-soft)}
+  .drop b{color:var(--ink)}
+  .reading{margin-top:16px;display:flex;align-items:center;gap:14px;padding:16px 18px;border:1px solid var(--rule);border-radius:12px}
+  .reading .bar2{flex:1;height:6px;border-radius:6px;background:var(--rule);overflow:hidden}
+  .reading .bar2 i{display:block;height:100%;width:40%;background:var(--fit);border-radius:6px;animation:slide 1.4s var(--ease) infinite}
+  @keyframes slide{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
+  @media (prefers-reduced-motion:reduce){ .reading .bar2 i{animation:none;width:100%;opacity:.5} }
+
+  /* review */
+  .summary{margin-top:14px;display:flex;flex-wrap:wrap;gap:6px 22px;font-size:15px}
+  .summary span{color:var(--ink-soft)}
+  .summary b{color:var(--ink);font-variant-numeric:tabular-nums}
+  .groups{margin-top:18px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+  .group{border:1px solid var(--rule);border-radius:12px;background:var(--paper);padding:16px 16px 10px;display:flex;flex-direction:column}
+  .group h3{font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px}
+  .group h3 .n{margin-left:auto;font-size:13px;font-weight:700;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+  .group > p{font-size:13px;color:var(--ink-soft);margin-top:4px;line-height:1.45}
+  .group ul{list-style:none;padding:0;margin:10px 0 0}
+  .group li{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--rule)}
+  .group li:first-child{border-top:0}
+  .group .nm{flex:1;min-width:0;font-size:15px;font-weight:600}
+  .group li[data-removed] .nm{color:var(--ink-soft);text-decoration:line-through;text-decoration-thickness:2px}
+  .group li .tag{font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px;background:var(--paper-2);color:var(--ink-soft)}
+  .group .none{font-size:14px;color:var(--ink-soft);padding:10px 0 8px;border:0}
+  .seg{display:inline-flex;border:1px solid var(--rule-strong);border-radius:8px;overflow:hidden;flex:none}
+  .seg button{font:inherit;font-size:13px;font-weight:600;padding:5px 9px;background:var(--paper);color:var(--ink-soft);border:0;cursor:pointer}
+  .seg button + button{border-left:1px solid var(--rule-strong)}
+  .seg button[aria-pressed="true"][data-a="keep"]{background:var(--paper-2);color:var(--ink);font-weight:700}
+  .seg button[aria-pressed="true"][data-a="remove"]{background:var(--ink);color:var(--paper)}
+  .add{margin-top:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .add label{font-size:14px;font-weight:700;width:100%}
+  .add input{flex:1 1 240px;max-width:360px;height:42px;padding:0 12px;font:inherit;font-size:15px;border:1px solid var(--rule-strong);border-radius:10px;background:var(--paper);color:var(--ink)}
+  .add input:focus{border-color:var(--ink);outline:none}
+  .add .err{width:100%;font-size:13px;color:#9a2b10}
+
+  /* apply */
+  .apply{margin-top:16px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px 24px;align-items:center;padding:18px;border-radius:12px;background:var(--paper-2);border:1px solid var(--rule)}
+  .apply .chg{font-size:16px;font-weight:700}
+  .apply .chg span{font-weight:500;color:var(--ink-soft)}
+  .apply .why{margin-top:6px;font-size:14px;color:var(--ink-soft);line-height:1.5;max-width:62ch}
+  .apply .btns{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}
+
+  html[data-up="empty"] .when-ready,html[data-up="reading"] .when-ready{display:none}
+  html:not([data-up="empty"]) .when-empty{display:none}
+  html:not([data-up="reading"]) .when-reading{display:none}
+  html:not([data-up="ready"]) .when-file{display:none}
+
+  @media (max-width:900px){ .groups{grid-template-columns:1fr} }
+  @media (max-width:760px){
+    ol.steps{grid-template-columns:1fr 1fr 1fr}
+    ol.steps li span{display:none}
+    .apply{grid-template-columns:1fr}
+    .apply .btns{justify-content:flex-start}
+  }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <a class="brand" href="../start-page/index.html" aria-label="CVMatch, start page">
+    <svg viewBox="0 0 40 34" aria-hidden="true"><circle cx="13" cy="21" r="13" fill="#ff7a1a"/><circle cx="27" cy="13" r="13" fill="#2f5bea" style="mix-blend-mode:multiply"/></svg>
+    <span class="wm">CVMatch</span>
+  </a>
+  <nav class="tabs" aria-label="Main">
+    <a href="index.html">Jobs</a>
+    <a href="#analyzer">Analyzer</a>
+  </nav>
+  <form class="search" action="index.html" role="search">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <label class="sr" for="q">Search jobs</label>
+    <input id="q" name="q" type="search" placeholder="Search title, company or skill" autocomplete="off">
+  </form>
+  <a class="you" href="you.html" aria-current="page">
+    <span class="mk" id="youMark" aria-hidden="true"></span>
+    <span class="you-l">You</span>
+    <span class="you-s" id="youState"></span>
+  </a>
+</header>
+
+<main class="page">
+  <div class="intro">
+    <h1>Your CV</h1>
+    <p>We read the hard skills in your CV and use them to score every job ad. Check what we read: keep what's right, remove what's wrong, add what we missed. Your CV is kept for this session only.</p>
+  </div>
+
+  <ol class="steps" aria-label="Progress">
+    <li id="st1"><b><span class="n">1</span>Upload</b><span>PDF, up to 10 MB</span></li>
+    <li id="st2"><b><span class="n">2</span>Review skills</b><span>Keep, remove, add</span></li>
+    <li id="st3"><b><span class="n">3</span>Apply</b><span>Update your scores</span></li>
+  </ol>
+
+  <section class="step" aria-labelledby="h-up">
+    <h2 id="h-up"><span class="n">1</span>Upload your CV</h2>
+    <div class="drop when-empty">
+      <svg class="doc" width="40" height="48" viewBox="0 0 40 48" aria-hidden="true"><path d="M4 2h22l10 10v34H4z" fill="#fbfaf7" stroke="#14141a" stroke-width="2" stroke-linejoin="round"/><path d="M26 2v10h10" fill="none" stroke="#14141a" stroke-width="2" stroke-linejoin="round"/></svg>
+      <p><b>Drop your CV here</b> or choose a file. PDF only, up to 10 MB.</p>
+      <button class="go" id="choose">Choose a PDF</button>
+    </div>
+    <div class="reading when-reading" role="status">
+      <span>Reading <b>sample-cv.pdf</b> and linking skills to ESCO… usually about 5 seconds.</span>
+      <span class="bar2" aria-hidden="true"><i></i></span>
+    </div>
+    <div class="file when-file">
+      <svg class="doc" width="40" height="48" viewBox="0 0 40 48" aria-hidden="true"><path d="M4 2h22l10 10v34H4z" fill="#fbfaf7" stroke="#14141a" stroke-width="2" stroke-linejoin="round"/><path d="M26 2v10h10" fill="none" stroke="#14141a" stroke-width="2" stroke-linejoin="round"/><text x="20" y="36" text-anchor="middle" font-size="9" font-weight="800" font-family="Schibsted Grotesk,sans-serif" fill="#14141a">PDF</text></svg>
+      <div class="meta"><p class="name">sample-cv.pdf</p><p class="sub" id="fileSub"></p></div>
+      <button class="ghost" id="replace">Replace</button>
+      <button class="linkish" id="remove" style="font:inherit;font-size:14px;font-weight:600;color:var(--ink-soft);background:none;border:0;text-decoration:underline;text-underline-offset:3px;cursor:pointer">Remove CV</button>
+    </div>
+  </section>
+
+  <section class="step when-ready" aria-labelledby="h-rev">
+    <h2 id="h-rev"><span class="n">2</span>Review what we read</h2>
+    <p class="lede">Skills linked to ESCO, the EU skills list, count by meaning, so other names for the same skill match too. The rest only match by exact name.</p>
+    <p class="summary" id="summary"></p>
+    <div class="groups" id="groups"></div>
+    <form class="add" id="addForm" novalidate>
+      <label for="newSkill">Missing a skill?</label>
+      <input id="newSkill" placeholder="e.g. Docker" autocomplete="off" aria-describedby="addErr">
+      <button class="ghost" type="submit">Add skill</button>
+      <p class="err" id="addErr" role="alert" hidden></p>
+    </form>
+  </section>
+
+  <section class="step when-ready" aria-labelledby="h-apply">
+    <h2 id="h-apply"><span class="n">3</span>Apply to your scores</h2>
+    <div class="apply">
+      <div><p class="chg" id="changes"></p>
+        <p class="why">Coming soon: updating scores from your reviewed list needs one more server step. Until then, job scores use the skills as we read them.</p></div>
+      <div class="btns">
+        <a class="ghost" href="index.html">Back to jobs</a>
+        <button class="go" aria-disabled="true" aria-describedby="h-apply" id="applyBtn">Apply to my scores</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="mockbar" role="group" aria-label="Mock options">
+  <b>Mock options</b>
+  <div class="row"><span>Upload</span>
+    <button data-up="empty">No CV</button>
+    <button data-up="reading">Reading</button>
+    <button data-up="ready">Ready</button>
+  </div>
+  <small>Sample CV. ESCO status of each skill is looked up from how job ads were grounded.</small>
+</div>
+
+<script id="data" type="application/json">{"sampleCv":["Microsoft Excel","English","SQL","Python","Power BI","Data analysis","SAP","Git","Microsoft Office","Project management","Communication","Reporting"],"available":2242,"jobs":[{"key":"bestjobs/asistent-marketing-business-support","title":"Asistent Marketing & Business Support","company":"EGIS ROMPHARMA","city":"Bucuresti","domain":"Marketing","worktype":"Full time","level":null,"salary":"1200","score":50,"matched":[{"name":"Microsoft Excel","esco":false},{"name":"data analysis","esco":true}],"missing":[{"name":"Microsoft PowerPoint","esco":false},{"name":"pharmaceutical industry","esco":true}]},{"key":"bestjobs/supply-chain-specialist-58","title":"Supply Chain Specialist","company":"KRAL MEDICAL SOLUTIONS","city":"Bucuresti","domain":"Production & Logistics","worktype":"Full time","level":null,"salary":"1300","score":50,"matched":[{"name":"Microsoft Excel","esco":false},{"name":"Microsoft Office","esco":false}],"missing":[{"name":"Pluriva ERP","esco":false},{"name":"e-Transport","esco":true}]},{"key":"bestjobs/expert-implementare-8","title":"EXPERT IMPLEMENTARE","company":"AGENTIA PENTRU DEZVOLTARE REGIONALA A REGIUNII VEST","city":"Timisoara","domain":"Public Service","worktype":"Full time","level":null,"salary":"960 - 1065","score":50,"matched":[{"name":"Microsoft Office","esco":false},{"name":"data analysis","esco":true}],"missing":[{"name":"public procurement","esco":false},{"name":"project monitoring","esco":false}]},{"key":"bestjobs/sap-power-user-sd-mm","title":"SAP Power User SD/MM","company":"Schachermayer","city":"Bucuresti","domain":"IT","worktype":"Full time","level":null,"salary":"1495 - 1655","score":50,"matched":[{"name":"SAP","esco":true},{"name":"Microsoft Excel (Pivot)","esco":false}],"missing":[{"name":"SAP SD","esco":false},{"name":"SAP MM","esco":false}]},{"key":"bestjobs/continuous-improvement-manager-29","title":"Continuous Improvement Manager","company":"Autoliv","city":"Brasov","domain":"Production & Logistics","worktype":"Full time","level":"Middle","salary":"1135 - 1255","score":40,"matched":[{"name":"Project Management","esco":true},{"name":"Microsoft Office","esco":false}],"missing":[{"name":"Lean Manufacturing","esco":true},{"name":"Continuous Improvement","esco":false},{"name":"Automotive manufacturing","esco":false}]},{"key":"bestjobs/we-are-hiring-hr-administrator","title":"WE ARE HIRING HR ADMINISTRATOR","company":"MIND AUTOMOBILE PART ROMANIA SRL","city":"Timisoara","domain":"HR","worktype":"Full time","level":null,"salary":"1015 - 1125","score":29,"matched":[{"name":"Microsoft Office","esco":false},{"name":"Microsoft Excel","esco":false}],"missing":[{"name":"REGES-ONLINE","esco":false},{"name":"Payroll processing","esco":false},{"name":"HR administration","esco":false},{"name":"Employee Relations","esco":false},{"name":"Romanian labor legislation","esco":false}]},{"key":"bestjobs/continuous-improvement-specialist-53","title":"Continuous Improvement Specialist","company":"Duqueine Composites","city":"Timisoara","domain":"Engineering","worktype":"Full time","level":"Middle","salary":"1350 - 1490","score":25,"matched":[{"name":"data analysis","esco":true}],"missing":[{"name":"Lean Six Sigma","esco":true},{"name":"Six Sigma","esco":false},{"name":"lean manufacturing","esco":true}]},{"key":"bestjobs/translation-project-manager-with-german","title":"Translation Project Manager - with German","company":"SWISS SOLUTIONS","city":"Timisoara","domain":"Administrative & Secretarial","worktype":"Full time","level":null,"salary":"1715 - 1895","score":25,"matched":[{"name":"Project Management","esco":true}],"missing":[{"name":"Plunet","esco":false},{"name":"Trados","esco":false},{"name":"CAT tools","esco":false}]},{"key":"bestjobs/procurement-professional-with-english","title":"Procurement Professional with English","company":"Freudenberg Business Services","city":"Brasov","domain":"Production & Logistics","worktype":"Full time","level":null,"salary":"","score":17,"matched":[{"name":"Microsoft Excel","esco":false}],"missing":[{"name":"SAP S/4HANA","esco":true},{"name":"SAP MM","esco":false},{"name":"procurement","esco":true},{"name":"supply chain management","esco":true},{"name":"supplier management","esco":true}]},{"key":"bestjobs/asset-management-expert-1","title":"Asset Management Expert","company":"EDP Energias de Portugal","city":"Bucuresti","domain":"Engineering","worktype":"Full time","level":"Senior","salary":"","score":11,"matched":[{"name":"Data Analysis","esco":true}],"missing":[{"name":"Asset Management","esco":true},{"name":"Asset Operation and Maintenance","esco":false},{"name":"Budget Management","esco":true},{"name":"Cost Control","esco":false},{"name":"Safety Compliance","esco":false},{"name":"Environmental Compliance","esco":false},{"name":"Regulatory Compliance","esco":false},{"name":"Engineering","esco":false}]},{"key":"bestjobs/productivity-collaboration-specialist-14","title":"Productivity & Collaboration Specialist","company":"Contitech","city":"Timisoara","domain":"IT","worktype":"Full time","level":"Fără","salary":"","score":8,"matched":[{"name":"Project management","esco":true}],"missing":[{"name":"Microsoft Teams","esco":true},{"name":"SharePoint","esco":true},{"name":"OneDrive","esco":true},{"name":"Outlook","esco":false},{"name":"Microsoft 365","esco":false},{"name":"ITIL","esco":false},{"name":"PMP","esco":false},{"name":"GDPR","esco":true},{"name":"Data privacy","esco":true},{"name":"Survey tools","esco":false},{"name":"Employee engagement platforms","esco":false}]},{"key":"bestjobs/operator-productie-industrie-alimentara-14","title":"Operator producție industrie alimentara","company":"Olympus Foods","city":"Brasov","domain":"Production & Logistics","worktype":"Full time","level":null,"salary":"650 - 700","score":0,"matched":[],"missing":[{"name":"basic computer knowledge","esco":false},{"name":"operation of food industry machinery","esco":false},{"name":"machine operation","esco":false},{"name":"product labeling","esco":false},{"name":"production record completion","esco":false}]},{"key":"bestjobs/talent-acquisition-admin-with-german-1","title":"HR Delivery Operations Associate Manager German","company":"Accenture Operations","city":"Bucuresti","domain":"HR","worktype":"Full time","level":"Senior","salary":"1435 - 1590","score":0,"matched":[],"missing":[{"name":"HR Service Delivery","esco":false},{"name":"HR Operations","esco":false},{"name":"Workforce Management","esco":false},{"name":"HR Delivery Strategy","esco":false},{"name":"operational service management frameworks","esco":false}]},{"key":"bestjobs/inginer-electric-electromecanic-8","title":"Inginer electric/ Electromecanic","company":"MARRO ELECTRIC SYSTEMS","city":"Bucuresti","domain":"Engineering","worktype":"Full time","level":null,"salary":"1500 - 1655","score":0,"matched":[],"missing":[{"name":"ANRE certification","esco":false},{"name":"electrical schematic design","esco":false},{"name":"electric engineering","esco":true},{"name":"electromechanical engineering","esco":false},{"name":"electronic engineering","esco":false}]}],"facets":{"domain":[["IT",384],["Production & Logistics",351],["Engineering",342],["HR",270],["Administrative & Secretarial",247],["Marketing",244],["Medical",228],["Public Service",176]],"city":[["Bucuresti",968],["Timisoara",805],["Brasov",469]],"worktype":[["Full time",2194],["Part time",38],["Internship",10]],"level":[["Not given",1119],["Middle",496],["Senior",285],["Entry",193],["Fără",83],["Executive",66]],"salary":[["Salary listed",1413],["No salary",829]]},"cvStatus":{"Microsoft Excel":"not found","English":"not found","SQL":"match","Python":"match","Power BI":"match","Data analysis":"match","SAP":"match","Git":"match","Microsoft Office":"not found","Project management":"match","Communication":"not found","Reporting":"match"}}</script>
+<script src="shell.js"></script>
+<script>
+(() => {
+  const D = JSON.parse(document.getElementById('data').textContent);
+  const root = document.documentElement;
+  const $ = s => document.querySelector(s);
+  const params = new URLSearchParams(location.search);
+  const GROUPS = [
+    ['match', 'Linked to ESCO', 'Counted by meaning.'],
+    ['ambiguous', 'Unsure', 'More than one ESCO skill fits, so we match by name only.'],
+    ['not found', 'Not in ESCO', 'Matched by exact name only. Fine for tools and languages.']
+  ];
+  let skills = D.sampleCv.map(name => ({ name, status: D.cvStatus[name] || 'not found', removed: false, added: false }));
+  let up = params.get('up') || 'ready';
+
+  const icon = { match: dot('fit'), ambiguous: dot('half'), 'not found': dot('ring') };
+
+  function render() {
+    root.dataset.up = up;
+    document.querySelectorAll('[data-up]').forEach(b => b.tagName === 'BUTTON' && b.setAttribute('aria-pressed', String(b.dataset.up === up)));
+    const ready = up === 'ready';
+    youBadge(ready ? 'Sample CV' : up === 'reading' ? 'Reading…' : 'Add your CV', ready);
+    const steps = ready ? ['done', 'now', 'next'] : ['now', 'next', 'next'];
+    ['#st1', '#st2', '#st3'].forEach((id, i) => { $(id).dataset.s = steps[i]; $(id).toggleAttribute('aria-current', steps[i] === 'now'); });
+
+    const kept = skills.filter(s => !s.removed);
+    const linked = kept.filter(s => s.status === 'match').length;
+    $('#fileSub').textContent = `${D.sampleCv.length} skills found · ${D.sampleCv.filter(n => D.cvStatus[n] === 'match').length} linked to ESCO`;
+    $('#summary').innerHTML = `<span><b>${kept.length}</b> skills in use</span><span><b>${linked}</b> linked to ESCO</span>` +
+      `<span><b>${kept.filter(s => s.status === 'ambiguous').length}</b> unsure</span><span><b>${kept.filter(s => s.status === 'not found').length}</b> not in ESCO</span>`;
+
+    $('#groups').innerHTML = GROUPS.map(([st, title, desc]) => {
+      const list = skills.filter(s => s.status === st);
+      const rows = list.map(s => {
+        const i = skills.indexOf(s);
+        return `<li${s.removed ? ' data-removed' : ''}><span class="nm">${s.name}</span>${s.added ? '<span class="tag">Added</span>' : ''}
+          <span class="seg" role="group" aria-label="${s.name}">
+            <button data-i="${i}" data-a="keep" aria-pressed="${!s.removed}">Keep</button>
+            <button data-i="${i}" data-a="remove" aria-pressed="${s.removed}">${s.added ? 'Undo' : 'Remove'}</button></span></li>`;
+      }).join('');
+      return `<div class="group"><h3><span aria-hidden="true">${icon[st]}</span>${title}<span class="n">${list.filter(s => !s.removed).length}</span></h3><p>${desc}</p>
+        <ul>${rows || `<li class="none">Nothing ${st === 'ambiguous' ? 'unsure' : 'here'} in this CV.</li>`}</ul></div>`;
+    }).join('');
+
+    const removed = skills.filter(s => s.removed && !s.added).length, added = skills.filter(s => s.added && !s.removed).length;
+    const n = removed + added;
+    $('#changes').innerHTML = n ? `${n} change${n > 1 ? 's' : ''} not applied <span>· ${removed} removed, ${added} added</span>` : `No changes <span>· scores use the skills as we read them</span>`;
+  }
+
+  $('#groups').addEventListener('click', e => {
+    const b = e.target.closest('.seg button'); if (!b) return;
+    const s = skills[+b.dataset.i];
+    if (s.added && b.dataset.a === 'remove') skills.splice(+b.dataset.i, 1);
+    else s.removed = b.dataset.a === 'remove';
+    render();
+  });
+  $('#addForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const v = $('#newSkill').value.trim(), err = $('#addErr');
+    if (!v) { err.hidden = false; err.textContent = 'Type a skill name first.'; return; }
+    if (skills.some(s => s.name.toLowerCase() === v.toLowerCase() && !s.removed)) { err.hidden = false; err.textContent = `${v} is already in your list.`; return; }
+    err.hidden = true;
+    // new skills are not grounded until the server step exists: they join the exact-name group
+    skills.push({ name: v, status: 'not found', removed: false, added: true });
+    $('#newSkill').value = ''; render();
+  });
+  $('#applyBtn').addEventListener('click', e => e.preventDefault());
+  document.querySelectorAll('.mockbar [data-up]').forEach(b => b.onclick = () => { up = b.dataset.up; render(); });
+  $('#choose').onclick = () => { up = 'reading'; render(); setTimeout(() => { up = 'ready'; render(); }, 1800); };
+  $('#replace').onclick = () => { up = 'reading'; render(); setTimeout(() => { up = 'ready'; render(); }, 1800); };
+  $('#remove').onclick = () => { up = 'empty'; render(); };
+  render();
+})();
+</script>
+</body>
+</html>

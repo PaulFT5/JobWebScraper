@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jobs · CVMatch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shell.css">
+<style>
+  /* ---------- three work areas: filters | ranked list | the opened job ---------- */
+  .work{display:grid;grid-template-columns:var(--fw,264px) minmax(0,1fr) minmax(380px,460px);height:calc(100dvh - var(--bar-h));transition:grid-template-columns .3s var(--ease)}
+  html[data-filters="closed"] .work{--fw:0px}
+  .work > *{min-height:0;overflow:auto;overscroll-behavior:contain}
+
+  /* filters */
+  .filters{border-right:1px solid var(--rule);background:var(--paper-2);padding:20px 20px 32px}
+  html[data-filters="closed"] .filters{visibility:hidden;padding:0;border:0}
+  .filters header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+  .filters h2{font-size:15px;font-weight:800;letter-spacing:-.01em}
+  .linkish{font:inherit;font-size:13px;font-weight:600;color:var(--ink-soft);background:none;border:0;padding:4px 0;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--rule-strong)}
+  .linkish:hover{color:var(--ink);text-decoration-color:var(--ink)}
+  .linkish:disabled{opacity:.45;cursor:default;text-decoration:none}
+  .fgroup{padding:16px 0 8px;border-top:1px solid var(--rule)}
+  .fgroup:first-child{border-top:0;padding-top:6px}
+  .fgroup h3{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:6px}
+  .opt{display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:10px;align-items:center;padding:5px 0;font-size:14px;cursor:pointer}
+  .opt input{appearance:none;width:18px;height:18px;margin:0;border:1.5px solid var(--ink-faint);border-radius:4px;background:var(--paper);display:grid;place-content:center;cursor:pointer}
+  .opt input:checked{background:var(--ink);border-color:var(--ink)}
+  .opt input:checked::after{content:"";width:9px;height:5px;border:2px solid var(--paper);border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+  .opt span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .opt .n{font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+  .more{margin-top:2px}
+
+  /* list */
+  .list{padding:20px clamp(16px,2.4vw,32px) 40px}
+  .list-head{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .count{font-size:15px;color:var(--ink-soft)}
+  .count b{color:var(--ink);font-weight:800;font-variant-numeric:tabular-nums}
+  .sort{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-soft)}
+  select{font:inherit;font-size:14px;font-weight:600;color:var(--ink);background:var(--paper);border:1px solid var(--rule-strong);border-radius:8px;padding:7px 30px 7px 10px;
+         appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink) 50%),linear-gradient(135deg,var(--ink) 50%,transparent 50%);
+         background-position:calc(100% - 15px) 52%,calc(100% - 10px) 52%;background-size:5px 5px;background-repeat:no-repeat;cursor:pointer}
+  .note{display:flex;gap:12px;align-items:center;padding:12px 14px;margin-bottom:14px;border:1px solid var(--rule);border-radius:10px;background:var(--paper-2);font-size:14px;line-height:1.45}
+  .note .mk{flex:none}
+  .note a{color:var(--ink);font-weight:700;text-underline-offset:3px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 12px}
+  .chip{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:13px;font-weight:600;padding:5px 8px 5px 10px;border-radius:999px;border:1px solid var(--rule-strong);background:var(--paper);color:var(--ink);cursor:pointer}
+  .chip svg{width:12px;height:12px}
+  .chip:hover{border-color:var(--ink)}
+
+  ol.jobs{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+  .card{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;
+        padding:14px 16px;border:1px solid var(--rule);border-radius:12px;background:var(--paper);transition:border-color .15s,background-color .15s}
+  .card:hover{border-color:var(--rule-strong)}
+  .card[aria-current="true"]{border-color:var(--ink);background:var(--card-on)}
+  .card h3{font-size:16px;font-weight:700;letter-spacing:-.01em;line-height:1.3;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .card .who{margin-top:3px;font-size:14px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tags{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:8px;font-size:12.5px;color:var(--ink-soft)}
+  .tags span{white-space:nowrap}
+  .fit{display:grid;justify-items:end;gap:2px;min-width:72px}
+  .fit .num{font-size:22px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
+  .fit .word{font-size:12px;font-weight:600;color:var(--ink-soft)}
+  .fit .row{display:flex;align-items:center;gap:8px}
+  .empty{padding:48px 8px;text-align:center;color:var(--ink-soft)}
+  .empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:6px}
+
+  /* detail */
+  .detail{border-left:1px solid var(--rule);background:var(--paper);padding:24px clamp(20px,2.2vw,32px) 40px}
+  .detail .close{display:none}
+  .detail h2{font-size:clamp(22px,1.9vw,28px);font-weight:800;letter-spacing:-.02em;line-height:1.15}
+  .detail .who{margin-top:6px;font-size:15px;color:var(--ink-soft)}
+  .facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;margin:18px 0 0;padding:14px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+  .facts dt{font-size:12px;color:var(--ink-soft)}
+  .facts dd{margin:2px 0 0;font-size:14px;font-weight:600}
+  .verdict{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center;margin:22px 0 6px}
+  .verdict .num{font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+  .verdict .num small{font-size:20px;font-weight:700;color:var(--ink-soft);margin-left:2px}
+  .verdict p{font-size:14px;color:var(--ink-soft);margin-top:4px;line-height:1.4}
+  .verdict .word{font-size:15px;font-weight:700;color:var(--ink);margin-top:0}
+  .skills h3{font-size:13px;font-weight:700;margin:22px 0 8px;display:flex;align-items:center;gap:8px}
+  .skills h3 .n{font-weight:600;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+  .skills ul{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:6px}
+  .sk{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:600;padding:6px 10px;border-radius:8px;line-height:1.2}
+  .sk.have{background:var(--fit);color:var(--paper)}
+  .sk.miss{background:var(--paper);color:var(--ink);border:1.5px solid var(--job)}
+  .sk .esco{font-size:11px;font-weight:700;letter-spacing:.02em;padding:1px 5px;border-radius:4px;background:rgb(255 255 255 / .16)}
+  .sk.miss .esco{background:var(--job-wash);color:var(--job-ink)}
+  .legend-esco{font-size:12.5px;color:var(--ink-soft);margin-top:10px}
+  .actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:26px}
+  .noscore{margin:22px 0 4px;padding:14px;border:1px dashed var(--rule-strong);border-radius:10px;font-size:14px;line-height:1.45;color:var(--ink-soft)}
+  .noscore a{color:var(--ink);font-weight:700}
+
+  /* ---------- narrower: the detail becomes a drawer over the list ---------- */
+  @media (max-width:1180px){
+    .work{grid-template-columns:var(--fw,248px) minmax(0,1fr)}
+    .detail{position:fixed;z-index:30;top:var(--bar-h);right:0;bottom:0;width:min(460px,100vw);border-left:1px solid var(--rule-strong);
+            transform:translateX(100%);visibility:hidden;transition:transform .3s var(--ease),visibility 0s .3s;box-shadow:-12px 0 32px rgb(20 20 26 / .12)}
+    html[data-detail="open"] .detail{transform:none;visibility:visible;transition:transform .3s var(--ease),visibility 0s}
+    .detail .close{display:inline-flex}
+  }
+  /* ---------- phones: one column; filters and detail cover the list ---------- */
+  @media (max-width:760px){
+    .work{grid-template-columns:minmax(0,1fr);height:auto}
+    .work > *{overflow:visible}
+    .filters{position:fixed;z-index:30;top:var(--bar-h);left:0;bottom:0;width:min(320px,88vw);overflow:auto;box-shadow:12px 0 32px rgb(20 20 26 / .14)}
+    html[data-filters="closed"] .filters{display:none}
+    .detail{width:100vw;top:var(--bar-h);overflow:auto}
+    .list{padding:16px 16px 40px}
+    .card{padding:12px 14px;gap:12px}
+    .facts{grid-template-columns:1fr 1fr}
+  }
+  @media (prefers-reduced-motion:reduce){ .work,.detail{transition:none !important} }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <a class="brand" href="../start-page/index.html" aria-label="CVMatch, start page">
+    <svg viewBox="0 0 40 34" aria-hidden="true"><circle cx="13" cy="21" r="13" fill="#ff7a1a"/><circle cx="27" cy="13" r="13" fill="#2f5bea" style="mix-blend-mode:multiply"/></svg>
+    <span class="wm">CVMatch</span>
+  </a>
+  <nav class="tabs" aria-label="Main">
+    <a href="index.html" aria-current="page">Jobs</a>
+    <a href="#analyzer">Analyzer</a>
+  </nav>
+  <label class="search">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <span class="sr">Search jobs</span>
+    <input id="q" type="search" placeholder="Search title, company or skill" autocomplete="off">
+  </label>
+  <button class="barbtn" id="toggleFilters" aria-controls="filters" aria-expanded="true">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+    <span class="bl">Filters</span> <span class="badge" id="fcount" hidden></span>
+  </button>
+  <a class="you" href="you.html" id="youLink">
+    <span class="mk" id="youMark" aria-hidden="true"></span>
+    <span class="you-l">You</span>
+    <span class="you-s" id="youState"></span>
+  </a>
+</header>
+
+<div class="work">
+  <aside class="filters" id="filters" aria-label="Filters">
+    <header><h2>Filters</h2><button class="linkish" id="clearAll" disabled>Clear all</button></header>
+    <div id="groups"></div>
+  </aside>
+
+  <main class="list" aria-labelledby="count">
+    <div class="list-head">
+      <p class="count" id="count"></p>
+      <label class="sort">Sort
+        <select id="sort">
+          <option value="fit">Best fit first</option>
+          <option value="title">Title A–Z</option>
+          <option value="salary">Salary listed first</option>
+        </select>
+      </label>
+    </div>
+    <p class="note" id="note"></p>
+    <div class="chips" id="chips" aria-label="Active filters"></div>
+    <ol class="jobs" id="jobs"></ol>
+  </main>
+
+  <section class="detail" id="detail" aria-label="Job details" tabindex="-1"></section>
+</div>
+
+<div class="mockbar" role="group" aria-label="Mock options">
+  <b>Mock options</b>
+  <div class="row"><span>CV</span>
+    <button data-cv="sample">Sample CV</button>
+    <button data-cv="none">No CV yet</button>
+  </div>
+  <small>Real ads from the database (24 Nov 2026). Scores come from a sample CV.</small>
+</div>
+
+<script id="data" type="application/json">{"sampleCv":["Microsoft Excel","English","SQL","Python","Power BI","Data analysis","SAP","Git","Microsoft Office","Project management","Communication","Reporting"],"available":2242,"jobs":[{"key":"bestjobs/asistent-marketing-business-support","title":"Asistent Marketing & Business Support","company":"EGIS ROMPHARMA","city":"Bucuresti","domain":"Marketing","worktype":"Full time","level":null,"salary":"1200","score":50,"matched":[{"name":"Microsoft Excel","esco":false},{"name":"data analysis","esco":true}],"missing":[{"name":"Microsoft PowerPoint","esco":false},{"name":"pharmaceutical industry","esco":true}]},{"key":"bestjobs/supply-chain-specialist-58","title":"Supply Chain Specialist","company":"KRAL MEDICAL SOLUTIONS","city":"Bucuresti","domain":"Production & Logistics","worktype":"Full time","level":null,"salary":"1300","score":50,"matched":[{"name":"Microsoft Excel","esco":false},{"name":"Microsoft Office","esco":false}],"missing":[{"name":"Pluriva ERP","esco":false},{"name":"e-Transport","esco":true}]},{"key":"bestjobs/expert-implementare-8","title":"EXPERT IMPLEMENTARE","company":"AGENTIA PENTRU DEZVOLTARE REGIONALA A REGIUNII VEST","city":"Timisoara","domain":"Public Service","worktype":"Full time","level":null,"salary":"960 - 1065","score":50,"matched":[{"name":"Microsoft Office","esco":false},{"name":"data analysis","esco":true}],"missing":[{"name":"public procurement","esco":false},{"name":"project monitoring","esco":false}]},{"key":"bestjobs/sap-power-user-sd-mm","title":"SAP Power User SD/MM","company":"Schachermayer","city":"Bucuresti","domain":"IT","worktype":"Full time","level":null,"salary":"1495 - 1655","score":50,"matched":[{"name":"SAP","esco":true},{"name":"Microsoft Excel (Pivot)","esco":false}],"missing":[{"name":"SAP SD","esco":false},{"name":"SAP MM","esco":false}]},{"key":"bestjobs/continuous-improvement-manager-29","title":"Continuous Improvement Manager","company":"Autoliv","city":"Brasov","domain":"Production & Logistics","worktype":"Full time","level":"Middle","salary":"1135 - 1255","score":40,"matched":[{"name":"Project Management","esco":true},{"name":"Microsoft Office","esco":false}],"missing":[{"name":"Lean Manufacturing","esco":true},{"name":"Continuous Improvement","esco":false},{"name":"Automotive manufacturing","esco":false}]},{"key":"bestjobs/we-are-hiring-hr-administrator","title":"WE ARE HIRING HR ADMINISTRATOR","company":"MIND AUTOMOBILE PART ROMANIA SRL","city":"Timisoara","domain":"HR","worktype":"Full time","level":null,"salary":"1015 - 1125","score":29,"matched":[{"name":"Microsoft Office","esco":false},{"name":"Microsoft Excel","esco":false}],"missing":[{"name":"REGES-ONLINE","esco":false},{"name":"Payroll processing","esco":false},{"name":"HR administration","esco":false},{"name":"Employee Relations","esco":false},{"name":"Romanian labor legislation","esco":false}]},{"key":"bestjobs/continuous-improvement-specialist-53","title":"Continuous Improvement Specialist","company":"Duqueine Composites","city":"Timisoara","domain":"Engineering","worktype":"Full time","level":"Middle","salary":"1350 - 1490","score":25,"matched":[{"name":"data analysis","esco":true}],"missing":[{"name":"Lean Six Sigma","esco":true},{"name":"Six Sigma","esco":false},{"name":"lean manufacturing","esco":true}]},{"key":"bestjobs/translation-project-manager-with-german","title":"Translation Project Manager - with German","company":"SWISS SOLUTIONS","city":"Timisoara","domain":"Administrative & Secretarial","worktype":"Full time","level":null,"salary":"1715 - 1895","score":25,"matched":[{"name":"Project Management","esco":true}],"missing":[{"name":"Plunet","esco":false},{"name":"Trados","esco":false},{"name":"CAT tools","esco":false}]},{"key":"bestjobs/procurement-professional-with-english","title":"Procurement Professional with English","company":"Freudenberg Business Services","city":"Brasov","domain":"Production & Logistics","worktype":"Full time","level":null,"salary":"","score":17,"matched":[{"name":"Microsoft Excel","esco":false}],"missing":[{"name":"SAP S/4HANA","esco":true},{"name":"SAP MM","esco":false},{"name":"procurement","esco":true},{"name":"supply chain management","esco":true},{"name":"supplier management","esco":true}]},{"key":"bestjobs/asset-management-expert-1","title":"Asset Management Expert","company":"EDP Energias de Portugal","city":"Bucuresti","domain":"Engineering","worktype":"Full time","level":"Senior","salary":"","score":11,"matched":[{"name":"Data Analysis","esco":true}],"missing":[{"name":"Asset Management","esco":true},{"name":"Asset Operation and Maintenance","esco":false},{"name":"Budget Management","esco":true},{"name":"Cost Control","esco":false},{"name":"Safety Compliance","esco":false},{"name":"Environmental Compliance","esco":false},{"name":"Regulatory Compliance","esco":false},{"name":"Engineering","esco":false}]},{"key":"bestjobs/productivity-collaboration-specialist-14","title":"Productivity & Collaboration Specialist","company":"Contitech","city":"Timisoara","domain":"IT","worktype":"Full time","level":"Fără","salary":"","score":8,"matched":[{"name":"Project management","esco":true}],"missing":[{"name":"Microsoft Teams","esco":true},{"name":"SharePoint","esco":true},{"name":"OneDrive","esco":true},{"name":"Outlook","esco":false},{"name":"Microsoft 365","esco":false},{"name":"ITIL","esco":false},{"name":"PMP","esco":false},{"name":"GDPR","esco":true},{"name":"Data privacy","esco":true},{"name":"Survey tools","esco":false},{"name":"Employee engagement platforms","esco":false}]},{"key":"bestjobs/operator-productie-industrie-alimentara-14","title":"Operator producție industrie alimentara","company":"Olympus Foods","city":"Brasov","domain":"Production & Logistics","worktype":"Full time","level":null,"salary":"650 - 700","score":0,"matched":[],"missing":[{"name":"basic computer knowledge","esco":false},{"name":"operation of food industry machinery","esco":false},{"name":"machine operation","esco":false},{"name":"product labeling","esco":false},{"name":"production record completion","esco":false}]},{"key":"bestjobs/talent-acquisition-admin-with-german-1","title":"HR Delivery Operations Associate Manager German","company":"Accenture Operations","city":"Bucuresti","domain":"HR","worktype":"Full time","level":"Senior","salary":"1435 - 1590","score":0,"matched":[],"missing":[{"name":"HR Service Delivery","esco":false},{"name":"HR Operations","esco":false},{"name":"Workforce Management","esco":false},{"name":"HR Delivery Strategy","esco":false},{"name":"operational service management frameworks","esco":false}]},{"key":"bestjobs/inginer-electric-electromecanic-8","title":"Inginer electric/ Electromecanic","company":"MARRO ELECTRIC SYSTEMS","city":"Bucuresti","domain":"Engineering","worktype":"Full time","level":null,"salary":"1500 - 1655","score":0,"matched":[],"missing":[{"name":"ANRE certification","esco":false},{"name":"electrical schematic design","esco":false},{"name":"electric engineering","esco":true},{"name":"electromechanical engineering","esco":false},{"name":"electronic engineering","esco":false}]}],"facets":{"domain":[["IT",384],["Production & Logistics",351],["Engineering",342],["HR",270],["Administrative & Secretarial",247],["Marketing",244],["Medical",228],["Public Service",176]],"city":[["Bucuresti",968],["Timisoara",805],["Brasov",469]],"worktype":[["Full time",2194],["Part time",38],["Internship",10]],"level":[["Not given",1119],["Middle",496],["Senior",285],["Entry",193],["Fără",83],["Executive",66]],"salary":[["Salary listed",1413],["No salary",829]]},"cvStatus":{"Microsoft Excel":"not found","English":"not found","SQL":"match","Python":"match","Power BI":"match","Data analysis":"match","SAP":"match","Git":"match","Microsoft Office":"not found","Project management":"match","Communication":"not found","Reporting":"match"}}</script>
+<script src="shell.js"></script>
+<script>
+(() => {
+  const D = JSON.parse(document.getElementById('data').textContent);
+  const root = document.documentElement;
+  const $ = s => document.querySelector(s);
+  const params = new URLSearchParams(location.search);
+  const state = {
+    cv: params.get('cv') || 'sample',
+    q: '', sort: 'fit',
+    sel: { domain: new Set(), city: new Set(), worktype: new Set(), level: new Set(), salary: new Set() },
+    open: D.jobs[0].key
+  };
+  const GROUPS = [['domain','Job domain'],['city','Location'],['worktype','Work type'],['level','Experience'],['salary','Salary']];
+  const fmt = n => n.toLocaleString('en-US');
+  const scored = () => state.cv === 'sample';
+
+  // ---- filters ----
+  $('#groups').innerHTML = GROUPS.map(([k, label]) => {
+    const opts = D.facets[k];
+    const shown = k === 'domain' ? 6 : opts.length;
+    return `<div class="fgroup" role="group" aria-labelledby="fg-${k}" data-g="${k}"><h3 id="fg-${k}">${label}</h3>${opts.map(([v, n], i) =>
+      `<label class="opt"${i >= shown ? ' hidden data-more' : ''}><input type="checkbox" value="${v}"><span>${k === 'level' ? levelName(v) : v}</span><span class="n">${fmt(n)}</span></label>`).join('')}
+      ${opts.length > shown ? `<button class="linkish more" data-more="${k}">Show ${opts.length - shown} more</button>` : ''}</div>`;
+  }).join('');
+  $('#groups').addEventListener('change', e => {
+    const g = e.target.closest('.fgroup').dataset.g;
+    e.target.checked ? state.sel[g].add(e.target.value) : state.sel[g].delete(e.target.value);
+    render();
+  });
+  $('#groups').addEventListener('click', e => {
+    const b = e.target.closest('[data-more]'); if (!b || b.tagName !== 'BUTTON') return;
+    b.closest('.fgroup').querySelectorAll('[data-more]:not(button)').forEach(l => l.hidden = false);
+    b.remove();
+  });
+  $('#clearAll').onclick = () => { Object.values(state.sel).forEach(s => s.clear()); document.querySelectorAll('#groups input').forEach(i => i.checked = false); render(); };
+  $('#chips').addEventListener('click', e => {
+    const c = e.target.closest('.chip'); if (!c) return;
+    state.sel[c.dataset.g].delete(c.dataset.v);
+    document.querySelector(`#groups [data-g="${c.dataset.g}"] input[value="${CSS.escape(c.dataset.v)}"]`).checked = false;
+    render();
+  });
+
+  const narrow = matchMedia('(max-width:760px)');
+  const setFilters = open => { root.dataset.filters = open ? 'open' : 'closed'; $('#toggleFilters').setAttribute('aria-expanded', String(open)); };
+  setFilters(params.get('filters') ? params.get('filters') === 'open' : !narrow.matches);
+  $('#toggleFilters').onclick = () => setFilters(root.dataset.filters !== 'open');
+
+  // ---- search / sort ----
+  $('#q').addEventListener('input', e => { state.q = e.target.value.trim().toLowerCase(); render(); });
+  $('#sort').addEventListener('change', e => { state.sort = e.target.value; render(); });
+
+  // ---- mock CV switch ----
+  document.querySelectorAll('[data-cv]').forEach(b => b.onclick = () => { state.cv = b.dataset.cv; render(); });
+
+  function matches(j) {
+    const s = state.sel;
+    if (s.domain.size && !s.domain.has(j.domain)) return false;
+    if (s.city.size && !s.city.has(j.city)) return false;
+    if (s.worktype.size && !s.worktype.has(j.worktype)) return false;
+    if (s.level.size && !s.level.has(j.level || 'Not given')) return false;
+    if (s.salary.size && !s.salary.has(j.salary ? 'Salary listed' : 'No salary')) return false;
+    if (state.q) {
+      const hay = [j.title, j.company, ...j.matched.map(m => m.name), ...j.missing.map(m => m.name)].join(' ').toLowerCase();
+      if (!hay.includes(state.q)) return false;
+    }
+    return true;
+  }
+
+  function card(j) {
+    const tags = [j.domain, j.city, j.worktype, j.level && levelName(j.level)].filter(Boolean).map(t => `<span>${t}</span>`).join('');
+    const fit = scored()
+      ? `<div class="fit"><div class="row">${overlap(j.score, 13)}<span class="num">${j.score}</span></div><span class="word">${band(j.score)}</span></div>`
+      : `<div class="fit"><div class="row">${overlap(null, 13)}<span class="num" aria-label="No score">–</span></div><span class="word">No CV yet</span></div>`;
+    return `<li><button class="card" data-k="${j.key}" aria-current="${j.key === state.open}">
+      <div><h3>${j.title}</h3><p class="who">${j.company}</p><p class="tags">${tags}</p></div>${fit}</button></li>`;
+  }
+
+  function detail(j) {
+    if (!j) return `<p class="empty"><b>Pick a job</b>Its fit and skills show here.</p>`;
+    const total = j.matched.length + j.missing.length;
+    const sk = (list, cls) => list.map(s => `<li class="sk ${cls}">${s.name}${s.esco ? '<span class="esco">ESCO</span>' : ''}</li>`).join('');
+    const facts = [['Location', j.city], ['Domain', j.domain], ['Work type', j.worktype], ['Experience', levelName(j.level)],
+                   ['Salary', j.salary ? `${j.salary} (as listed)` : 'Not listed'], ['Required skills', total]];
+    const body = scored()
+      ? `<div class="verdict">${overlap(j.score, 34)}<div><p class="num">${j.score}<small>/100</small></p><p class="word">${band(j.score)}</p>
+           <p>Your CV covers ${j.matched.length} of ${total} required skills.</p></div></div>
+         <div class="skills">
+           <h3><span class="mk" aria-hidden="true">${dot('fit')}</span>You have <span class="n">${j.matched.length}</span></h3>
+           <ul>${sk(j.matched, 'have') || '<li class="sk miss" style="border-style:dashed;border-color:var(--rule-strong)">None of the required skills yet</li>'}</ul>
+           <h3><span class="mk" aria-hidden="true">${dot('job')}</span>To learn <span class="n">${j.missing.length}</span></h3>
+           <ul>${sk(j.missing, 'miss') || '<li class="sk have">Nothing missing</li>'}</ul>
+           <p class="legend-esco"><span class="sk miss" style="padding:0;border:0"><span class="esco">ESCO</span></span> linked to the EU skills list, so other names for the same skill count too.</p>
+         </div>`
+      : `<div class="noscore">No fit score yet. <a href="you.html">Add your CV</a> to see which of these ${total} skills you already have.</div>
+         <div class="skills"><h3>Required skills <span class="n">${total}</span></h3><ul>${sk([...j.matched, ...j.missing], 'miss')}</ul></div>`;
+    return `<button class="close iconbtn" id="closeDetail" aria-label="Close job details"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      <h2>${j.title}</h2><p class="who">${j.company}</p>
+      <dl class="facts">${facts.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>
+      ${body}
+      <div class="actions"><a class="go" href="#ad">Open the ad <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></a></div>`;
+  }
+
+  function render() {
+    root.dataset.cv = state.cv;
+    document.querySelectorAll('[data-cv]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.cv === state.cv)));
+    youBadge(state.cv === 'sample' ? 'Sample CV' : 'Add your CV', state.cv === 'sample');
+
+    let list = D.jobs.filter(matches);
+    if (state.sort === 'title') list.sort((a, b) => a.title.localeCompare(b.title));
+    else if (state.sort === 'salary') list.sort((a, b) => (!!b.salary) - (!!a.salary) || b.score - a.score);
+    else if (scored()) list.sort((a, b) => b.score - a.score);
+
+    const active = Object.entries(state.sel).flatMap(([g, s]) => [...s].map(v => [g, v]));
+    $('#fcount').hidden = !active.length; $('#fcount').textContent = active.length;
+    $('#clearAll').disabled = !active.length;
+    $('#chips').innerHTML = active.map(([g, v]) => `<button class="chip" data-g="${g}" data-v="${v}" aria-label="Remove filter ${v}">${v}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>`).join('');
+
+    const filtered = active.length || state.q;
+    $('#count').innerHTML = filtered
+      ? `<b>${list.length}</b> of ${D.jobs.length} sample ads match`
+      : `<b>${fmt(D.available)}</b> job ads in Romania${scored() ? ' · ranked by fit' : ''}`;
+    $('#note').innerHTML = scored()
+      ? `<span class="mk" aria-hidden="true">${overlap(62, 9)}</span><span>Scores are from a <b>sample CV</b> (${D.sampleCv.length} skills). <a href="you.html">Use your own CV</a></span>`
+      : `<span class="mk" aria-hidden="true">${overlap(null, 9)}</span><span>Add your CV to rank these ads by how well you fit. <a href="you.html">Add your CV</a></span>`;
+
+    $('#jobs').innerHTML = list.length ? list.map(card).join('')
+      : `<li class="empty"><b>No ads match these filters</b><button class="linkish" id="clearEmpty">Clear all filters</button></li>`;
+    const ce = $('#clearEmpty'); if (ce) ce.onclick = () => $('#clearAll').click();
+    $('#detail').innerHTML = detail(D.jobs.find(j => j.key === state.open));
+    const cd = $('#closeDetail'); if (cd) cd.onclick = () => { root.dataset.detail = 'closed'; const b = document.querySelector(`.card[data-k="${CSS.escape(state.open)}"]`); b && b.focus(); };
+  }
+
+  $('#jobs').addEventListener('click', e => {
+    const c = e.target.closest('.card'); if (!c) return;
+    state.open = c.dataset.k; root.dataset.detail = 'open'; render();
+    if (matchMedia('(max-width:1180px)').matches) $('#detail').focus();
+  });
+  addEventListener('keydown', e => { if (e.key === 'Escape' && root.dataset.detail === 'open') $('#closeDetail')?.click(); });
+  root.dataset.detail = params.get('detail') || 'closed';
+  render();
+})();
+</script>
+</body>
+</html>

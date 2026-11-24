@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jobs · CVMatch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+  (() => { const p = new URLSearchParams(location.search); let t = p.get('theme'); try { t = t || localStorage.getItem('cvm-theme'); } catch (e) {}
+    document.documentElement.dataset.theme = t || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    let g = p.get('group'); try { g = g || localStorage.getItem('cvm-group'); } catch (e) {}
+    document.documentElement.dataset.group = g === 'on' ? 'on' : 'off'; })();
+</script>
+<style>
+  /* Graphite (light) */
+  :root{--bg:#ffffff;--bar:#ffffff;--field:#f6f6f6;--line:#e7e7e7;--card:#ffffff;--card-line:#dedede;--hover:#9c9c9c;--sel:#f6f6f6;--tile:#f2f2f2;
+        --text:#111111;--muted:#666666;--fit:#167a46;--act:#111111;--on-act:#ffffff;color-scheme:light}
+  /* Night (dark) */
+  :root[data-theme="dark"]{--bg:#0f1114;--bar:#14171b;--field:#1b1f24;--line:#262b32;--card:#16191e;--card-line:#252a31;--hover:#4f5866;--sel:#1d2127;--tile:#22272e;
+        --text:#eceef1;--muted:#98a0ab;--fit:#7fe0a6;--act:#7fe0a6;--on-act:#0f1114;color-scheme:dark}
+
+  *{box-sizing:border-box;margin:0}
+  html{font-family:"Schibsted Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased;background:var(--bg);color:var(--text);scrollbar-color:var(--hover) transparent}
+  body{background:var(--bg);min-height:100dvh}
+  ::selection{background:var(--text);color:var(--bg)}
+  :focus-visible{outline:2px solid var(--text);outline-offset:2px}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+  /* top bar */
+  .abar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:16px;height:60px;padding:0 clamp(16px,2.4vw,28px);background:var(--bar);border-bottom:1px solid var(--line)}
+  .logo{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:17px;letter-spacing:-.02em;color:var(--text);text-decoration:none;flex:none}
+  .logo svg{width:24px;height:auto}
+  .search{flex:1;max-width:460px;display:flex;align-items:center;gap:8px;height:38px;padding:0 12px;border-radius:9px;background:var(--field);border:1px solid var(--line)}
+  .search:focus-within{border-color:var(--text)}
+  .search svg{width:16px;height:16px;flex:none;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round}
+  .search input{flex:1;min-width:0;border:0;background:none;font:inherit;font-size:14px;color:var(--text);outline:none}
+  .search input::placeholder{color:var(--muted)}
+  .ghost{height:38px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:none;color:var(--text);font:inherit;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px;flex:none}
+  .ghost:hover{border-color:var(--hover)}
+  .ghost svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+  .act{margin-left:auto;height:38px;padding:0 16px;border-radius:9px;border:0;background:var(--act);color:var(--on-act);font:inherit;font-size:14px;font-weight:700;cursor:pointer;flex:none}
+  .act:hover{filter:brightness(1.08)}
+  .theme{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 6px 0 10px;border-radius:9px;border:1px solid var(--line);background:none;color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer;flex:none}
+  .theme .track{position:relative;width:34px;height:20px;border-radius:999px;background:var(--field);border:1px solid var(--line)}
+  .theme .knob{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--text);transition:transform .2s cubic-bezier(.16,1,.3,1)}
+  .theme[aria-checked="true"] .knob{transform:translateX(14px)}
+  .theme svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  /* list head */
+  .body{max-width:1120px;margin:0 auto;padding:20px clamp(16px,2.4vw,28px) 96px}
+  .head-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-bottom:14px}
+  .count{font-size:14px;color:var(--muted)}
+  .count b{color:var(--text);font-weight:700}
+  .sample{font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--text)}
+  .sample a{color:inherit}
+
+  /* card parts, shared by all three variants */
+  ol{list-style:none;padding:0}
+  .card{all:unset;box-sizing:border-box;display:flex;flex-direction:column;width:100%;height:100%;padding:14px;border-radius:10px;background:var(--card);border:1px solid var(--card-line);cursor:pointer;transition:border-color .15s,background-color .15s}
+  .card:hover{border-color:var(--hover)}
+  .card[aria-current="true"]{border-color:var(--text);background:var(--sel)}
+  .card[aria-current="true"] .tile{background:var(--card);box-shadow:inset 0 0 0 1px var(--card-line)}
+  .card:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+  .top{display:flex;gap:10px;align-items:flex-start}
+  .tile{width:32px;height:32px;flex:none;border-radius:7px;display:grid;place-items:center;font-size:11.5px;font-weight:700;background:var(--tile);color:var(--muted)}
+  .who{flex:1;min-width:0;display:flex;flex-direction:column}
+  /* titles get two lines before they cut, so the deciding words ("with German") stay visible */
+  .t{font-size:15px;font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-wrap:pretty}
+  .c{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
+  .fit{flex:none;text-align:right;line-height:1;display:flex;flex-direction:column;align-items:flex-end}
+  .fit .n{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--fit)}
+  .fit .n small{font-size:11px;font-weight:600;color:var(--muted);margin-left:1px;letter-spacing:0}
+  /* the fit word says the same thing as the colour: on good fits it takes the score colour */
+  .fit .w{font-size:12px;font-weight:600;color:var(--fit);margin-top:3px}
+  .weak .fit .n{color:var(--muted);font-weight:600}
+  .weak .fit .w{color:var(--muted)}
+  /* strong (over 70): the same green, as a filled pill with a tick */
+  .strong .fit .w{display:inline-flex;align-items:center;gap:3px;padding:3px 7px 3px 6px;border-radius:999px;background:var(--fit);color:var(--card)}
+  .strong .fit .w svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+  .count .bands{white-space:nowrap}
+  .t .nw{white-space:nowrap}   /* the dash travels with the next word, never left alone at a line end */
+  /* details: each fact with its own small icon, one line; missing facts are left out */
+  /* when space runs out, facts shrink with "…" instead of being cut mid-word: experience gives way first,
+     then work hours, the city last; the full line shows on hover */
+  .meta{margin-top:10px;height:18px;display:flex;gap:14px;overflow:hidden;font-size:13px;color:var(--muted)}
+  .meta > span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;min-width:0}
+  .meta > span[data-f="city"]{flex-shrink:1}
+  .meta > span[data-f="work"]{flex-shrink:4}
+  .meta > span[data-f="level"]{flex-shrink:12}
+  .meta em{font-style:normal;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .meta svg{width:14px;height:14px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  /* salary leads the bottom: bold, with a euro icon like the other facts */
+  .sal{margin-top:8px;display:inline-flex;align-items:center;gap:5px;font-size:14px;font-weight:700}
+  .sal svg{width:14px;height:14px;flex:none;fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .sal.none{font-size:13px;font-weight:400;color:var(--muted)}
+  /* every card is the same height: the spare space sits between salary and skills, so the skills line is
+     always at the bottom edge and the header never leaves a hole */
+  .why{margin-top:auto;padding-top:10px;font-size:13px;color:var(--muted)}
+  .why b{font-weight:600;color:var(--muted)}
+
+  /* A + B: the grid */
+  /* two cards per row at most: each card gets about half the page, so titles rarely wrap */
+  .grid{display:grid;grid-template-columns:minmax(0,1fr);grid-auto-rows:1fr;gap:12px}
+  @media (min-width:720px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+
+  /* A: fit groups as structure */
+  .group + .group{margin-top:26px}
+  .group h2{display:flex;align-items:baseline;gap:8px;font-size:14px;font-weight:700;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  .group h2 .k{font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums}
+  .group h2 .d{margin-left:auto;font-size:12.5px;font-weight:500;color:var(--muted)}
+
+  /* filters panel: opens under the Filters button; "Group by fit" lives here */
+  .fwrap{position:relative;flex:none}
+  .ghost[aria-expanded="true"]{border-color:var(--text)}
+  .ghost .dot{width:7px;height:7px;border-radius:50%;background:var(--fit)}
+  .fpanel{position:absolute;top:calc(100% + 8px);left:0;z-index:20;width:320px;padding:16px;border-radius:12px;background:var(--card);border:1px solid var(--line);
+          box-shadow:0 12px 32px rgb(0 0 0 / .14)}
+  .fpanel[hidden]{display:none}
+  .fpanel h2{font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+  .fpanel .x{width:32px;height:32px;border-radius:8px;border:1px solid transparent;background:none;color:var(--muted);cursor:pointer;display:grid;place-items:center}
+  .fpanel .x:hover{border-color:var(--line);color:var(--text)}
+  .fpanel .x svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+  .fpanel .sec{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+  .fpanel .sec h3{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px}
+  .opt{all:unset;box-sizing:border-box;width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px;align-items:center;cursor:pointer;padding:4px 0}
+  .opt:focus-visible{outline:2px solid var(--text);outline-offset:4px;border-radius:6px}
+  .opt b{font-size:14px;font-weight:600}
+  .opt small{grid-column:1;font-size:12.5px;color:var(--muted);line-height:1.4}
+  .opt .track{grid-column:2;grid-row:1 / span 2;position:relative;width:34px;height:20px;border-radius:999px;background:var(--field);border:1px solid var(--line);transition:background-color .2s}
+  .opt .knob{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:transform .2s cubic-bezier(.16,1,.3,1)}
+  .opt[aria-checked="true"] .track{background:var(--fit);border-color:var(--fit)}
+  .opt[aria-checked="true"] .knob{transform:translateX(14px);background:var(--card)}
+  .fpanel .later{font-size:12.5px;color:var(--muted);line-height:1.45}
+  @media (max-width:760px){ .fpanel{position:fixed;top:64px;left:16px;right:16px;width:auto} }
+
+  @media (max-width:760px){
+    .abar{flex-wrap:wrap;height:auto;padding-top:10px;padding-bottom:10px;row-gap:10px}
+    .search{order:5;flex-basis:100%;max-width:none}
+    .theme .lbl,.ghost .lbl{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){ .theme .knob,.card{transition:none} }
+</style>
+</head>
+<body>
+
+<header class="abar">
+  <a class="logo" href="../start-page/index.html" aria-label="CVMatch, start page">
+    <svg viewBox="0 0 40 34" aria-hidden="true"><circle cx="13" cy="21" r="12" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="27" cy="13" r="12" fill="currentColor"/></svg>
+    CVMatch
+  </a>
+  <label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <span class="sr">Search jobs</span><input type="search" placeholder="Search jobs or skills"></label>
+  <span class="fwrap">
+    <button class="ghost" type="button" id="fbtn" aria-label="Filters" aria-expanded="false" aria-controls="fpanel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span class="lbl" aria-hidden="true">Filters</span><span class="dot" id="fdot" hidden aria-hidden="true"></span></button>
+    <div class="fpanel" id="fpanel" role="dialog" aria-label="Filters" hidden>
+      <h2>Filters <button class="x" type="button" id="fclose" aria-label="Close filters"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2>
+      <div class="sec"><h3>View</h3>
+        <button class="opt" type="button" role="switch" id="groupSw" aria-checked="false">
+          <b>Group by fit</b><small>Good fits, weak fits and no match as separate sections.</small>
+          <span class="track" aria-hidden="true"><span class="knob"></span></span></button>
+      </div>
+      <div class="sec"><h3>Filters</h3><p class="later">Domain, location, work type, experience and salary go here.</p></div>
+    </div>
+  </span>
+  <button class="act" type="button">Add your CV</button>
+  <button class="theme" type="button" role="switch" id="theme" aria-checked="false" aria-label="Dark mode">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    <span class="lbl" aria-hidden="true">Dark</span><span class="track" aria-hidden="true"><span class="knob"></span></span>
+  </button>
+</header>
+
+<main class="body">
+  <div class="head-row">
+    <p class="count"><b id="n"></b> job ads in Romania · best fit first, then salary · <span class="bands">Fit: strong over 70, partial 50–70, weak under 50</span></p>
+    <p class="sample">Scores from a sample CV · <a href="you.html">use yours</a></p>
+  </div>
+  <div id="list"></div>
+</main>
+
+
+<script src="data.js"></script>
+<script src="shell.js"></script>
+<script>
+(() => {
+  const root = document.documentElement, sw = document.getElementById('theme');
+  const syncTheme = () => sw.setAttribute('aria-checked', String(root.dataset.theme === 'dark'));
+  sw.onclick = () => { root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark'; try { localStorage.setItem('cvm-theme', root.dataset.theme); } catch (e) {} syncTheme(); };
+  syncTheme();
+
+  const nf = new Intl.NumberFormat('en-US');
+  const initials = n => n.replace(/[^\p{L}\p{N} ]/gu, '').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  // "960 - 1065" -> "960–1,065 EUR"
+  const salary = s => s ? s.split(/\s*-\s*/).map(x => nf.format(+x)).join('–') + ' EUR' : '';
+  const word = s => s === 0 ? 'No match' : band(s).replace(' fit', '');
+  const total = j => j.matched.length + j.missing.length;
+  let open = D.jobs[0].key;
+
+  // ALL-CAPS data from the ads -> normal case; short words (SRL, HR, SAP, IT) keep their capitals,
+  // small joining words go lower case. Mixed-case text is left exactly as the ad wrote it.
+  const SMALL = new Set(['de', 'si', 'și', 'la', 'in', 'în', 'cu', 'pe', 'a', 'al', 'din', 'pentru', 'and', 'of', 'for', 'with', 'the']);
+  const ABBR = new Set(['SAP', 'IT', 'SA', 'CAT', 'EDP', 'ADR', 'CV', 'QA', 'UI', 'UX', 'PR', 'AI', 'ERP', 'CEO', 'CFO', 'BI']);
+  const isAbbr = w => ABBR.has(w) || (/^\p{Lu}{2,4}$/u.test(w) && !/[AEIOUĂÂÎ]/.test(w));   // SRL, HR, MM
+  const tidy = raw => {
+    // uneven spacing from the source: "electric/ Electromecanic" -> "electric / Electromecanic" ("SD/MM" stays);
+    // a spaced hyphen "Manager - with German" becomes an en dash
+    const s = raw.replace(/(\S)\/\s+/g, '$1 / ').replace(/\s+\/(\S)/g, ' / $1').replace(/\s+-\s+/g, ' – ');
+    const letters = s.replace(/[^\p{L}]/gu, '');
+    if (letters.length < 6 || letters !== letters.toUpperCase()) return s;
+    return s.split(/(\s+|-|\/)/).map((w, i) => {
+      const lw = w.toLowerCase();
+      if (i > 0 && SMALL.has(lw)) return lw;
+      if (isAbbr(w)) return w;
+      return lw.charAt(0).toUpperCase() + lw.slice(1);
+    }).join('');
+  };
+
+  // details: city, work type and experience, each only when the ad gives it
+  const ICON = {
+    city: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+    work: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    level: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>',
+    eur: '<path d="M17.5 6.5A7 7 0 1 0 17.5 17.5"/><path d="M4 10h9M4 14h9"/>'
+  };
+  const facts = j => [['city', j.city, 'Location'], ['work', j.worktype, 'Work hours'], ['level', j.level && levelName(j.level), 'Experience']].filter(f => f[1]);
+  const meta = j => `<span class="meta" title="${facts(j).map(f => f[1]).join(' · ')}">${facts(j).map(([k, v, l]) =>
+    `<span data-f="${k}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]}</svg><span class="sr">${l}: </span><em>${v}</em></span>`).join('')}</span>`;
+
+  const card = j => {
+    const sal = salary(j.salary);
+    const title = tidy(j.title);
+    const tip = `${title} · ${tidy(j.company)}`.replace(/"/g, '&quot;');   // full title and company on hover
+    return `<li class="${j.score < 50 ? 'weak' : j.score > 70 ? 'strong' : ''}"><button class="card" type="button" aria-current="${j.key === open}" data-k="${j.key}" title="${tip}">
+      <span class="top"><span class="tile" aria-hidden="true">${initials(j.company)}</span>
+        <span class="who"><span class="t">${title.replace(/ – (\S+)/, ' <span class="nw">– $1</span>')}</span><span class="c">${tidy(j.company)}</span></span>
+        <span class="fit"><span class="n">${j.score}<small aria-hidden="true">/100</small></span><span class="w">${j.score > 70 ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' : ''}${word(j.score)}</span></span></span>
+      ${meta(j)}
+      <span class="sal${sal ? '' : ' none'}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON.eur}</svg><span class="sr">Salary: </span>${sal || 'No salary listed'}</span>
+      <span class="why"><b>${j.matched.length} of ${total(j)}</b> skills you have</span></button></li>`;
+  };
+
+  // best fit first; equal fits by salary (top of the range, highest first; no salary last)
+  const topPay = j => j.salary ? Math.max(...j.salary.split(/\s*-\s*/).map(Number)) : -1;
+  const ranked = [...D.jobs].sort((a, b) => b.score - a.score || topPay(b) - topPay(a));
+  open = ranked[0].key;
+
+  const GROUPS = [
+    ['Good fits', '50 or more', j => j.score >= 50],
+    ['Weak fits', 'under 50', j => j.score > 0 && j.score < 50],
+    ['No match', 'none of the skills', j => j.score === 0]
+  ];
+
+  function render() {
+    const grouped = root.dataset.group === 'on';
+    groupSw.setAttribute('aria-checked', String(grouped));
+    document.getElementById('fdot').hidden = !grouped;
+    const list = document.getElementById('list');
+    if (grouped) {
+      list.innerHTML = GROUPS.map(([name, desc, test], i) => {
+        const js = ranked.filter(test);
+        return js.length ? `<section class="group" aria-labelledby="g${i}"><h2 id="g${i}">${name} <span class="k">${js.length}</span><span class="d">${desc}</span></h2>
+          <ol class="grid">${js.map(card).join('')}</ol></section>` : '';
+      }).join('');
+    } else {
+      list.innerHTML = `<ol class="grid">${ranked.map(card).join('')}</ol>`;
+    }
+  }
+
+  // filters panel: open/close from the Filters button; Esc or a click outside closes it and returns focus
+  const fbtn = document.getElementById('fbtn'), fpanel = document.getElementById('fpanel'), groupSw = document.getElementById('groupSw');
+  const setPanel = open => {
+    fpanel.hidden = !open; fbtn.setAttribute('aria-expanded', String(open));
+    if (open) groupSw.focus(); else fbtn.focus();
+  };
+  fbtn.onclick = () => setPanel(fpanel.hidden);
+  document.getElementById('fclose').onclick = () => setPanel(false);
+  addEventListener('keydown', e => { if (e.key === 'Escape' && !fpanel.hidden) setPanel(false); });
+  addEventListener('pointerdown', e => { if (!fpanel.hidden && !e.target.closest('.fwrap')) { fpanel.hidden = true; fbtn.setAttribute('aria-expanded', 'false'); } });
+  groupSw.onclick = () => {
+    root.dataset.group = root.dataset.group === 'on' ? 'off' : 'on';
+    try { localStorage.setItem('cvm-group', root.dataset.group); } catch (e) {}
+    render();
+  };
+
+  // selection updates in place, so keyboard focus stays on the card
+  document.getElementById('list').addEventListener('click', e => {
+    const b = e.target.closest('.card'); if (!b) return;
+    document.querySelectorAll('.card[aria-current="true"]').forEach(x => x.setAttribute('aria-current', 'false'));
+    b.setAttribute('aria-current', 'true'); open = b.dataset.k;
+  });
+  document.getElementById('n').textContent = nf.format(D.available);
+  render();
+  if (new URLSearchParams(location.search).get('filters') === 'open') setPanel(true);   // screenshot hook
+})();
+</script>
+</body>
+</html>

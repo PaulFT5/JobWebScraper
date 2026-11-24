@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jobs · CVMatch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+  // theme before first paint: saved choice, else the system setting
+  (() => { let t = new URLSearchParams(location.search).get('theme'); try { t = t || localStorage.getItem('cvm-theme'); } catch (e) {}
+    document.documentElement.dataset.theme = t || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); })();
+</script>
+<style>
+  /* Graphite (light): white and near-black; green only on good fits; the action is black */
+  :root{--bg:#ffffff;--bar:#ffffff;--field:#f6f6f6;--line:#e7e7e7;--card:#ffffff;--card-line:#e7e7e7;--hover:#bdbdbd;--sel:#f6f6f6;--tile:#f2f2f2;
+        --text:#111111;--muted:#6a6a6a;--fit:#167a46;--act:#111111;--on-act:#ffffff;color-scheme:light}
+  /* Night (dark): dark surfaces, light text; mint for fit and the action */
+  :root[data-theme="dark"]{--bg:#0f1114;--bar:#14171b;--field:#1b1f24;--line:#262b32;--card:#16191e;--card-line:#23282f;--hover:#3c444f;--sel:#1d2127;--tile:#22272e;
+        --text:#eceef1;--muted:#98a0ab;--fit:#7fe0a6;--act:#7fe0a6;--on-act:#0f1114;color-scheme:dark}
+
+  *{box-sizing:border-box;margin:0}
+  html{font-family:"Schibsted Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased;background:var(--bg);color:var(--text);scrollbar-color:var(--hover) transparent}
+  body{background:var(--bg);min-height:100dvh}
+  ::selection{background:var(--text);color:var(--bg)}
+  :focus-visible{outline:2px solid var(--text);outline-offset:2px;border-radius:6px}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+  /* top bar */
+  .abar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:16px;height:60px;padding:0 clamp(16px,2.4vw,28px);background:var(--bar);border-bottom:1px solid var(--line)}
+  .logo{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:17px;letter-spacing:-.02em;color:var(--text);text-decoration:none;flex:none}
+  .logo svg{width:24px;height:auto}
+  .search{flex:1;max-width:460px;display:flex;align-items:center;gap:8px;height:38px;padding:0 12px;border-radius:9px;background:var(--field);border:1px solid var(--line)}
+  .search:focus-within{border-color:var(--text)}
+  .search svg{width:16px;height:16px;flex:none;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round}
+  .search input{flex:1;min-width:0;border:0;background:none;font:inherit;font-size:14px;color:var(--text);outline:none}
+  .search input::placeholder{color:var(--muted)}
+  .ghost{height:38px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:none;color:var(--text);font:inherit;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px;flex:none}
+  .ghost:hover{border-color:var(--hover)}
+  .ghost svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+  .act{margin-left:auto;height:38px;padding:0 16px;border-radius:9px;border:0;background:var(--act);color:var(--on-act);font:inherit;font-size:14px;font-weight:700;cursor:pointer;flex:none}
+  .act:hover{filter:brightness(1.08)}
+
+  /* the light/dark switch */
+  .theme{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 6px 0 10px;border-radius:9px;border:1px solid var(--line);background:none;color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer;flex:none}
+  .theme:hover{border-color:var(--hover)}
+  .theme .track{position:relative;width:34px;height:20px;border-radius:999px;background:var(--field);border:1px solid var(--line);transition:background-color .2s}
+  .theme .knob{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--text);transition:transform .2s cubic-bezier(.16,1,.3,1)}
+  .theme[aria-checked="true"] .knob{transform:translateX(14px)}
+  .theme svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  /* list */
+  .body{max-width:1280px;margin:0 auto;padding:20px clamp(16px,2.4vw,28px) 48px}
+  .count{font-size:14px;color:var(--muted);margin-bottom:12px}
+  .count b{color:var(--text);font-weight:700;font-variant-numeric:tabular-nums}
+  .grid{list-style:none;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+  @media (min-width:720px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  @media (min-width:1100px){ .grid{grid-template-columns:repeat(3,minmax(0,1fr))} }
+
+  .card{display:flex;flex-direction:column;height:100%;padding:14px;border-radius:10px;background:var(--card);border:1px solid var(--card-line);cursor:pointer;transition:border-color .15s,background-color .15s}
+  .card:hover{border-color:var(--hover)}
+  .card[aria-pressed="true"]{border-color:var(--text);background:var(--sel)}
+  .head{display:flex;gap:10px;align-items:flex-start}
+  .tile{width:32px;height:32px;flex:none;border-radius:7px;display:grid;place-items:center;font-size:11.5px;font-weight:700;background:var(--tile);color:var(--muted)}
+  .ttl{flex:1;min-width:0}
+  .ttl h3{font-size:15px;font-weight:600;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ttl p{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px}
+  .fit{flex:none;text-align:right;line-height:1}
+  .fit .n{display:block;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--fit)}
+  .fit .w{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-top:3px}
+  .fit.weak .n{color:var(--muted);font-weight:600}
+  .meta{margin-top:10px;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .salary{margin-top:6px;font-size:13px;color:var(--muted)}
+  .salary b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+
+  @media (max-width:760px){
+    .abar{flex-wrap:wrap;height:auto;padding-top:10px;padding-bottom:10px;row-gap:10px}
+    .search{order:5;flex-basis:100%;max-width:none}
+    .theme .lbl,.ghost .lbl{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){ .theme .knob,.card{transition:none} }
+</style>
+</head>
+<body>
+
+<header class="abar">
+  <a class="logo" href="../start-page/index.html" aria-label="CVMatch, start page">
+    <svg viewBox="0 0 40 34" aria-hidden="true"><circle cx="13" cy="21" r="12" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="27" cy="13" r="12" fill="currentColor"/></svg>
+    CVMatch
+  </a>
+  <label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <span class="sr">Search jobs</span><input type="search" placeholder="Search jobs or skills"></label>
+  <button class="ghost" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span class="lbl">Filters</span></button>
+  <button class="act" type="button">Add your CV</button>
+  <button class="theme" type="button" role="switch" id="theme" aria-checked="false" aria-label="Dark mode">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    <span class="lbl">Dark</span><span class="track" aria-hidden="true"><span class="knob"></span></span>
+  </button>
+</header>
+
+<main class="body">
+  <p class="count"><b id="n"></b> job ads in Romania · best fit first · sample CV</p>
+  <ol class="grid" id="grid"></ol>
+</main>
+
+<script src="data.js"></script>
+<script src="shell.js"></script>
+<script>
+(() => {
+  const root = document.documentElement, sw = document.getElementById('theme');
+  const sync = () => sw.setAttribute('aria-checked', String(root.dataset.theme === 'dark'));
+  sw.onclick = () => {
+    root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem('cvm-theme', root.dataset.theme); } catch (e) {}
+    sync();
+  };
+  sync();
+
+  let open = D.jobs[0].key;
+  const initials = n => n.replace(/[^\p{L}\p{N} ]/gu, '').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  const card = j => `<li><div class="card" role="button" tabindex="0" aria-pressed="${j.key === open}" data-k="${j.key}">
+      <div class="head"><div class="tile" aria-hidden="true">${initials(j.company)}</div>
+        <div class="ttl"><h3>${j.title}</h3><p>${j.company}</p></div>
+        <div class="fit${j.score < 40 ? ' weak' : ''}" aria-label="${band(j.score)}, ${j.score} of 100"><span class="n">${j.score}</span><span class="w">${band(j.score).replace(' fit', '')}</span></div></div>
+      <p class="meta">${[j.city, j.worktype, j.level && levelName(j.level)].filter(Boolean).join(' · ')}</p>
+      ${j.salary ? `<p class="salary">Salary <b>${j.salary}</b> as listed</p>` : ''}</div></li>`;
+  const render = () => { document.getElementById('grid').innerHTML = D.jobs.map(card).join(''); };
+  document.getElementById('n').textContent = D.available.toLocaleString('en-US');
+  document.getElementById('grid').addEventListener('click', e => { const c = e.target.closest('.card'); if (c) { open = c.dataset.k; render(); } });
+  render();
+})();
+</script>
+</body>
+</html>

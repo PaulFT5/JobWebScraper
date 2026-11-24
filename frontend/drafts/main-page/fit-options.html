@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fit display options · CVMatch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+  (() => { let t = new URLSearchParams(location.search).get('theme'); try { t = t || localStorage.getItem('cvm-theme'); } catch (e) {}
+    document.documentElement.dataset.theme = t || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); })();
+</script>
+<style>
+  :root{--bg:#ffffff;--line:#e7e7e7;--card:#ffffff;--card-line:#e2e2e2;--tile:#f2f2f2;--field:#f6f6f6;
+        --text:#111111;--muted:#666666;--fit:#167a46;--fit-wash:#e4f3ea;--amber:#9a5b00;--amber-wash:#fbefd9;color-scheme:light}
+  :root[data-theme="dark"]{--bg:#0f1114;--line:#262b32;--card:#16191e;--card-line:#23282f;--tile:#22272e;--field:#1b1f24;
+        --text:#eceef1;--muted:#98a0ab;--fit:#7fe0a6;--fit-wash:#173325;--amber:#f2b860;--amber-wash:#3a2a12;color-scheme:dark}
+  *{box-sizing:border-box;margin:0}
+  html{font-family:"Schibsted Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased;background:var(--bg);color:var(--text)}
+  body{background:var(--bg)}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .page{max-width:1280px;margin:0 auto;padding:28px clamp(16px,2.4vw,28px) 80px}
+  .intro{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-start;justify-content:space-between}
+  .intro h1{font-size:24px;font-weight:800;letter-spacing:-.02em}
+  .intro p{margin-top:6px;font-size:14px;color:var(--muted);max-width:76ch;line-height:1.5}
+  .theme{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 6px 0 10px;border-radius:9px;border:1px solid var(--line);background:none;color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+  .theme .track{position:relative;width:34px;height:20px;border-radius:999px;background:var(--field);border:1px solid var(--line)}
+  .theme .knob{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--text);transition:transform .2s}
+  .theme[aria-checked="true"] .knob{transform:translateX(14px)}
+
+  .opt{margin-top:34px}
+  .opt h2{font-size:17px;font-weight:800;display:flex;gap:10px;align-items:baseline}
+  .opt h2 .k{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:999px;background:var(--text);color:var(--bg);font-size:13px}
+  .opt > p{margin-top:4px;font-size:14px;color:var(--muted);max-width:90ch}
+  .grid{list-style:none;padding:0;margin-top:12px;display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+  @media (min-width:720px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  @media (min-width:1100px){ .grid{grid-template-columns:repeat(4,minmax(0,1fr))} }
+
+  .card{display:flex;flex-direction:column;height:100%;padding:14px;border-radius:10px;background:var(--card);border:1px solid var(--card-line)}
+  .top{display:flex;gap:10px;align-items:flex-start}
+  .tile{width:32px;height:32px;flex:none;border-radius:7px;display:grid;place-items:center;font-size:11.5px;font-weight:700;background:var(--tile);color:var(--muted)}
+  .who{flex:1;min-width:0}
+  .t{font-size:15px;font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .c{font-size:13px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ex{display:inline-block;margin-top:6px;font-size:11px;font-weight:600;color:var(--muted);border:1px dashed var(--card-line);border-radius:999px;padding:1px 7px}
+  .sal{margin-top:10px;font-size:14px;font-weight:700}
+  .why{margin-top:auto;padding-top:10px;font-size:13px;color:var(--muted)}
+  .why b{font-weight:600}
+
+  .fit{flex:none;display:flex;flex-direction:column;align-items:flex-end;line-height:1;gap:4px}
+  .n{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .n small{font-size:11px;font-weight:600;color:var(--muted);margin-left:1px;letter-spacing:0}
+  .w{font-size:12px;font-weight:600}
+  .grey .n,.grey .w{color:var(--muted)}
+  .grey .n{font-weight:600}
+
+  /* 1 · one green for 50+, strong gets a filled pill with a tick */
+  .o1 .good .n,.o1 .good .w{color:var(--fit)}
+  .o1 .strong .w{background:var(--fit);color:var(--card);padding:3px 7px 3px 6px;border-radius:999px;display:inline-flex;gap:3px;align-items:center}
+  .o1 .strong .w svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+
+  /* 2 · green for strong only; partial in plain text colour */
+  .o2 .strong .n,.o2 .strong .w{color:var(--fit)}
+  .o2 .partial .n{color:var(--text)}
+  .o2 .partial .w{color:var(--text)}
+
+  /* 3 · green strong, amber partial */
+  .o3 .strong .n,.o3 .strong .w{color:var(--fit)}
+  .o3 .partial .n,.o3 .partial .w{color:var(--amber)}
+
+  /* 4 · no colour: shape carries the band (filled = strong, outlined = partial, plain = weak) */
+  .o4 .n{color:var(--text)}
+  .o4 .strong .n{background:var(--text);color:var(--card);padding:5px 8px;border-radius:8px}
+  .o4 .strong .n small{color:inherit;opacity:.7}
+  .o4 .partial .n{box-shadow:inset 0 0 0 1.5px var(--text);padding:5px 8px;border-radius:8px}
+  .o4 .w{color:var(--muted)}
+  .o4 .strong .w{color:var(--text)}
+</style>
+</head>
+<body>
+<main class="page">
+  <div class="intro">
+    <div><h1>How to show strong, partial and weak</h1>
+      <p>Bands: <b>strong</b> over 70, <b>partial</b> 50–70, <b>weak</b> under 50, <b>no match</b> 0. Same four cards in each option; the strong card is an <b>example score</b> (the sample CV never reaches 70), the others are real ads with sample-CV scores.</p></div>
+    <button class="theme" type="button" role="switch" id="theme" aria-checked="false" aria-label="Dark mode">Dark <span class="track" aria-hidden="true"><span class="knob"></span></span></button>
+  </div>
+  <div id="opts"></div>
+</main>
+
+<script src="data.js"></script>
+<script src="shell.js"></script>
+<script>
+(() => {
+  const root = document.documentElement, sw = document.getElementById('theme');
+  const sync = () => sw.setAttribute('aria-checked', String(root.dataset.theme === 'dark'));
+  sw.onclick = () => { root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark'; try { localStorage.setItem('cvm-theme', root.dataset.theme); } catch (e) {} sync(); };
+  sync();
+
+  const nf = new Intl.NumberFormat('en-US');
+  const salary = s => s ? s.split(/\s*-\s*/).map(x => nf.format(+x)).join('–') + ' EUR' : 'No salary listed';
+  const initials = n => n.replace(/[^\p{L}\p{N} ]/gu, '').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  const find = t => D.jobs.find(j => j.title.startsWith(t));
+  // strong: an example built on a real 4-skill ad, with 3 of 4 skills (= 75); clearly labelled
+  const base = find('SAP Power User');
+  const cards = [
+    { ...base, score: 75, have: 3, example: true },
+    { ...find('Supply Chain'), have: 2 },
+    { ...find('Continuous Improvement Manager'), have: 2 },
+    { ...find('Inginer electric'), have: 0 }
+  ];
+  const kind = s => s > 70 ? 'strong good' : s >= 50 ? 'partial good' : s > 0 ? 'weak grey' : 'none grey';
+  const word = s => s > 70 ? 'Strong' : s >= 50 ? 'Partial' : s > 0 ? 'Weak' : 'No match';
+  const tick = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+  const card = (j, opt) => {
+    const total = j.matched.length + j.missing.length;
+    return `<li><div class="card ${kind(j.score)}">
+      <div class="top"><span class="tile" aria-hidden="true">${initials(j.company)}</span>
+        <div class="who"><div class="t">${j.title}</div><div class="c">${j.company}</div>${j.example ? '<span class="ex">Example score</span>' : ''}</div>
+        <div class="fit" aria-label="${word(j.score)}, ${j.score} of 100"><span class="n">${j.score}<small>/100</small></span>
+          <span class="w">${opt === 'o1' && j.score > 70 ? tick : ''}${word(j.score)}</span></div></div>
+      <div class="sal">${salary(j.salary)}</div>
+      <div class="why"><b>${j.have} of ${total}</b> skills you have</div></div></li>`;
+  };
+  const OPTS = [
+    ['o1', 'One green, strong gets a pill', 'Green means "worth opening" (50+). Strong adds a filled green pill with a tick. One colour only.'],
+    ['o2', 'Green for strong only', 'Only strong is green. Partial is plain text colour, weak is grey. Most honest about "good"; with many CVs few cards will be green.'],
+    ['o3', 'Green strong, amber partial', 'Two colours: green for strong, amber for partial, grey for weak. Clearest at a glance, but brings back a second accent.'],
+    ['o4', 'No colour, shape only', 'Black and white: strong is a filled block, partial an outlined block, weak plain. Colour stays free for the main action.']
+  ];
+  document.getElementById('opts').innerHTML = OPTS.map(([id, name, note], i) => `<section class="opt ${id}" aria-labelledby="h-${id}">
+    <h2 id="h-${id}"><span class="k">${i + 1}</span>${name}</h2><p>${note}</p>
+    <ol class="grid">${cards.map(c => card(c, id)).join('')}</ol></section>`).join('');
+})();
+</script>
+</body>
+</html>

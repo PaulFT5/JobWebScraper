@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jobs · CVMatch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+  (() => { const p = new URLSearchParams(location.search); let t = p.get('theme'); try { t = t || localStorage.getItem('cvm-theme'); } catch (e) {}
+    const r = document.documentElement;
+    r.dataset.theme = t || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    r.dataset.layout = p.get('layout') || 'a';
+    r.dataset.size = p.get('size') || 'current';
+    for (const k of ['tile', 'fulltime', 'eur', 'legend']) r.dataset[k] = p.get(k) || 'show'; })();
+</script>
+<style>
+  /* Graphite (light) / Night (dark) */
+  :root{--bg:#ffffff;--bar:#ffffff;--field:#f6f6f6;--line:#e7e7e7;--card:#ffffff;--card-line:#dedede;--hover:#9c9c9c;--sel:#f6f6f6;--tile:#f2f2f2;
+        --text:#111111;--muted:#666666;--fit:#167a46;--act:#111111;--on-act:#ffffff;color-scheme:light}
+  :root[data-theme="dark"]{--bg:#0f1114;--bar:#14171b;--field:#1b1f24;--line:#262b32;--card:#16191e;--card-line:#252a31;--hover:#4f5866;--sel:#1d2127;--tile:#22272e;
+        --text:#eceef1;--muted:#98a0ab;--fit:#7fe0a6;--act:#7fe0a6;--on-act:#0f1114;color-scheme:dark}
+
+  /* size sets: current, spacing only, the critique's guide */
+  :root{--pad:14px;--gap:12px;--radius:10px;--t:15px;--t-lh:1.3;--meta:13px;--n:20px;--small:11px;--w:12px;--sal:14px;--skills:13px;--maxw:1120px;--row:8px}
+  :root[data-size="space"]{--pad:20px;--gap:16px;--row:10px}
+  :root[data-size="guide"]{--pad:20px;--gap:16px;--radius:12px;--t:17px;--t-lh:1.41;--meta:14px;--n:24px;--small:12px;--w:13px;--sal:15px;--skills:13.5px;--maxw:1200px;--row:10px}
+  @media (min-width:1280px){ :root[data-size="guide"]{--pad:24px} }
+
+  *{box-sizing:border-box;margin:0}
+  html{font-family:"Schibsted Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased;background:var(--bg);color:var(--text);scrollbar-color:var(--hover) transparent}
+  body{background:var(--bg);min-height:100dvh}
+  ::selection{background:var(--text);color:var(--bg)}
+  :focus-visible{outline:2px solid var(--text);outline-offset:2px}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+  /* top bar */
+  .abar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:16px;height:60px;padding:0 clamp(16px,2.4vw,28px);background:var(--bar);border-bottom:1px solid var(--line)}
+  .logo{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:17px;letter-spacing:-.02em;color:var(--text);text-decoration:none;flex:none}
+  .logo svg{width:24px;height:auto}
+  .search{flex:1;max-width:460px;display:flex;align-items:center;gap:8px;height:38px;padding:0 12px;border-radius:9px;background:var(--field);border:1px solid var(--line)}
+  .search svg{width:16px;height:16px;flex:none;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round}
+  .search input{flex:1;min-width:0;border:0;background:none;font:inherit;font-size:14px;color:var(--text);outline:none}
+  .search input::placeholder{color:var(--muted)}
+  .ghost{height:38px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:none;color:var(--text);font:inherit;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px;flex:none}
+  .ghost svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+  .act{margin-left:auto;height:38px;padding:0 16px;border-radius:9px;border:0;background:var(--act);color:var(--on-act);font:inherit;font-size:14px;font-weight:700;cursor:pointer;flex:none}
+  .theme{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 6px 0 10px;border-radius:9px;border:1px solid var(--line);background:none;color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer;flex:none}
+  .theme .track{position:relative;width:34px;height:20px;border-radius:999px;background:var(--field);border:1px solid var(--line)}
+  .theme .knob{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--text);transition:transform .2s}
+  .theme[aria-checked="true"] .knob{transform:translateX(14px)}
+  .theme svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  .body{max-width:var(--maxw);margin:0 auto;padding:20px clamp(16px,2.4vw,28px) 140px}
+  .head-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-bottom:14px}
+  .count{font-size:14px;color:var(--muted)}
+  .count b{color:var(--text);font-weight:700}
+  .sample{font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--text)}
+  .sample a{color:inherit}
+  html[data-legend="hide"] .count .bands{display:none}
+
+  /* grid: two cards per row; cards in a row share a height, rows (and phone cards) size to their content */
+  .grid{list-style:none;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:var(--gap)}
+  @media (min-width:720px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+
+  .card{all:unset;box-sizing:border-box;display:flex;flex-direction:column;width:100%;height:100%;padding:var(--pad);border-radius:var(--radius);background:var(--card);border:1px solid var(--card-line);cursor:pointer;transition:border-color .15s,background-color .15s}
+  .card:hover{border-color:var(--hover)}
+  .card[aria-current="true"]{border-color:var(--text);background:var(--sel)}
+  .card[aria-current="true"] .tile{background:var(--card);box-shadow:inset 0 0 0 1px var(--card-line)}
+  .card:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+
+  .tile{width:32px;height:32px;flex:none;border-radius:7px;display:grid;place-items:center;font-size:11.5px;font-weight:700;background:var(--tile);color:var(--muted)}
+  html[data-tile="hide"] .tile{display:none}
+  .t{font-size:var(--t);font-weight:600;line-height:var(--t-lh);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .t .nw{white-space:nowrap}
+  .c,.metaline{font-size:var(--meta);color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .c{margin-top:2px}
+  .metaline{margin-top:4px}
+
+  .fit{flex:none;display:flex;flex-direction:column;align-items:flex-end;line-height:1;gap:4px}
+  .n{font-size:var(--n);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--fit)}
+  .n small{font-size:var(--small);font-weight:600;color:var(--muted);margin-left:1px;letter-spacing:0}
+  .w{font-size:var(--w);font-weight:600;color:var(--fit)}
+  .weak .n{color:var(--muted);font-weight:600}
+  .weak .w{color:var(--muted)}
+  .strong .w{display:inline-flex;align-items:center;gap:3px;padding:3px 7px 3px 6px;border-radius:999px;background:var(--fit);color:var(--card)}
+  .strong .w svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+
+  .sal{display:inline-flex;align-items:center;gap:5px;font-size:var(--sal);font-weight:700;white-space:nowrap}
+  .sal svg,.facts svg{width:14px;height:14px;flex:none;fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .sal.none{font-size:var(--meta);font-weight:400;color:var(--muted)}
+  html[data-eur="hide"] .sal.none svg{display:none}
+  .why{font-size:var(--skills);color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .why b{font-weight:600}
+  .why .names{color:var(--text)}
+
+  .facts{display:flex;gap:14px;overflow:hidden;font-size:var(--meta);color:var(--muted);min-width:0}
+  .facts > span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;min-width:0}
+  .facts em{font-style:normal;overflow:hidden;text-overflow:ellipsis}
+
+  /* ---------- A · two zones: who/where left, decision rail right (score, word, salary) ---------- */
+  .A .row1{display:flex;gap:10px;align-items:flex-start}
+  .A .left{flex:1;min-width:0}
+  .A .rail{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:8px;text-align:right}
+  .A .why{margin-top:auto;padding-top:calc(var(--row) * 1.6)}
+
+  /* ---------- B · header line + icon strip ---------- */
+  .B .row1{display:flex;gap:10px;align-items:flex-start}
+  .B .left{flex:1;min-width:0}
+  .B .fit{flex-direction:row;align-items:baseline;gap:8px}
+  .B .strip{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:var(--row)}
+  .B .why{margin-top:auto;padding-top:calc(var(--row) * 1.6)}
+
+  /* ---------- C · skills as evidence ---------- */
+  .C .row1{display:flex;gap:10px;align-items:flex-start}
+  .C .left{flex:1;min-width:0}
+  .C .fit{flex-direction:row;align-items:baseline;gap:8px}
+  .C .row2{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-top:4px}
+  .C .row2 .metaline{margin:0}
+  .C .chips{display:flex;flex-wrap:nowrap;gap:6px;margin-top:auto;padding-top:calc(var(--row) * 1.6);overflow:hidden;min-width:0}
+  .C .chip{min-width:0;overflow:hidden;text-overflow:ellipsis;flex-shrink:1}
+  .C .chip.more{flex-shrink:0}
+  .C .chip{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:600;padding:3px 8px;border-radius:6px;white-space:nowrap}
+  .C .chip svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+  .C .chip.have{background:var(--sel);color:var(--text);box-shadow:inset 0 0 0 1px var(--card-line)}
+  .C .chip.have svg{stroke:var(--fit)}
+  .C .chip.miss{color:var(--muted);box-shadow:inset 0 0 0 1px var(--card-line)}
+  .C .chip.more{color:var(--muted);padding:3px 2px}
+
+  /* mock-only control panel */
+  .lab{position:fixed;right:16px;bottom:16px;z-index:60;width:330px;max-width:calc(100vw - 32px);background:#111;color:#fff;border-radius:12px;padding:12px 14px;
+       font:500 13px/1.35 "Schibsted Grotesk",system-ui,sans-serif;display:grid;gap:8px;box-shadow:0 8px 24px rgb(0 0 0 / .3)}
+  .lab b{color:#ffd21f}
+  .lab .row{display:grid;grid-template-columns:72px 1fr;gap:6px;align-items:center}
+  .lab .row > span{color:#c9c9d2}
+  .lab .seg{display:flex;flex-wrap:wrap;gap:5px}
+  .lab button{font:inherit;font-size:12.5px;color:#fff;background:#2a2a33;border:0;border-radius:999px;padding:5px 10px;cursor:pointer}
+  .lab button[aria-pressed="true"]{background:#fff;color:#111}
+  .lab .min{justify-self:end;background:none;color:#c9c9d2;padding:0 4px}
+  .lab.closed > :not(.top){display:none}
+  .lab .top{display:flex;justify-content:space-between;align-items:center}
+
+  @media (max-width:760px){
+    .abar{flex-wrap:wrap;height:auto;padding-top:10px;padding-bottom:10px;row-gap:10px}
+    .search{order:5;flex-basis:100%;max-width:none}
+    .theme .lbl,.ghost .lbl{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){ .theme .knob,.card{transition:none} }
+</style>
+</head>
+<body>
+
+<header class="abar">
+  <a class="logo" href="../start-page/index.html" aria-label="CVMatch, start page">
+    <svg viewBox="0 0 40 34" aria-hidden="true"><circle cx="13" cy="21" r="12" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="27" cy="13" r="12" fill="currentColor"/></svg>
+    CVMatch
+  </a>
+  <label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <span class="sr">Search jobs</span><input type="search" placeholder="Search jobs or skills"></label>
+  <button class="ghost" type="button" aria-label="Filters"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span class="lbl" aria-hidden="true">Filters</span></button>
+  <button class="act" type="button">Add your CV</button>
+  <button class="theme" type="button" role="switch" id="theme" aria-checked="false" aria-label="Dark mode">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    <span class="lbl" aria-hidden="true">Dark</span><span class="track" aria-hidden="true"><span class="knob"></span></span>
+  </button>
+</header>
+
+<main class="body">
+  <div class="head-row">
+    <p class="count"><b id="n"></b> job ads in Romania · best fit first, then salary<span class="bands"> · Fit: strong over 70, partial 50–70, weak under 50</span></p>
+    <p class="sample">Scores from a sample CV · <a href="you.html">use yours</a></p>
+  </div>
+  <ol class="grid" id="grid"></ol>
+</main>
+
+<div class="lab" id="lab" role="group" aria-label="Mock options">
+  <div class="top"><b>Compare options</b><button class="min" id="min" aria-expanded="true">Hide</button></div>
+  <div class="row"><span>Layout</span><div class="seg" data-k="layout"><button data-v="a">A · Two zones</button><button data-v="b">B · Icon strip</button><button data-v="c">C · Skills</button></div></div>
+  <div class="row"><span>Sizes</span><div class="seg" data-k="size"><button data-v="current">Current</button><button data-v="space">More space</button><button data-v="guide">Guide</button></div></div>
+  <div class="row"><span>Tile</span><div class="seg" data-k="tile"><button data-v="show">Show</button><button data-v="hide">Remove</button></div></div>
+  <div class="row"><span>Full time</span><div class="seg" data-k="fulltime"><button data-v="show">Always</button><button data-v="hide">Only if not</button></div></div>
+  <div class="row"><span>EUR text</span><div class="seg" data-k="eur"><button data-v="show">€ + EUR</button><button data-v="hide">€ only</button></div></div>
+  <div class="row"><span>Legend</span><div class="seg" data-k="legend"><button data-v="show">In count line</button><button data-v="hide">On hover</button></div></div>
+</div>
+
+<script src="data.js"></script>
+<script src="shell.js"></script>
+<script>
+(() => {
+  const root = document.documentElement, sw = document.getElementById('theme');
+  const syncTheme = () => sw.setAttribute('aria-checked', String(root.dataset.theme === 'dark'));
+  sw.onclick = () => { root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark'; try { localStorage.setItem('cvm-theme', root.dataset.theme); } catch (e) {} syncTheme(); };
+  syncTheme();
+
+  const nf = new Intl.NumberFormat('en-US');
+  const SMALL = new Set(['de', 'si', 'și', 'la', 'in', 'în', 'cu', 'pe', 'a', 'al', 'din', 'pentru', 'and', 'of', 'for', 'with', 'the']);
+  const ABBR = new Set(['SAP', 'IT', 'SA', 'CAT', 'EDP', 'ADR', 'CV', 'QA', 'UI', 'UX', 'PR', 'AI', 'ERP', 'CEO', 'CFO', 'BI']);
+  const isAbbr = w => ABBR.has(w) || (/^\p{Lu}{2,4}$/u.test(w) && !/[AEIOUĂÂÎ]/.test(w));
+  const tidy = raw => {
+    const s = raw.replace(/(\S)\/\s+/g, '$1 / ').replace(/\s+\/(\S)/g, ' / $1').replace(/\s+-\s+/g, ' – ');
+    const letters = s.replace(/[^\p{L}]/gu, '');
+    if (letters.length < 6 || letters !== letters.toUpperCase()) return s;
+    return s.split(/(\s+|-|\/)/).map((w, i) => { const lw = w.toLowerCase();
+      if (i > 0 && SMALL.has(lw)) return lw; if (isAbbr(w)) return w; return lw.charAt(0).toUpperCase() + lw.slice(1); }).join('');
+  };
+  const initials = n => n.replace(/[^\p{L}\p{N} ]/gu, '').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  const ICON = {
+    city: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+    work: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    level: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>',
+    eur: '<path d="M17.5 6.5A7 7 0 1 0 17.5 17.5"/><path d="M4 10h9M4 14h9"/>',
+    tick: '<path d="M5 12.5l4.5 4.5L19 7.5"/>'
+  };
+  const svg = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]}</svg>`;
+  const legend = 'Fit: strong over 70, partial 50–70, weak under 50';
+
+  const topPay = j => j.salary ? Math.max(...j.salary.split(/\s*-\s*/).map(Number)) : -1;
+  const ranked = [...D.jobs].sort((a, b) => b.score - a.score || topPay(b) - topPay(a));
+  let open = ranked[0].key;
+
+  const word = s => s === 0 ? 'No match' : band(s).replace(' fit', '');
+  const salary = j => {
+    if (!j.salary) return `<span class="sal none">${svg('eur')}<span class="sr">Salary: </span>No salary listed</span>`;
+    const v = j.salary.split(/\s*-\s*/).map(x => nf.format(+x)).join('–');
+    return `<span class="sal">${svg('eur')}<span class="sr">Salary: </span>${v}${root.dataset.eur === 'hide' ? '' : ' EUR'}</span>`;
+  };
+  const work = j => root.dataset.fulltime === 'hide' && j.worktype === 'Full time' ? '' : j.worktype;
+  const fit = j => `<span class="fit"${root.dataset.legend === 'hide' ? ` title="${legend}"` : ''}><span class="n">${j.score}<small aria-hidden="true">/100</small></span>
+    <span class="w">${j.score > 70 ? svg('tick') : ''}${word(j.score)}</span></span>`;
+  const names = j => j.matched.slice(0, 2).map(s => s.name).join(', ');
+  const why = j => `<span class="why"><b>${j.matched.length} of ${j.matched.length + j.missing.length}</b> skills matched${j.matched.length ? ` · <span class="names">${names(j)}</span>` : ''}</span>`;
+  const title = j => { const t = tidy(j.title); return `<span class="t">${t.replace(/ – (\S+)/, ' <span class="nw">– $1</span>')}</span>`; };
+  const tile = j => `<span class="tile" aria-hidden="true">${initials(j.company)}</span>`;
+
+  const A = j => `<span class="row1">${tile(j)}<span class="left">${title(j)}
+      <span class="metaline">${[tidy(j.company), j.city, work(j), j.level && levelName(j.level)].filter(Boolean).join(' · ')}</span></span>
+      <span class="rail">${fit(j)}${salary(j)}</span></span>${why(j)}`;
+  const B = j => {
+    const facts = [['city', j.city, 'Location'], ['work', work(j), 'Work hours'], ['level', j.level && levelName(j.level), 'Experience']].filter(f => f[1]);
+    return `<span class="row1">${tile(j)}<span class="left">${title(j)}<span class="c">${tidy(j.company)}</span></span>${fit(j)}</span>
+      <span class="strip"><span class="facts">${facts.map(([k, v, l]) => `<span>${svg(k)}<span class="sr">${l}: </span><em>${v}</em></span>`).join('')}</span>${salary(j)}</span>${why(j)}`;
+  };
+  const C = j => {
+    // matched skills first, then missing; at most three chips, the rest as "+N"
+    const chips = [...j.matched.map(s => `<span class="chip have">${svg('tick')}${s.name}</span>`), ...j.missing.map(s => `<span class="chip miss">${s.name}</span>`)];
+    const more = chips.length > 3 ? `<span class="chip more">+${chips.length - 3}</span>` : '';
+    return `<span class="row1">${tile(j)}<span class="left">${title(j)}</span>${fit(j)}</span>
+      <span class="row2"><span class="metaline">${[tidy(j.company), j.city, work(j)].filter(Boolean).join(' · ')}</span>${salary(j)}</span>
+      <span class="chips"><span class="sr">${j.matched.length} of ${chips.length} skills matched. </span>${chips.slice(0, 3).join('')}${more}</span>`;
+  };
+  const LAY = { a: A, b: B, c: C };
+
+  function render() {
+    const L = root.dataset.layout;
+    document.getElementById('grid').innerHTML = ranked.map(j => `<li class="${L.toUpperCase()} ${j.score < 50 ? 'weak' : j.score > 70 ? 'strong' : ''}">
+      <button class="card" type="button" aria-current="${j.key === open}" data-k="${j.key}" title="${(tidy(j.title) + ' · ' + tidy(j.company)).replace(/"/g, '&quot;')}">${LAY[L](j)}</button></li>`).join('');
+    document.querySelectorAll('.lab .seg').forEach(seg => seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(root.dataset[seg.dataset.k] === b.dataset.v))));
+  }
+
+  document.getElementById('grid').addEventListener('click', e => {
+    const b = e.target.closest('.card'); if (!b) return;
+    document.querySelectorAll('.card[aria-current="true"]').forEach(x => x.setAttribute('aria-current', 'false'));
+    b.setAttribute('aria-current', 'true'); open = b.dataset.k;
+  });
+  document.getElementById('lab').addEventListener('click', e => {
+    const b = e.target.closest('.seg button'); if (!b) return;
+    root.dataset[b.parentElement.dataset.k] = b.dataset.v; render();
+  });
+  document.getElementById('min').onclick = e => {
+    const lab = document.getElementById('lab'); lab.classList.toggle('closed');
+    e.target.textContent = lab.classList.contains('closed') ? 'Show' : 'Hide';
+    e.target.setAttribute('aria-expanded', String(!lab.classList.contains('closed')));
+  };
+  document.getElementById('n').textContent = nf.format(D.available);
+  render();
+})();
+</script>
+</body>
+</html>

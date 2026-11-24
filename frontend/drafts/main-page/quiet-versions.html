@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiet colour versions · CVMatch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0}
+  html{font-family:"Schibsted Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased;background:#e9e9ec;color:#111}
+  .intro{max-width:1240px;margin:0 auto;padding:32px clamp(16px,3vw,32px) 8px}
+  .intro h1{font-size:26px;font-weight:800;letter-spacing:-.02em}
+  .intro p{margin-top:6px;font-size:15px;color:#555;max-width:78ch;line-height:1.5}
+  .intro nav{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px}
+  .intro nav a{font-size:14px;font-weight:600;color:#111;text-decoration:none;padding:6px 12px;border-radius:999px;background:#fff;border:1px solid #d6d6db}
+  .intro nav a:hover{border-color:#111}
+
+  /* one version = one app frame with its own tokens */
+  .v{max-width:1240px;margin:28px auto 0;padding:0 clamp(16px,3vw,32px)}
+  .v > header{display:flex;align-items:baseline;gap:12px;margin-bottom:10px}
+  .v > header h2{font-size:18px;font-weight:800;color:#111}
+  .v > header p{font-size:14px;color:#555}
+  .app{border-radius:14px;overflow:hidden;background:var(--bg);color:var(--text);border:1px solid rgb(0 0 0 / .08)}
+
+  .abar{display:flex;align-items:center;gap:16px;height:60px;padding:0 20px;background:var(--bar);border-bottom:1px solid var(--line)}
+  .logo{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:17px;letter-spacing:-.02em;color:var(--text);text-decoration:none}
+  .logo svg{width:24px;height:auto}
+  .search{flex:1;max-width:460px;display:flex;align-items:center;gap:8px;height:38px;padding:0 12px;border-radius:9px;background:var(--field);border:1px solid var(--line)}
+  .search svg{width:16px;height:16px;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round}
+  .search input{flex:1;min-width:0;border:0;background:none;font:inherit;font-size:14px;color:var(--text);outline:none}
+  .search input::placeholder{color:var(--muted)}
+  .search:focus-within{border-color:var(--text)}
+  .ghost{height:38px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:none;color:var(--text);font:inherit;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+  .ghost svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+  .act{margin-left:auto;height:38px;padding:0 16px;border-radius:9px;border:0;background:var(--act);color:var(--on-act);font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+  .act:hover{filter:brightness(1.06)}
+  :focus-visible{outline:2px solid var(--text);outline-offset:2px}
+
+  .body{padding:18px 20px 22px}
+  .count{font-size:14px;color:var(--muted);margin-bottom:12px}
+  .count b{color:var(--text);font-weight:700;font-variant-numeric:tabular-nums}
+  .grid{list-style:none;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+  @media (min-width:720px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  @media (min-width:1100px){ .grid{grid-template-columns:repeat(3,minmax(0,1fr))} }
+
+  .card{display:flex;flex-direction:column;height:100%;padding:14px;border-radius:10px;background:var(--card);border:1px solid var(--card-line);cursor:pointer;transition:border-color .15s}
+  .card:hover{border-color:var(--hover)}
+  .head{display:flex;gap:10px;align-items:flex-start}
+  .tile{width:32px;height:32px;flex:none;border-radius:7px;display:grid;place-items:center;font-size:11.5px;font-weight:700;background:var(--tile);color:var(--muted)}
+  .ttl{flex:1;min-width:0}
+  .ttl h3{font-size:15px;font-weight:600;line-height:1.3;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ttl p{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px}
+  .fit{flex:none;text-align:right;line-height:1}
+  .fit .n{display:block;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--fit)}
+  .fit .w{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-top:3px}
+  .fit.weak .n{color:var(--muted);font-weight:600}
+  .fit.none .n{color:var(--muted);font-weight:500}
+  .meta{margin-top:10px;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .salary{margin-top:6px;font-size:13px;color:var(--muted)}
+  .salary b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+
+  /* ---------- the five palettes ---------- */
+  .v1{--bg:#ffffff;--bar:#ffffff;--field:#f6f6f6;--line:#e7e7e7;--card:#ffffff;--card-line:#e7e7e7;--hover:#bdbdbd;--tile:#f2f2f2;
+      --text:#111111;--muted:#6a6a6a;--fit:#167a46;--act:#111111;--on-act:#ffffff}
+  .v2{--bg:#f4f6f9;--bar:#ffffff;--field:#f4f6f9;--line:#e1e6ee;--card:#ffffff;--card-line:#e1e6ee;--hover:#a9b6c8;--tile:#eef2f7;
+      --text:#0f1b2d;--muted:#5a6a80;--fit:#2453d1;--act:#2453d1;--on-act:#ffffff}
+  .v3{--bg:#f8f6f1;--bar:#fdfcf9;--field:#f3f0e8;--line:#e8e3d7;--card:#fdfcf9;--card-line:#e8e3d7;--hover:#c6bea9;--tile:#f0ece2;
+      --text:#1d1b16;--muted:#6b665a;--fit:#5d6b17;--act:#ffd21f;--on-act:#1d1b16}
+  .v4{--bg:#0f1114;--bar:#14171b;--field:#1b1f24;--line:#262b32;--card:#16191e;--card-line:#23282f;--hover:#3c444f;--tile:#22272e;
+      --text:#eceef1;--muted:#98a0ab;--fit:#7fe0a6;--act:#7fe0a6;--on-act:#0f1114}
+  .v4 .app{border-color:#000}
+  .v5{--bg:#fbfbfd;--bar:#fbfbfd;--field:#f1f0f6;--line:#e6e4ee;--card:#f3f2f8;--card-line:transparent;--hover:#c9c3e3;--tile:#e7e5f0;
+      --text:#17142a;--muted:#625e78;--fit:#5a3fd0;--act:#5a3fd0;--on-act:#ffffff}
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>Quieter: five colour versions</h1>
+  <p>Same cards and real ads in each. Surfaces stay neutral; one accent colour is used only for the fit score and the main action (<b>Add your CV</b>). Weak fits (under 40) stay grey, so the eye goes to the jobs worth opening. None of these uses the start page's orange, blue or brown.</p>
+  <nav aria-label="Versions"><a href="#v1">1 Graphite</a><a href="#v2">2 Slate &amp; blue</a><a href="#v3">3 Warm, close to now</a><a href="#v4">4 Night (opposite)</a><a href="#v5">5 Lilac &amp; violet</a></nav>
+</div>
+
+<div id="versions"></div>
+
+<script src="data.js"></script>
+<script src="shell.js"></script>
+<script>
+(() => {
+  const V = [
+    ['v1', 'Graphite', 'White and near-black. Green only on good fits; the action is black.'],
+    ['v2', 'Slate & blue', 'Cool grey ground, white cards. Blue for fit and the action, the familiar app look.'],
+    ['v3', 'Warm, close to now', 'Today\'s warm paper, toned down. Olive for fit, yellow kept for the action.'],
+    ['v4', 'Night (opposite)', 'Dark surfaces, light text. Mint for fit and the action.'],
+    ['v5', 'Lilac & violet', 'Borderless cards on a faint lilac. Violet for fit and the action.']
+  ];
+  const jobs = D.jobs.slice(0, 6);
+  const initials = n => n.replace(/[^\p{L}\p{N} ]/gu, '').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  const logo = `<svg viewBox="0 0 40 34" aria-hidden="true"><circle cx="13" cy="21" r="12" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="27" cy="13" r="12" fill="currentColor"/></svg>`;
+  const card = j => {
+    const cls = j.score > 0 && j.score < 40 ? 'weak' : j.score === 0 ? 'weak' : '';
+    return `<li><div class="card" tabindex="0" role="button">
+      <div class="head"><div class="tile" aria-hidden="true">${initials(j.company)}</div>
+        <div class="ttl"><h3>${j.title}</h3><p>${j.company}</p></div>
+        <div class="fit ${cls}"><span class="n">${j.score}</span><span class="w">${band(j.score).replace(' fit', '')}</span></div></div>
+      <p class="meta">${[j.city, j.worktype, j.level && levelName(j.level)].filter(Boolean).join(' · ')}</p>
+      ${j.salary ? `<p class="salary">Salary <b>${j.salary}</b> as listed</p>` : ''}</div></li>`;
+  };
+  document.getElementById('versions').innerHTML = V.map(([id, name, note], i) => `
+    <section class="v ${id}" id="${id}" aria-labelledby="h-${id}">
+      <header><h2 id="h-${id}">${i + 1} · ${name}</h2><p>${note}</p></header>
+      <div class="app">
+        <div class="abar"><a class="logo" href="#">${logo}CVMatch</a>
+          <label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input placeholder="Search jobs or skills" aria-label="Search jobs"></label>
+          <button class="ghost"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filters</button>
+          <button class="act">Add your CV</button></div>
+        <div class="body"><p class="count"><b>${D.available.toLocaleString('en-US')}</b> job ads in Romania · best fit first · sample CV</p>
+          <ol class="grid">${jobs.map(card).join('')}</ol></div>
+      </div></section>`).join('') + '<div style="height:80px"></div>';
+})();
+</script>
+</body>
+</html>
