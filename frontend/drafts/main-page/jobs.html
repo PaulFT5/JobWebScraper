@@ -26,26 +26,39 @@
   @media (min-width:1280px){ :root{--pad:24px} }
 
   *{box-sizing:border-box;margin:0}
-  html{font-family:"Schibsted Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased;background:var(--bg);color:var(--text);scrollbar-color:var(--hover) transparent}
+  html{scrollbar-gutter:stable;font-family:"Schibsted Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased;background:var(--bg);color:var(--text);scrollbar-color:var(--hover) transparent}
   body{background:var(--bg);min-height:100dvh}
   ::selection{background:var(--text);color:var(--bg)}
   :focus-visible{outline:2px solid var(--text);outline-offset:2px}
   .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
   /* ---------- top bar ---------- */
-  .abar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:16px;height:60px;padding:0 clamp(16px,2.4vw,28px);background:var(--bar);border-bottom:1px solid var(--line)}
+  .abar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:16px;height:60px;padding:0 max(clamp(16px,2.4vw,28px),calc((100% - 1200px) / 2 + clamp(16px,2.4vw,28px)));background:var(--bar);border-bottom:1px solid var(--line)}
+  /* light theme: the start page's brown as the top bar (Night keeps its near-black bar). Bar controls switch to
+     light-on-brown; the Filters panel (inside .fwrap) keeps the page colours, so only the bar's own controls get these tokens */
+  :root:not([data-theme="dark"]) .abar{background:#2f2b18;border-bottom-color:#2f2b18}
+  :root:not([data-theme="dark"]) .abar{--text:#fbfaf7;--muted:#d6cfb6;--field:#3b3620;--line:#57502f;--hover:#c4bb9a;--ctl:#8e8565}
+  /* bar control edges: at least 3:1 against the bar (light 3.9:1 on brown, dark 3.1:1), hover brighter still */
+  :root[data-theme="dark"] .abar{--ctl:#5e6672;--hover:#a3abb7}
+  :root[data-theme="dark"] .abar .fpanel{--hover:#4f5866}
+  /* the Filters panel sits inside the bar but keeps the page (Graphite) colours */
+  :root:not([data-theme="dark"]) .abar .fpanel{--text:#111111;--muted:#666666;--field:#f6f6f6;--line:#e7e7e7;--hover:#9c9c9c}
+  .abar .fpanel{--ctl:var(--line)}
+  :root:not([data-theme="dark"]) .abar .ghost[aria-expanded="true"]{border-color:#fbfaf7}
+  :root:not([data-theme="dark"]) .abar .act{background:#fbfaf7;color:#14141a}
+  :root:not([data-theme="dark"]) .abar :focus-visible{outline-color:#fbfaf7}
   .logo{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:17px;letter-spacing:-.02em;color:var(--text);text-decoration:none;flex:none}
   .logo svg{width:24px;height:auto}
-  .search{flex:1;max-width:460px;display:flex;align-items:center;gap:8px;height:38px;padding:0 12px;border-radius:9px;background:var(--field);border:1px solid var(--line)}
+  .search{flex:1;max-width:460px;display:flex;align-items:center;gap:8px;height:38px;padding:0 12px;border-radius:9px;background:var(--field);border:1px solid var(--ctl,var(--line))}
+  .search:hover{border-color:var(--hover)}
   .search:focus-within{border-color:var(--text)}
   .search svg{width:16px;height:16px;flex:none;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round}
   .search input{flex:1;min-width:0;border:0;background:none;font:inherit;font-size:14px;color:var(--text);outline:none}
   .search input::placeholder{color:var(--muted)}
-  .ghost{height:38px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:none;color:var(--text);font:inherit;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px;flex:none}
+  .ghost{height:38px;padding:0 12px;border-radius:9px;border:1px solid var(--ctl,var(--line));background:none;color:var(--text);font:inherit;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px;flex:none;text-decoration:none}
   .ghost:hover{border-color:var(--hover)}
   .ghost[aria-expanded="true"]{border-color:var(--text)}
   .ghost svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
-  .ghost .dot{width:7px;height:7px;border-radius:50%;background:var(--fit)}
   .act{margin-left:auto;height:38px;padding:0 16px;border-radius:9px;border:0;background:var(--act);color:var(--on-act);font:inherit;font-size:14px;font-weight:700;cursor:pointer;flex:none}
   .act:hover{filter:brightness(1.08)}
   .theme{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 6px 0 10px;border-radius:9px;border:1px solid var(--line);background:none;color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer;flex:none}
@@ -77,7 +90,7 @@
 
   /* ---------- list ---------- */
   .body{max-width:1200px;margin:0 auto;padding:20px clamp(16px,2.4vw,28px) 64px}
-  .head-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-bottom:16px}
+  .head-row{display:flex;justify-content:flex-end;align-items:center;margin-bottom:12px}
   .count{font-size:14px;color:var(--muted)}
   .count b{color:var(--text);font-weight:700}
   .sample{font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--text)}
@@ -86,19 +99,19 @@
   .qbtn{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:13px;font-weight:600;color:var(--muted);background:none;border:0;padding:4px 2px;cursor:pointer;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
   .qbtn:hover,.qbtn[aria-expanded="true"]{color:var(--text);text-decoration-color:var(--text)}
   .qbtn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-  .legend{position:absolute;top:calc(100% + 8px);left:0;z-index:20;width:280px;padding:14px 16px;border-radius:12px;background:var(--card);border:1px solid var(--line);box-shadow:0 12px 32px rgb(0 0 0 / .14)}
+  .legend{position:absolute;top:calc(100% + 8px);right:0;z-index:20;width:280px;padding:14px 16px;border-radius:12px;background:var(--card);border:1px solid var(--line);box-shadow:0 12px 32px rgb(0 0 0 / .14)}
   .legend[hidden]{display:none}
   .legend .lead{font-size:13px;color:var(--muted);line-height:1.45}
   .legend dl{margin-top:10px;display:grid;gap:8px}
   .legend dl > div{display:flex;align-items:center;justify-content:space-between;gap:12px}
   .legend dd{margin:0;font-size:13px;color:var(--text);font-variant-numeric:tabular-nums}
-  @media (max-width:760px){ .legend{left:auto;right:0} }
   .sample a{color:inherit}
   /* two cards per row at most; cards in a row share a height, on phones each card keeps its own */
   /* every card the same height: all rows match the tallest card (a wrapped title adds room above the icon line) */
   .grid{list-style:none;padding:0;display:grid;grid-template-columns:minmax(0,1fr);grid-auto-rows:1fr;gap:var(--gap)}
   @media (min-width:720px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
   .group + .group{margin-top:32px}
+  .group h2.gspace{visibility:hidden}
   .group h2{display:flex;align-items:baseline;gap:8px;font-size:14px;font-weight:700;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
   .group h2 .k,.group h2 .d{font-weight:500;color:var(--muted)}
   .group h2 .k{font-variant-numeric:tabular-nums}
@@ -151,13 +164,120 @@
   .why{margin-top:16px;font-size:13.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .why b{font-weight:600}
 
+  /* bar groups: Filters + search in the middle, Analyzer + account icon at the right */
+  .mid{display:flex;align-items:center;gap:16px;flex:1;min-width:0}
+  .right{display:flex;align-items:center;gap:16px;margin-left:auto;flex:none}
+  /* page switch: Jobs | Analyzer as one joined control, the current page filled (navigation, not a tool like Filters) */
+  .pages{position:relative;display:inline-flex;gap:2px;height:38px;padding:3px;border-radius:10px;border:1px solid var(--ctl,var(--line));flex:none}
+  .pages a{position:relative;z-index:1;display:inline-flex;align-items:center;gap:7px;padding:0 12px;border-radius:7px;color:var(--muted);font-size:14px;font-weight:600;text-decoration:none;transition:color .2s ease-out}
+  .pages a:hover{color:var(--text)}
+  .pages a[aria-current="page"]{color:var(--bar)}
+  /* the filled highlight slides between Jobs and Analyzer (position and width set from the current link) */
+  .pages .ind{position:absolute;top:3px;bottom:3px;left:0;width:var(--iw,0);border-radius:7px;background:var(--text);transform:translateX(var(--ix,0))}
+  .pages.ready .ind{transition:transform .28s cubic-bezier(.25,1,.5,1),width .28s cubic-bezier(.25,1,.5,1)}
+  @media (prefers-reduced-motion:reduce){ .pages.ready .ind,.pages a{transition:none} }
+  :root:not([data-theme="dark"]) .abar .pages a[aria-current="page"]{color:#2f2b18}
+  .pages svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  /* account icon at the far right of the bar */
+  .acct{width:38px;height:38px;border-radius:50%;border:1px solid var(--ctl,var(--line));background:var(--field);color:var(--text);display:grid;place-items:center;cursor:pointer;flex:none}
+  .acct:hover{border-color:var(--text)}
+  /* while the account / settings panel is open the icon is filled, so it reads as the open tab */
+  .acct[aria-expanded="true"]{background:var(--text);border-color:var(--text);color:var(--bar)}
+  :root:not([data-theme="dark"]) .abar .acct[aria-expanded="true"]{color:#2f2b18}
+  .acct svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+
+  /* right-side panels: over everything, page dimmed behind; preferences stacks over the account panel */
+  /* panels and the dimmed area start under the top bar (--barh is measured), so the bar stays visible and usable */
+  .scrim{position:fixed;inset:var(--barh,60px) 0 0 0;z-index:50;background:rgb(10 10 12 / .42)}
+  .scrim[hidden]{display:none}
+  .drawer{position:fixed;top:var(--barh,60px);right:0;bottom:0;z-index:60;width:min(380px,100vw);display:flex;flex-direction:column;background:var(--card);color:var(--text);
+          border-left:1px solid var(--line);box-shadow:-16px 0 40px rgb(0 0 0 / .18);transform:translateX(0);transition:transform .25s cubic-bezier(.16,1,.3,1)}
+  .drawer[hidden]{display:flex;visibility:hidden;transform:translateX(100%);transition:transform .2s ease-in,visibility 0s .2s}
+  .drawer.sub{z-index:61}
+  .cvrow{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:10px}
+  .cvdoc{width:36px;height:36px;border-radius:8px;background:var(--field);display:grid;place-items:center;flex:none}
+  .cvdoc svg{width:20px;height:20px;fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linejoin:round}
+  .cvname{font-size:15px;font-weight:600}
+  .cvrow .hint{margin-top:2px}
+  .cvbtn{display:flex;align-items:center;justify-content:center;height:42px;margin-top:14px;border-radius:9px;background:var(--act);color:var(--on-act);font-size:15px;font-weight:700;text-decoration:none}
+  .cvbtn:hover{filter:brightness(1.08)}
+  .dhead{display:flex;align-items:center;gap:12px;padding:16px 16px 16px 20px;border-bottom:1px solid var(--line)}
+  .dhead > div{flex:1;min-width:0}
+  .dhead h2{font-size:17px;font-weight:700}
+  .dhead p{font-size:13px;color:var(--muted);margin-top:2px}
+  .avatar{width:40px;height:40px;border-radius:50%;background:var(--field);display:grid;place-items:center;flex:none}
+  .avatar svg{width:22px;height:22px;fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round}
+  .dx{width:36px;height:36px;border-radius:9px;border:1px solid transparent;background:none;color:var(--muted);display:grid;place-items:center;cursor:pointer;flex:none}
+  .dx:hover{border-color:var(--line);color:var(--text)}
+  .dx svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .dhead .back{margin-left:-6px}
+  .dlist{padding:8px}
+  .ditem{all:unset;box-sizing:border-box;width:100%;display:flex;align-items:center;gap:12px;padding:12px;border-radius:9px;font-size:15px;font-weight:500;cursor:pointer;color:var(--text)}
+  .ditem:hover{background:var(--sel)}
+  .ditem:focus-visible{outline:2px solid var(--text);outline-offset:-2px}
+  .ditem span{flex:1}
+  .ditem svg{width:20px;height:20px;flex:none;fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .ditem .chev{width:16px;height:16px}
+  .dfoot{margin-top:auto;padding:8px;border-top:1px solid var(--line)}
+  .dsec{padding:20px}
+  .dsec h3{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:10px}
+  .seg3{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:10px;background:var(--field);border:1px solid var(--line)}
+  .seg3 label{position:relative;cursor:pointer}
+  .seg3 input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+  .seg3 span{display:block;text-align:center;padding:8px 6px;border-radius:7px;font-size:14px;font-weight:600;color:var(--muted)}
+  .seg3 input:checked + span{background:var(--card);color:var(--text);box-shadow:0 1px 2px rgb(0 0 0 / .12),inset 0 0 0 1px var(--line)}
+  .seg3 input:focus-visible + span{outline:2px solid var(--text);outline-offset:1px}
+  .dsec .hint{margin-top:10px;font-size:13px;color:var(--muted);line-height:1.45}
+  @media (prefers-reduced-motion:reduce){ .drawer,.drawer[hidden]{transition:none} }
+  /* wide screens: the logo sits in the left margin and Filters starts exactly at the cards' left edge
+     (a straight line from Filters down through the count line and the first card column); the right group
+     Jobs / Analyzer end at the list's right edge, the account icon sits at the far right. Middle column = the list's content width (1200px page minus 2 x 28px padding). */
+  @media (min-width:1440px){
+    .abar{display:grid;grid-template-columns:1fr min(1144px,100%) 1fr;align-items:center;column-gap:0;padding:0 28px}
+    .logo{grid-column:1;grid-row:1}
+    .mid{grid-column:2;grid-row:1;justify-self:start;width:min(100%,620px)}
+    .right{display:contents}
+    .pages{grid-column:2;grid-row:1;justify-self:end}   /* ends at the right card column's edge */
+    .acct{grid-column:3;grid-row:1;justify-self:end}    /* far right, mirroring the logo */
+  }
+
   @media (max-width:760px){
+    .mid,.right{display:contents}
+    .acct{margin-left:auto}
     .abar{flex-wrap:wrap;height:auto;padding-top:10px;padding-bottom:10px;row-gap:10px}
     .search{order:5;flex-basis:100%;max-width:none}
     .theme .lbl,.ghost .lbl{display:none}
     .fpanel{position:fixed;top:64px;left:16px;right:16px;width:auto}
+    /* touch targets: 44px on phones */
+    .ghost,.search{height:44px}
+    .ghost{min-width:44px;justify-content:center}
+    /* phones: Jobs / Analyzer as icons, names kept for screen readers */
+    .pages{height:44px}
+    .pages a{padding:0 10px}
+    .pages .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+    .acct{width:44px;height:44px}
+    .dx,.fpanel .x{width:44px;height:44px}
+    .seg3 span{padding:13px 6px}
   }
   @media (prefers-reduced-motion:reduce){ .theme .knob,.opt .knob,.card{transition:none} }
+  /* page load: skeleton cards in the real card shape, then the details fill in row by row (2 cards at a time,
+     top to bottom). The card frames never move: only their content fades in, so nothing jumps. */
+  .skel{cursor:default;animation:card-in .2s cubic-bezier(.25,1,.5,1) both;animation-delay:calc(var(--i,0) * 15ms)}   /* skeletons arrive one by one, in reading order */
+  @keyframes card-in{from{opacity:0;transform:translateY(10px)}}
+  .skel:hover{border-color:var(--card-line)}
+  .sk{display:block;border-radius:6px;background:#eeeeee;animation:sk-pulse 1.1s ease-in-out infinite alternate}
+  :root[data-theme="dark"] .sk{background:#20252c}
+  @keyframes sk-pulse{to{opacity:.45}}
+  .skel .tl{height:24px;display:flex;align-items:center}
+  .skel .facts{gap:14px;height:19px;align-items:center}
+  /* score placeholder in the real silhouette: big number + small "/100" on one baseline, the fit word under it */
+  .skn{display:flex;align-items:flex-end;gap:3px;height:24px;padding-bottom:4px}
+  .skw{display:flex;align-items:center;height:13px}
+  .fill .card > *{animation:fill-in .28s cubic-bezier(.25,1,.5,1) both;animation-delay:calc(var(--r,0) * 65ms)}
+  .fill .group h2{animation:fill-in .32s cubic-bezier(.25,1,.5,1) both}
+  @keyframes fill-in{from{opacity:0;transform:translateY(4px)}}
+  @media (prefers-reduced-motion:reduce){ .sk,.skel{animation:none} .fill .card > *,.fill .group h2{animation:none} }
 </style>
 </head>
 <body>
@@ -167,10 +287,9 @@
     <svg viewBox="0 0 40 34" aria-hidden="true"><circle cx="13" cy="21" r="12" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="27" cy="13" r="12" fill="currentColor"/></svg>
     CVMatch
   </a>
-  <label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-    <span class="sr">Search jobs</span><input type="search" placeholder="Search jobs or skills"></label>
+  <div class="mid">
   <span class="fwrap">
-    <button class="ghost" type="button" id="fbtn" aria-label="Filters" aria-expanded="false" aria-controls="fpanel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span class="lbl" aria-hidden="true">Filters</span><span class="dot" id="fdot" hidden aria-hidden="true"></span></button>
+    <button class="ghost" type="button" id="fbtn" aria-label="Filters" aria-expanded="false" aria-controls="fpanel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span class="lbl" aria-hidden="true">Filters</span></button>
     <div class="fpanel" id="fpanel" role="dialog" aria-label="Filters" hidden>
       <h2>Filters <button class="x" type="button" id="fclose" aria-label="Close filters"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2>
       <div class="sec"><h3>View</h3>
@@ -181,17 +300,76 @@
       <div class="sec"><h3>Filters</h3><p class="later">Domain, location, work type, experience and salary go here.</p></div>
     </div>
   </span>
-  <button class="act" type="button">Add your CV</button>
-  <button class="theme" type="button" role="switch" id="theme" aria-checked="false" aria-label="Dark mode">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
-    <span class="lbl" aria-hidden="true">Dark</span><span class="track" aria-hidden="true"><span class="knob"></span></span>
+  <label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <span class="sr">Search jobs</span><input type="search" placeholder="Search jobs or skills"></label>
+  </div>
+  <div class="right">
+  <nav class="pages" aria-label="Pages">
+    <span class="ind" aria-hidden="true"></span>
+    <a href="jobs.html" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8h17v11.5h-17zM9 8V5h6v3M3.5 13h17"/></svg><span class="lbl">Jobs</span></a>
+    <a href="#analyzer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span class="lbl">Analyzer</span></a>
+  </nav>
+  <button class="acct" type="button" id="acctBtn" aria-label="Account and settings" aria-haspopup="dialog" aria-expanded="false" aria-controls="acct">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.4-3.2 4-4.8 7-4.8s5.6 1.6 7 4.8"/></svg>
   </button>
+  </div>
 </header>
+
+<!-- account / settings: right-side panels over the whole page (the future matcher included), page dimmed behind -->
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="acct" role="dialog" aria-modal="true" aria-labelledby="acctTitle" hidden>
+  <div class="dhead">
+    <span class="avatar" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.4-3.2 4-4.8 7-4.8s5.6 1.6 7 4.8"/></svg></span>
+    <div><h2 id="acctTitle">Account</h2><p>Not signed in · your CV is kept for this session</p></div>
+    <button class="dx" type="button" data-close="acct" aria-label="Close account panel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <nav class="dlist" aria-label="Account">
+    <button class="ditem" type="button" id="meBtn" aria-haspopup="dialog" aria-controls="me">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.4-3.2 4-4.8 7-4.8s5.6 1.6 7 4.8"/></svg>
+      <span>My account</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
+    <button class="ditem" type="button" id="prefsBtn" aria-haspopup="dialog" aria-controls="prefs">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+      <span>App preferences</span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
+  </nav>
+  <div class="dfoot">
+    <button class="ditem out" type="button" id="signOut">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 16l-4-4 4-4M6 12h10"/></svg>
+      <span>Sign out</span></button>
+  </div>
+</aside>
+<aside class="drawer sub" id="me" role="dialog" aria-modal="true" aria-labelledby="meTitle" hidden>
+  <div class="dhead">
+    <button class="dx back" type="button" data-back aria-label="Back to account"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button>
+    <div><h2 id="meTitle">My account</h2></div>
+  </div>
+  <div class="dsec" role="group" aria-labelledby="cvH">
+    <h3 id="cvH">Your CV</h3>
+    <div class="cvrow">
+      <span class="cvdoc" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg></span>
+      <div><p class="cvname">Sample CV</p><p class="hint">12 skills · scores on the job list come from this CV</p></div>
+    </div>
+    <a class="cvbtn" href="you.html">Add your CV</a>
+    <p class="hint">Upload a PDF, check the skills we read, and your scores update.</p>
+  </div>
+</aside>
+<aside class="drawer sub" id="prefs" role="dialog" aria-modal="true" aria-labelledby="prefsTitle" hidden>
+  <div class="dhead">
+    <button class="dx back" type="button" data-back aria-label="Back to account"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button>
+    <div><h2 id="prefsTitle">App preferences</h2></div>
+  </div>
+  <div class="dsec" role="group" aria-labelledby="themeH">
+    <h3 id="themeH">Theme</h3>
+    <div class="seg3" role="radiogroup" aria-labelledby="themeH">
+      <label><input type="radio" name="theme" value="light"><span>Light</span></label>
+      <label><input type="radio" name="theme" value="dark"><span>Dark</span></label>
+      <label><input type="radio" name="theme" value="system"><span>System</span></label>
+    </div>
+    <p class="hint">System follows your device's light or dark setting.</p>
+  </div>
+</aside>
 
 <main class="body">
   <div class="head-row">
-    <p class="count"><b id="n"></b> job ads in Romania · best fit first, then salary</p>
-    <p class="sample">Scores from a sample CV · <a href="you.html">use yours</a></p>
     <span class="lwrap">
       <button class="qbtn" type="button" id="lbtn" aria-expanded="false" aria-controls="legend">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01"/></svg>How fit works</button>
@@ -213,10 +391,74 @@
 <script src="shell.js"></script>
 <script>
 (() => {
-  const root = document.documentElement, sw = document.getElementById('theme');
-  const syncTheme = () => sw.setAttribute('aria-checked', String(root.dataset.theme === 'dark'));
-  sw.onclick = () => { root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark'; try { localStorage.setItem('cvm-theme', root.dataset.theme); } catch (e) {} syncTheme(); };
+  const root = document.documentElement;
+  // theme: light / dark / system, set in App preferences
+  const sysDark = matchMedia('(prefers-color-scheme: dark)');
+  const savedTheme = () => { try { return localStorage.getItem('cvm-theme') || 'system'; } catch (e) { return 'system'; } };
+  const syncTheme = () => document.querySelectorAll('input[name="theme"]').forEach(r => r.checked = r.value === savedTheme());
+  const setTheme = choice => {
+    try { choice === 'system' ? localStorage.removeItem('cvm-theme') : localStorage.setItem('cvm-theme', choice); } catch (e) {}
+    root.dataset.theme = choice === 'system' ? (sysDark.matches ? 'dark' : 'light') : choice;
+    syncTheme();
+  };
+  sysDark.addEventListener('change', () => { if (savedTheme() === 'system') setTheme('system'); });
+  document.querySelectorAll('input[name="theme"]').forEach(r => r.addEventListener('change', () => setTheme(r.value)));
   syncTheme();
+
+  // account panel with sub-panels (My account, App preferences) stacked over it;
+  // Esc / back closes the top one, the account icon or the dimmed page closes all
+  const acctBtn = document.getElementById('acctBtn'), scrim = document.getElementById('scrim'), acct = document.getElementById('acct');
+  const subs = [['me', 'meBtn'], ['prefs', 'prefsBtn']].map(([p, b]) => ({ panel: document.getElementById(p), btn: document.getElementById(b) }));
+  const openSub = () => subs.find(s => !s.panel.hidden);
+  const openAcct = () => { const fb = document.getElementById('fbtn'); if (fb.getAttribute('aria-expanded') === 'true') fb.click();
+    scrim.hidden = false; acct.hidden = false; acctBtn.setAttribute('aria-expanded', 'true'); acct.querySelector('.ditem').focus(); };
+  const closeSub = () => { const s = openSub(); if (!s) return; s.panel.hidden = true; s.btn.focus(); };
+  const closeAll = () => { subs.forEach(s => s.panel.hidden = true); acct.hidden = true; scrim.hidden = true; acctBtn.setAttribute('aria-expanded', 'false'); acctBtn.focus(); };
+  subs.forEach(s => {
+    s.btn.onclick = () => { s.panel.hidden = false; s.panel.querySelector('input:checked, a, input, button:not([data-back])').focus(); };
+    s.panel.querySelector('[data-back]').onclick = closeSub;
+  });
+  acctBtn.onclick = () => acct.hidden ? openAcct() : closeAll();   // the icon toggles the panel
+  // panels start under the bar: keep --barh equal to the bar's real height (it grows on phones)
+  const bar = document.querySelector('.abar');
+  const setBarH = () => root.style.setProperty('--barh', bar.offsetHeight + 'px');
+  new ResizeObserver(setBarH).observe(bar); setBarH();
+  // while the panels are open, a press outside them only closes them: the press and its click are swallowed,
+  // so nothing underneath (cards, Filters, search, the account icon) reacts to that first click
+  let swallow = false;
+  addEventListener('pointerdown', e => {
+    if (acct.hidden || e.target.closest('.drawer')) return;
+    e.preventDefault(); e.stopPropagation(); swallow = true; closeAll();
+  }, true);
+  addEventListener('click', e => { if (!swallow) return; swallow = false; e.preventDefault(); e.stopPropagation(); }, true);
+  document.querySelector('[data-close="acct"]').onclick = closeAll;
+  // page switch (mock): clicking Jobs or Analyzer moves the filled state; the page itself stays until Analyzer exists
+  const pages = document.querySelector('.pages');
+  const placeInd = () => { const c = pages.querySelector('[aria-current="page"]');
+    pages.style.setProperty('--ix', c.offsetLeft + 'px'); pages.style.setProperty('--iw', c.offsetWidth + 'px'); };
+  pages.querySelectorAll('a').forEach(a => a.onclick = e => { e.preventDefault();
+    pages.querySelectorAll('a').forEach(x => x.removeAttribute('aria-current')); a.setAttribute('aria-current', 'page'); placeInd(); });
+  // only a click slides the highlight; layout changes (font swap, resize, phone icons) snap it into place
+  const snapInd = () => { pages.classList.remove('ready'); placeInd(); void pages.offsetWidth; pages.classList.add('ready'); };
+  new ResizeObserver(snapInd).observe(pages); snapInd();
+  document.fonts.ready.then(snapInd);
+  // Sign out is a placeholder until accounts exist
+  document.getElementById('signOut').onclick = () => {};
+  addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (openSub()) closeSub(); else if (!acct.hidden) closeAll();
+  });
+  // keep keyboard focus inside the top-most open panel
+  addEventListener('keydown', e => {
+    if (e.key !== 'Tab') return;
+    const top = openSub()?.panel || (!acct.hidden ? acct : null); if (!top) return;
+    const f = [...top.querySelectorAll('button, input, a')].filter(x => !x.disabled && x.offsetParent !== null);
+    if (!f.length) return;
+    if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f.at(-1).focus(); }
+    else if (!e.shiftKey && document.activeElement === f.at(-1)) { e.preventDefault(); f[0].focus(); }
+  });
+  const hook = new URLSearchParams(location.search).get('panel');   // screenshot hook: ?panel=acct | me | prefs
+  if (hook) { scrim.hidden = false; acct.hidden = false; acctBtn.setAttribute('aria-expanded', 'true'); const s = document.getElementById(hook); if (s && s !== acct) s.hidden = false; }
 
   const nf = new Intl.NumberFormat('en-US');
 
@@ -276,15 +518,18 @@
   ];
   const groupSw = document.getElementById('groupSw');
 
+  // ungrouped list (and the skeleton) keep an invisible copy of a group heading, so the first card stays put
+  // when "Group by fit" is switched on and off
+  const GSPACE = '<h2 class="gspace" aria-hidden="true">&nbsp;</h2>';
   function render() {
     const grouped = root.dataset.group === 'on';
     groupSw.setAttribute('aria-checked', String(grouped));
-    document.getElementById('fdot').hidden = !grouped;
+    document.getElementById('fbtn').setAttribute('aria-label', grouped ? 'Filters, grouped by fit' : 'Filters');
     document.getElementById('list').innerHTML = grouped
       ? GROUPS.map(([name, desc, test], i) => { const js = ranked.filter(test);
           return js.length ? `<section class="group" aria-labelledby="g${i}"><h2 id="g${i}">${name} <span class="k">${js.length}</span><span class="d">· ${desc}</span></h2>
             <ol class="grid">${js.map(card).join('')}</ol></section>` : ''; }).join('')
-      : `<ol class="grid">${ranked.map(card).join('')}</ol>`;
+      : `<div class="group">${GSPACE}<ol class="grid">${ranked.map(card).join('')}</ol></div>`;
   }
 
   // selection updates in place, so keyboard focus stays on the card
@@ -314,8 +559,29 @@
   });
   groupSw.onclick = () => { root.dataset.group = root.dataset.group === 'on' ? 'off' : 'on'; try { localStorage.setItem('cvm-group', root.dataset.group); } catch (e) {} render(); };
 
-  document.getElementById('n').textContent = nf.format(D.available);
-  render();
+  // loading: skeleton cards first (in the mock a short fixed wait stands in for the API call), then the real list
+  const list = document.getElementById('list');
+  const skBar = (w, h) => `<i class="sk" style="width:${w};height:${h}px"></i>`;
+  const skel = `<li><div class="card skel" style="--i:@">
+      <div class="row1"><div class="left"><span class="tl">${skBar('64%', 15)}</span><span class="c" style="height:20px;display:flex;align-items:center">${skBar('38%', 12)}</span></div>
+        <div class="fit"><span class="skn">${skBar("28px", 17)}${skBar("26px", 9)}</span><span class="skw">${skBar("44px", 9)}</span></div></div>
+      <div class="strip"><span class="facts">${skBar('78px', 12)}${skBar('70px', 12)}${skBar('64px', 12)}</span>${skBar('112px', 14)}</div>
+      <div class="why" style="height:16px;display:flex;align-items:center">${skBar('128px', 11)}</div></div></li>`;
+  list.setAttribute('aria-busy', 'true');
+  list.innerHTML = `<p class="sr">Loading jobs</p><div class="group" aria-hidden="true">${GSPACE}<ol class="grid">${Array.from({ length: 8 }, (_, i) => skel.replace('@', i)).join('')}</ol></div>`;
+  const hold = new URLSearchParams(location.search).get('skeleton') === 'hold';   // screenshot hook
+  if (!hold) setTimeout(() => {
+    render();
+    list.removeAttribute('aria-busy');
+    // row number per card (2 per row on wide screens, 1 on phones), capped: cards below the fold need no wait
+    list.querySelectorAll('.grid').forEach(g => {
+      const cols = getComputedStyle(g).gridTemplateColumns.split(' ').length;
+      g.querySelectorAll('.card').forEach((c, i) => c.style.setProperty('--r', Math.min(Math.floor(i / cols), 6)));
+    });
+    list.classList.add('fill');
+    setTimeout(() => list.classList.remove('fill'), 1200);   // re-renders (grouping) don't replay it
+  }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 250 : 380);
+  if (new URLSearchParams(location.search).get('filters') === 'open') { fpanel.hidden = false; fbtn.setAttribute('aria-expanded', 'true'); }   // screenshot hook
   if (new URLSearchParams(location.search).get('legend') === 'open') lpanel.hidden = false, lbtn.setAttribute('aria-expanded', 'true');   // screenshot hook
 })();
 </script>
