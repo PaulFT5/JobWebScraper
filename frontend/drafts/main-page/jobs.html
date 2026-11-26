@@ -490,9 +490,6 @@
   .an-head h1{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.15}
   .an-scope{margin-top:6px;font-size:14px;color:var(--muted);line-height:1.5}
   .an-scope b{color:var(--text);font-weight:700}
-  .an-cv{display:inline-flex;align-items:center;gap:10px;padding:8px 14px 8px 10px;border-radius:999px;border:1px solid var(--card-line);font-size:13.5px;color:var(--muted)}
-  .an-cv b{color:var(--text);font-weight:600}
-  .an-cv svg{flex:none}
   .linkbtn{all:unset;cursor:pointer;color:var(--text);font-weight:600;text-decoration:underline;text-decoration-color:var(--card-line);text-underline-offset:3px}
   .linkbtn:hover{text-decoration-color:var(--text)}
   .linkbtn:focus-visible{outline:2px solid var(--text);outline-offset:2px;border-radius:3px}
@@ -500,9 +497,46 @@
   .an-sec > h2{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:20px;font-weight:700;padding-bottom:10px;border-bottom:1px solid var(--line)}
   .an-sec > h2 .d{font-size:13px;font-weight:500;color:var(--muted)}
   .an-note{margin-top:12px;font-size:12.5px;line-height:1.5;color:var(--muted);max-width:68ch}
-  .an-two{display:grid;grid-template-columns:minmax(0,1fr);gap:0 48px}
-  @container list (min-width:880px){ .an-two{grid-template-columns:repeat(2,minmax(0,1fr))} }
-  /* your fit (reworked 2026-11-26; until then one stacked bar + a detached legend, where the 3% that matters was a
+  /* skills in demand + your skill gaps, "Shared head" (2026-11-26): two columns from 720px, titles on one row */
+  /* the two collapsible panels, "Panels" (2026-11-26): Your CV match, Job market analysis */
+  .anf{margin-top:20px;background:var(--card);border:1px solid var(--card-line);border-radius:var(--radius);padding:30px 35px}
+  .anf summary{list-style:none;display:flex;align-items:center;gap:14px;cursor:pointer;border-radius:8px}
+  .anf summary::-webkit-details-marker{display:none}
+  .anf summary h2{margin:0;font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.2}
+  .anf summary svg{width:22px;height:22px;flex:none;margin-left:auto;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s cubic-bezier(.16,1,.3,1)}
+  .anf[open] summary svg{transform:rotate(180deg)}
+  .anf summary:hover svg{stroke:var(--text)}
+  .anf summary:focus-visible{outline:2px solid var(--text);outline-offset:4px}
+  @media (prefers-reduced-motion:reduce){ .anf summary svg{transition:none} }
+  .anf-b > .an-sec, .anf-b > .an-pair, .anf-b > #gainSec{margin-top:56px}
+  .anf-b > :first-child, .anf-b > #fitSec{margin-top:28px}
+  @media (max-width:760px){ .anf{padding:22px 18px} }
+  /* Analyzer skeleton (2026-11-26): scope line, then each panel's title and rough content in its shape */
+  .ansk .sk.hd{width:130px;height:16px;margin:14px 0 4px}
+  .ansk .anf{display:grid;gap:12px}
+  .ansk .sk.t{width:min(220px,60%);height:24px;margin-bottom:16px}
+  .ansk .sk.r{height:14px}
+  .ansk .sk2{display:grid;grid-template-columns:minmax(0,1fr);gap:4px 48px;margin-top:28px}
+  @container list (min-width:720px){ .ansk .sk2{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  .ansk .sk2 > div{display:grid;gap:4px}
+  .ansk .sk.tile{height:44px;border-radius:8px}
+  .ansk .sk.row{height:32px}
+  .anf .dm li{background:var(--bg)}
+  .anf .dm li:hover{background:var(--sel)}
+  .an-pair{margin-top:64px;display:grid;grid-template-columns:minmax(0,1fr);gap:40px 48px}
+  @container list (min-width:720px){ .an-pair{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  .an-pair h2{font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.2}
+  .an-pair .g-head{min-height:32px}
+  /* numbered tiles, top 6 each, share only (no bar, no count) */
+  .dm{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:4px}
+  .dm li{display:grid;grid-template-columns:2.5ch 18px minmax(0,1fr) auto;align-items:center;column-gap:12px;min-height:44px;padding:8px 14px;border:1px solid var(--card-line);border-radius:8px;background:var(--card);font-size:14px}
+  .dm li:hover{background:var(--sel);border-color:var(--hover)}
+  .dm li > svg{width:18px;height:18px}
+  .dm .no{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+  .dm .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dm li.have .nm{font-weight:600}
+  .dm .pc{text-align:right;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+  .dm li.have .pc{color:var(--fit)}  /* your fit (reworked 2026-11-26; until then one stacked bar + a detached legend, where the 3% that matters was a
      sliver): the answer as a sentence first, then one labelled row per band, best first. Every bar is drawn out of
      100% of the jobs on a faint track, so a 1% row reads as "almost none" rather than as an empty row. */
   :root{--b-strong:var(--fit);--b-partial:color-mix(in srgb,var(--fit) 48%,var(--card));--b-weak:var(--hover);--b-none:color-mix(in srgb,var(--muted) 32%,var(--card))}
@@ -524,33 +558,55 @@
     .bands li{grid-template-columns:minmax(0,1fr) auto;row-gap:8px}
     .bands .bar{grid-column:1 / -1;grid-row:2}
   }
-  /* ranked rows: mark, name, bar from a shared baseline, count; the bar shows the count against the list's largest */
-  .rank{list-style:none;padding:0;margin:0}
-  .rank li{display:grid;grid-template-columns:20px minmax(0,1fr) minmax(56px,30%) 7.5ch;align-items:center;column-gap:12px;min-height:40px;padding:6px 0;border-bottom:1px solid var(--line);font-size:14px}
-  .rank.plain li{grid-template-columns:minmax(0,1fr) minmax(56px,38%) 7.5ch}
-  .rank li > svg{width:18px;height:18px}
-  .rank .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .rank li.have .nm{font-weight:600}
-  .rank .bar{height:8px}
-  .rank .bar i{display:block;height:100%;min-width:3px;border-radius:0 4px 4px 0;background:var(--b-weak)}
-  .rank li.have .bar i{background:var(--fit)}
-  .rank.plain .bar i{background:var(--text);opacity:.72}
-  .rank .ct{text-align:right;font-weight:600}
-  .rank .ct small{display:block;font-size:11.5px;font-weight:500;color:var(--muted)}
-  .rank li:hover{background:linear-gradient(var(--sel),var(--sel)) no-repeat center / calc(100% + 16px) 100%}
   .an-none{padding:16px 0;font-size:14px;color:var(--muted);border-bottom:1px solid var(--line)}
-  /* market overview: four breakdowns in a grid, the salary table under them */
-  .an-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:28px 48px;margin-top:20px}
-  @container list (min-width:680px){ .an-grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
-  .an-grid h3,.an-sal h3{font-size:12px;font-weight:700;margin-bottom:6px}
-  .an-grid h3 span,.an-sal h3 span{font-weight:500;color:var(--muted)}
-  .an-sal{margin-top:32px}
-  .an-sal table{width:100%;border-collapse:collapse;font-size:14px}
-  .an-sal th{font-size:12px;font-weight:600;color:var(--muted);text-align:left;padding:8px 0;border-bottom:1px solid var(--line)}
-  .an-sal td{padding:10px 0;border-bottom:1px solid var(--line)}
-  .an-sal th:not(:first-child),.an-sal td:not(:first-child){text-align:right}
-  .an-sal td:first-child{font-weight:600}
-  .an-sal td.na{color:var(--muted)}
+  .mk{display:grid;grid-template-columns:minmax(0,1fr);gap:40px 48px}
+  @container list (min-width:720px){ .mk{grid-template-columns:repeat(2,minmax(0,1fr))} .mk .mg.wide{grid-column:1 / -1} }
+  .mg h3{font-size:18px;font-weight:700;letter-spacing:-.01em;margin-bottom:12px}
+  .mg h3 span{font-size:13px;font-weight:500;letter-spacing:0;color:var(--muted)}
+  /* Location city cards (2026-11-26): job count with share, median salary under a hairline */
+  .lc{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+  .lc li{display:grid;gap:6px;align-content:start;padding:14px;border:1px solid var(--card-line);border-radius:8px;background:var(--bg);font-size:13px}
+  .lc li:hover{border-color:var(--hover)}
+  .lc .nm{font-size:15px;font-weight:700}
+  .lc .big{font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.05;font-variant-numeric:tabular-nums}
+  .lc .big small{font-size:13px;font-weight:500;letter-spacing:0;color:var(--muted)}
+  .lc .row{display:grid;gap:2px;padding-top:8px;border-top:1px solid var(--line)}
+  .lc .row span{color:var(--muted)}
+  .lc .row b{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+  /* Experience level cards (2026-11-26): the city-card style, narrower, "Not specified" on a dashed card */
+  .lc.lv{grid-template-columns:repeat(auto-fit,minmax(118px,1fr))}
+  .lc.lv .big{font-size:22px}
+  .lc li.ns{border-style:dashed;background:none}
+  /* Work type count list (2026-11-26): the job count leads each row, share beside it, no bars */
+  .cl{list-style:none;padding:0;margin:0}
+  .cl li{display:grid;grid-template-columns:minmax(0,1fr) auto 5ch;align-items:baseline;column-gap:16px;padding:12px 0;border-bottom:1px solid var(--line);font-size:15px}
+  .cl li:first-child{border-top:1px solid var(--line)}
+  .cl li:hover{background:linear-gradient(var(--sel),var(--sel)) no-repeat center / calc(100% + 16px) 100%}
+  .cl .nm{font-weight:600}
+  .cl .ct{font-size:20px;font-weight:800;letter-spacing:-.01em;text-align:right;font-variant-numeric:tabular-nums}
+  .cl .ct small{font-size:13px;font-weight:500;letter-spacing:0;color:var(--muted)}
+  .cl .pc{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+  /* Job domain pie (2026-11-26): categorical slots validated (dataviz validator) on white and on the dark panel #16191e;
+     light-mode slots 2-5 are under 3:1, so every slice is also named with its share in the list beside it */
+  .pie{--c1:#257de0;--c2:#f47230;--c3:#00b894;--c4:#f2a600;--c5:#ee7fac;--c6:#008a17;--c7:#6a4ce2;--c8:#ec4647;--c0:#9a9fa6;
+    display:grid;grid-template-columns:minmax(0,1fr);gap:24px 48px;align-items:center}
+  :root[data-theme="dark"] .pie{--c1:#338ced;--c2:#e76624;--c3:#00a888;--c4:#d28e05;--c5:#e24d8b;--c6:#0aac23;--c7:#9887ef;--c8:#eb6263;--c0:#6b7380}
+  @container list (min-width:720px){ .pie{grid-template-columns:auto minmax(0,1fr)} }
+  .pie-fig{position:relative;width:240px;aspect-ratio:1;justify-self:center}
+  .pie-fig svg{display:block;width:100%;height:100%}
+  .pie .sl{fill:none;stroke-width:8;transition:stroke-width .15s}
+  .pie .sl:hover{stroke-width:9.5}
+  .pie-c{position:absolute;inset:0;display:grid;place-content:center;text-align:center;pointer-events:none}
+  .pie-c b{font-size:26px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .pie-c span{font-size:13px;color:var(--muted)}
+  .pie-lg{list-style:none;padding:0;margin:0;display:grid;gap:2px 32px}
+  @container list (min-width:720px){ .pie-lg{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(5,auto);grid-auto-flow:column} }
+  .pie-lg li{display:grid;grid-template-columns:12px minmax(0,1fr) auto;align-items:center;column-gap:12px;min-height:38px;border-bottom:1px solid var(--line);font-size:15px}
+  .pie-lg li:hover{background:linear-gradient(var(--sel),var(--sel)) no-repeat center / calc(100% + 16px) 100%}
+  .pie-lg .sw{width:12px;height:12px;border-radius:3px}
+  .pie-lg .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pie-lg .pc{font-weight:700;font-variant-numeric:tabular-nums}
+  @media (prefers-reduced-motion:reduce){ .pie .sl{transition:none} }
   /* enter: each section fades up in reading order (same curve as the cards' fill-in) */
   #vAnalyzer.fill > *{animation:fill-in .32s cubic-bezier(.25,1,.5,1) both;animation-delay:calc(var(--r,0) * 70ms)}
   @media (prefers-reduced-motion:reduce){ #vAnalyzer.fill > *{animation:none} }
@@ -624,7 +680,7 @@
   :root.an .fna{display:block}
   :root.an #viewSec,:root.an #sortGrp{opacity:.4;filter:grayscale(1);transition:opacity .2s ease-out}
   @media (prefers-reduced-motion:reduce){ :root.an #viewSec,:root.an #sortGrp{transition:none} }
-  @media (max-width:760px){ .an-head h1{font-size:24px} .rank li{min-height:44px} }
+  @media (max-width:760px){ .an-head h1{font-size:24px} }
 </style>
 </head>
 <body>
@@ -856,6 +912,9 @@
   // all real ads from the snapshot (data.js); the old "Example" strong card is gone since the matcher's real scores
   // on the sample CV include strong fits (until 2026-11-25 the 14-ad sample had none, so one card was faked)
   const all = D.jobs;
+  // cities come lower-case from the data (e.g. "timisoara"); shown with a capital first letter (user, 2026-11-26).
+  // The stored value stays as it is, since filters match on it.
+  const cityName = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 
   // sort options: best fit first is the default; the others fall back to fit (then salary) for ties
   const byFit = (a, b) => b.score - a.score || topPay(b) - topPay(a);
@@ -868,7 +927,7 @@
   const EXP = { none: 'Not specified', 'Fără': 'No experience', Entry: 'Entry', Middle: 'Mid-level', Senior: 'Senior', Executive: 'Executive' };
   const FGROUPS = [
     { key: 'domain', title: 'Job domain', search: false, opts: D.facets.domain.map(([n]) => [n, n]), of: j => j.domain },
-    { key: 'city', title: 'Location', opts: D.facets.city.map(([n]) => [n, n]), of: j => j.city },
+    { key: 'city', title: 'Location', opts: D.facets.city.map(([n]) => [n, cityName(n)]), of: j => j.city },
     { key: 'worktype', title: 'Work type', opts: D.facets.worktype.map(([n]) => [n, n]), of: j => j.worktype },
     { key: 'level', title: 'Experience', opts: Object.entries(EXP), of: j => j.level || 'none' },
     { key: 'salary', title: 'Salary info', opts: [['listed', 'Listed salary'], ['estimated', 'Estimated salary'], ['none', 'No salary']], of: j => j.salary ? 'listed' : 'none' }
@@ -889,7 +948,7 @@
   const salary = j => j.salary
     ? `<span class="sal">${svg('eur')}<span class="sr">Salary: </span>${j.salary.split(/\s*-\s*/).map(x => nf.format(+x)).join('–')} EUR</span>`
     : `<span class="sal none">${svg('eur')}<span class="sr">Salary: </span>No salary listed</span>`;
-  const facts = j => [['city', j.city, 'Location'], ['work', j.worktype, 'Work hours'], ['level', j.level && levelName(j.level), 'Experience']].filter(f => f[1]);
+  const facts = j => [['city', cityName(j.city), 'Location'], ['work', j.worktype, 'Work hours'], ['level', j.level && levelName(j.level), 'Experience']].filter(f => f[1]);
 
   const card = j => {
     const t = tidy(j.title), co = tidy(j.company);
@@ -919,7 +978,7 @@
   const RING = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.25" fill="none" stroke="var(--chk)" stroke-width="1.5" stroke-dasharray="3 2.6"/></svg>';
   function matchView(j) {
     const t = j.matched.length + j.missing.length;
-    const facts = [['Location', j.city], ['Domain', j.domain], ['Work type', j.worktype], ['Experience', levelName(j.level)],
+    const facts = [['Location', cityName(j.city)], ['Domain', j.domain], ['Work type', j.worktype], ['Experience', levelName(j.level)],
                    ['Salary', j.salary ? `${j.salary.split(/\s*-\s*/).map(x => nf.format(+x)).join('–')} EUR` : 'Not listed'], ['Required skills', t]];
     const row = (s, have) => `<li class="${have ? 'have' : 'miss'}">${have ? TICK : RING}<span>${s.name}<span class="sr">${have ? ', in your CV' : ', not in your CV'}</span></span>${escTag(s)}</li>`;
     return `<div class="mx"><h2>${tidy(j.title)}</h2><p class="who">${tidy(j.company)}</p>
@@ -1155,7 +1214,7 @@
   // matcher's matched / missing split for the current CV. Skill names are counted as the ads wrote them (lower-cased):
   // grounding does not merge variants yet, so "Excel" and "Microsoft Excel" are separate rows. The page says so.
   const vJobs = document.getElementById('vJobs'), vAn = document.getElementById('vAnalyzer'), tip = document.getElementById('tip');
-  let page = 'jobs', jobsY = 0;
+  let page = 'jobs';
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
   const pct = (n, d) => d ? Math.round(100 * n / d) : 0;
   const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
@@ -1174,22 +1233,25 @@
   const mid = s => { const p = s.split(/\s*-\s*/).map(Number); return p.length > 1 ? (p[0] + p[1]) / 2 : p[0]; };
   const median = xs => { if (!xs.length) return null; const s = [...xs].sort((a, b) => a - b), h = s.length >> 1; return s.length % 2 ? s[h] : (s[h - 1] + s[h]) / 2; };
 
-  // one ranked row: optional mark, name, bar (against the list's largest value), count with a small share under it
-  const rankRow = (name, n, max, total, { mark = '', cls = '', tipText = '', sr = '' } = {}) =>
-    `<li class="${cls}" data-tip="${esc(tipText)}">${mark}<span class="nm" title="${esc(name)}">${esc(name)}${sr ? `<span class="sr">, ${sr}</span>` : ''}</span>
-      <span class="bar" aria-hidden="true"><i style="width:${Math.max(2, 100 * n / max)}%"></i></span>
-      <span class="ct">${nf.format(n)}<small>${pct(n, total)}%</small></span></li>`;
-  const plainList = (rows, total, label, fmt = x => x) => { const max = rows[0]?.[1] || 1;
-    return `<ol class="rank plain" aria-label="${label}">${rows.map(([k, n]) =>
-      rankRow(fmt(k), n, max, total, { tipText: `${fmt(k)}: ${nf.format(n)} of ${nf.format(total)} jobs (${pct(n, total)}%)` })).join('')}</ol>`; };
+
+  // going to the Analyzer (user, 2026-11-26): a skeleton in the page's shape first, then the real view fades in,
+  // with the same wait as the job list after Apply. A closed panel shows only its title bar.
+  let anT;
+  const anSkel = () => { const open = k => (vAn._open || {})[k] !== false, n = (k, c) => Array.from({ length: k },() => `<span class="sk ${c}"></span>`).join('');
+    return `<div class="ansk" aria-hidden="true"><span class="sk hd"></span>
+      <div class="anf"><span class="sk t"></span>${open('anCv') ? `${n(3, 'r')}<div class="sk2"><div>${n(6, 'tile')}</div><div>${n(6, 'tile')}</div></div>` : ''}</div>
+      <div class="anf"><span class="sk t"></span>${open('anMkt') ? `<div class="sk2"><div>${n(4, 'row')}</div><div>${n(4, 'row')}</div></div>` : ''}</div></div>`; };
+  const loadAnalyzer = () => { clearTimeout(anT); clearTimeout(vAn._t); vAn.classList.remove('fill');
+    vAn.setAttribute('aria-busy', 'true'); vAn.innerHTML = anSkel();
+    anT = setTimeout(() => { vAn.removeAttribute('aria-busy'); renderAnalyzer(); }, reduced() ? 250 : 380); };
 
   function renderAnalyzer() {
     const js = view(), N = js.length, filtered = activeCount() > 0;
-    const cvLine = `<p class="an-cv">${overlap(62, 8)}<span>Compared with <b>Sample CV</b> · ${D.sampleCv.length} skills</span></p>`;
+    // the "Compared with Sample CV" pill was removed (user, 2026-11-26)
     // short scope line (user, 2026-11-26): "X jobs found"; with filters on, a Clear filters link follows
     const scope = `<b>${nf.format(N)}</b> ${N === 1 ? 'job' : 'jobs'} found`
       + (filtered ? ` · <button class="linkbtn" type="button" data-an="reset">Clear filters</button>` : '');
-    const head = `<div class="an-head"><div><h1 id="anTitle">Job market analysis</h1><p class="an-scope">${scope}</p></div>${cvLine}</div>`;
+    const head = `<div class="an-head"><div><h1 id="anTitle" class="sr">Analyzer</h1><p class="an-scope">${scope}</p></div></div>`;
     if (!N) { vAn.innerHTML = head + `<div class="empty"><h2>No jobs match these filters</h2><p>Untick a few boxes, or clear them all.</p>
       <button type="button" data-an="reset">Clear filters</button></div>`; return; }
 
@@ -1213,40 +1275,59 @@
       : `<p class="fit-lead">None of these ${nf.format(N)} jobs shares a skill with your CV yet.</p>`}</section>`;
 
     // 2. skills in demand: how many of these ads list each skill; ticked when your CV has it
-    const demand = tally(js.map(j => [...j.matched, ...j.missing].map(s => s.name))).slice(0, 12);
-    const dMax = demand[0]?.n || 1, dHave = demand.filter(s => cvHas.has(s.key)).length;
-    const demandSec = `<section class="an-sec" aria-labelledby="anDem"><h2 id="anDem">Skills in demand <span class="d">· you have ${dHave} of the top ${demand.length}</span></h2>
-      <ol class="rank" aria-label="Most requested skills, with the number of jobs asking for each">${demand.map(s => { const have = cvHas.has(s.key);
-        return rankRow(s.name, s.n, dMax, N, { mark: have ? TICK : RING, cls: have ? 'have' : 'miss', sr: have ? 'in your CV' : 'not in your CV',
-          tipText: `${s.name}: asked for in ${nf.format(s.n)} of ${nf.format(N)} jobs (${pct(s.n, N)}%) · ${have ? 'in your CV' : 'not in your CV'}` }); }).join('')}</ol>
-      <p class="an-note">Counted by name as each ad wrote it, so variants such as Excel and Microsoft Excel are separate rows for now.</p></section>`;
+    // (user, 2026-11-26: top 6 only; drawn with the skill gaps further down, see skillPair)
+    const demand = tally(js.map(j => [...j.matched, ...j.missing].map(s => s.name))).slice(0, 6);
 
-    // 3. your skill gaps: skills missing from the jobs where your CV already matches something (the jobs within reach)
+    // 3. your skill gaps: skills missing from the jobs where your CV already matches something (the jobs within reach); top 6
     const near = js.filter(j => j.matched.length);
-    const gaps = tally(near.map(j => j.missing.map(s => s.name))).filter(s => !cvHas.has(s.key)).slice(0, 12);
-    const gMax = gaps[0]?.n || 1;
-    const gapSec = `<section class="an-sec" aria-labelledby="anGap"><h2 id="anGap">Your skill gaps <span class="d">· in the ${nf.format(near.length)} jobs where you match at least one skill</span></h2>
-      ${gaps.length ? `<ol class="rank" aria-label="Skills you are missing most often, with the number of jobs missing each">${gaps.map(s =>
-        rankRow(s.name, s.n, gMax, near.length, { mark: RING, cls: 'miss', tipText: `${s.name}: missing in ${nf.format(s.n)} of the ${nf.format(near.length)} jobs where you match some skills (${pct(s.n, near.length)}%)` })).join('')}</ol>
-      <p class="an-note">Adding one of these to your CV raises your fit in every job on its row. The share is of the jobs within reach, not of all jobs.</p>`
-      : `<p class="an-none">Your CV matches none of the skills in these jobs yet, so there are no gaps to rank.</p>`}</section>`;
+    const gaps = tally(near.map(j => j.missing.map(s => s.name))).filter(s => !cvHas.has(s.key)).slice(0, 6);
 
-    // 4. market overview: where the jobs are, what level, what hours; salaries where the ad lists one
+    // 4. job market (2026-11-26, user): Job domain as a pie across the full width, Location and Experience as cards with the
+    // median salary, Work type as a count list.
+    // The separate Median salary chart was removed (user, 2026-11-26). Hover gives the exact counts. Titled by the "Job market analysis" panel.
     const levels = countBy(js, j => j.level || 'none');
-    const sal = js.filter(j => j.salary);
-    const salRows = levels.map(([lv]) => { const xs = sal.filter(j => (j.level || 'none') === lv).map(j => mid(j.salary)), m = median(xs);
-      return `<tr><td>${EXP[lv] || levelName(lv)}</td><td>${nf.format(js.filter(j => (j.level || 'none') === lv).length)}</td><td>${nf.format(xs.length)}</td>
-        <td class="${m == null ? 'na' : ''}">${m == null ? 'None listed' : nf.format(Math.round(m)) + ' EUR'}</td></tr>`; }).join('');
-    const market = `<section class="an-sec" aria-labelledby="anMkt"><h2 id="anMkt">Market overview <span class="d">· ${nf.format(N)} jobs</span></h2>
-      <div class="an-grid">
-        <div><h3>Job domain</h3>${plainList(countBy(js, j => j.domain).slice(0, 8), N, 'Jobs by domain')}</div>
-        <div><h3>Location</h3>${plainList(countBy(js, j => j.city), N, 'Jobs by location', cap)}</div>
-        <div><h3>Experience</h3>${plainList(levels, N, 'Jobs by experience', lv => EXP[lv] || levelName(lv))}</div>
-        <div><h3>Work type</h3>${plainList(countBy(js, j => j.worktype), N, 'Jobs by work type')}</div>
-      </div>
-      <div class="an-sal"><h3>Salary <span>· ${nf.format(sal.length)} of ${nf.format(N)} ads (${pct(sal.length, N)}%) list one</span></h3>
-        <table><thead><tr><th scope="col">Experience</th><th scope="col">Jobs</th><th scope="col">With salary</th><th scope="col">Median salary</th></tr></thead><tbody>${salRows}</tbody></table>
-        <p class="an-note">Median of each listed range's midpoint, in EUR. The ads don't say whether a salary is monthly, yearly, gross or net, so read these as rough.</p></div></section>`;
+    const lvName = lv => EXP[lv] || levelName(lv);
+    // Job domain as a pie, picked 2026-11-26 from four (user): the top 8 domains plus "Other" for the rest, each slice its own
+    // categorical colour (validated palette, light and dark steps), the total in the middle, names and shares listed beside it; hover gives the counts
+    const domRows = countBy(js, j => j.domain).slice(0, 8);
+    const dTip = (k, n) => esc(`${k}: ${nf.format(n)} of ${nf.format(N)} jobs (${pct(n, N)}%)`);
+    const pieOther = N - domRows.reduce((s, [, n]) => s + n, 0);
+    const pieRows = pieOther > 0 ? [...domRows, ['Other', pieOther]] : domRows;
+    let pieAcc = 0;
+    const pieSegs = pieRows.map(([k, n], i) => { const p = 100 * n / N, off = pieAcc, len = Math.max(0, p - 0.6); pieAcc += p;
+      return `<circle cx="21" cy="21" r="15.9155" class="sl" style="stroke:var(--c${i < 8 ? i + 1 : 0})" stroke-dasharray="${len} ${100 - len}" stroke-dashoffset="${25 - off}" data-tip="${dTip(k, n)}"></circle>`; }).join('');
+    const pieHtml = `<div class="pie"><div class="pie-fig"><svg viewBox="0 0 42 42" role="img" aria-label="Share of jobs per domain">${pieSegs}</svg>
+      <p class="pie-c"><b>${nf.format(N)}</b><span>jobs</span></p></div>
+      <ol class="pie-lg" aria-label="Jobs by job domain">${pieRows.map(([k, n], i) => `<li data-tip="${dTip(k, n)}"><span class="sw" style="background:var(--c${i < 8 ? i + 1 : 0})" aria-hidden="true"></span><span class="nm">${esc(k)}</span><span class="pc">${pct(n, N)}%</span></li>`).join('')}</ol></div>`;
+    // Location as city cards, picked 2026-11-26 from four (user): per city the job count with its share, and the median salary
+    // (median of each listed range's midpoint, EUR). "Fit your CV" and "Top skill" were dropped (user).
+    const LC = countBy(js, j => j.city).map(([c, n]) => { const xs = js.filter(j => j.city === c && j.salary).map(j => mid(j.salary)), m = median(xs);
+      return { nm: cap(c), n, med: m == null ? null : Math.round(m) }; });
+    const locHtml = `<div class="mg"><h3>Location</h3><ol class="lc" aria-label="Jobs and median salary by city">${LC.map(r =>
+      `<li data-tip="${esc(`${r.nm}: ${nf.format(r.n)} of ${nf.format(N)} jobs (${pct(r.n, N)}%)${r.med == null ? ' · no salary listed' : ` · median salary ${nf.format(r.med)} EUR`}`)}"><span class="nm">${esc(r.nm)}</span>
+        <span class="big">${nf.format(r.n)} <small>jobs · ${pct(r.n, N)}%</small></span>
+        <span class="row"><span>Median salary</span><b>${r.med == null ? 'None listed' : nf.format(r.med) + ' EUR'}</b></span></li>`).join('')}</ol></div>`;
+    // Experience as level cards, picked 2026-11-26 from four (user): the levels in career order (no experience to executive),
+    // "Not specified" last on a dashed card; per level the job count with its share and the median salary (EUR)
+    const LADDER = ['No experience', 'Entry', 'Mid-level', 'Senior', 'Executive'];
+    const EX = levels.map(([lv, n]) => { const xs = js.filter(j => (j.level || 'none') === lv && j.salary).map(j => mid(j.salary)), m = median(xs);
+      return { lbl: lvName(lv), n, med: m == null ? null : Math.round(m) }; });
+    const exNs = EX.find(r => r.lbl === 'Not specified');
+    const exAll = [...EX.filter(r => r !== exNs).sort((a, b) => (LADDER.indexOf(a.lbl) + 1 || 99) - (LADDER.indexOf(b.lbl) + 1 || 99)), ...(exNs ? [exNs] : [])];
+    const expHtml = `<div class="mg"><h3>Experience</h3><ol class="lc lv" aria-label="Jobs and median salary by experience level">${exAll.map(r =>
+      `<li class="${r === exNs ? 'ns' : ''}" data-tip="${esc(`${r.lbl}: ${nf.format(r.n)} of ${nf.format(N)} jobs (${pct(r.n, N)}%)${r.med == null ? ' · no salary listed' : ` · median salary ${nf.format(r.med)} EUR`}`)}"><span class="nm">${esc(r.lbl)}</span>
+        <span class="big">${nf.format(r.n)} <small>jobs · ${pct(r.n, N)}%</small></span>
+        <span class="row"><span>Median salary</span><b>${r.med == null ? 'None listed' : nf.format(r.med) + ' EUR'}</b></span></li>`).join('')}</ol></div>`;
+    // Work type as a count list, picked 2026-11-26 from four (user): one type holds almost every job, so the job count leads
+    // each row (no bars) and a share under 1% reads "<1%" instead of "0%"
+    const WT = countBy(js, j => j.worktype);
+    const sh = n => n > 0 && pct(n, N) === 0 ? '<1%' : pct(n, N) + '%';
+    const wtHtml = `<div class="mg"><h3>Work type</h3><ol class="cl" aria-label="Jobs by work type">${WT.map(([k, n]) =>
+      `<li data-tip="${esc(`${k}: ${nf.format(n)} of ${nf.format(N)} jobs (${sh(n)})`)}"><span class="nm">${esc(k)}</span><span class="ct">${nf.format(n)} <small>jobs</small></span><span class="pc">${sh(n)}</span></li>`).join('')}</ol></div>`;
+    const market = `<section class="an-sec" aria-labelledby="anMkt"><div class="mk">
+      <div class="mg wide"><h3>Job domain</h3>${pieHtml}</div>${locHtml}
+      ${wtHtml}${expHtml}
+      </div></section>`;
 
     // 1b. skills that would raise your fit (2026-11-26, user): of the 20 skills in demand your CV lacks most often, the 3
     // that grow your fits (Strong + Partial) the most; a skill that adds no fit is never shown (user: "+0% is irrelevant").
@@ -1278,11 +1359,12 @@
         <div class="g2n"><span class="nm">${esc(g.name)}</span><span class="rg">${asked(g)}</span></div>
         <b class="g2p">${growth(g)}<span class="sr">, ${growthSr(g)}</span></b>
         <div class="g2b">${splitRow('Strong', 's', nStrong, g.strongAfter)}${splitRow('Partial', 'p', nPart, g.partAfter)}</div></li>`).join('')}</ul>`;
-    // heading row: title left, domain scope + Filter right (user, 2026-11-26); the status tags sit under the list
+    // heading row: title left, domain scope + Filter right (user, 2026-11-26); the status tags sit under the list.
+    // The same tag also heads the skill gaps (both lists follow the filters).
+    const scopeTag = `<div class="g-meta"><span class="g-scope">${domScope}</span>
+          <button class="g-filter" type="button" data-an="domain">${FILTER_ICON}${doms.length ? 'Change' : 'Filter'}<span class="sr"> job domains</span></button></div>`;
     const gainSec = `<section class="an-sec" id="gainSec" aria-labelledby="anGain">
-      <div class="g-head"><h2 id="anGain">Skills that would raise your fit</h2>
-        <div class="g-meta"><span class="g-scope">${domScope}</span>
-          <button class="g-filter" type="button" data-an="domain">${FILTER_ICON}${doms.length ? 'Change' : 'Filter'}<span class="sr"> job domains</span></button></div></div>
+      <div class="g-head"><h2 id="anGain">Skills that would raise your fit</h2>${scopeTag}</div>
       ${!lack.length ? '<p class="an-none">Your CV already has the skills these ads ask for most.</p>'
         : !gains.length ? '<p class="an-none">No single skill would turn one of these jobs into a fit for your CV yet.</p>'
         : (gains.length < 3 ? `<p class="g-few">Only ${gains.length === 1 ? 'one skill' : 'two skills'} in demand here would add fits.</p>` : '') + gList}
@@ -1290,11 +1372,32 @@
         <span class="g-tag wip" title="Work in progress: to revisit once the backend gives real numbers">WIP</span></div>
       </section>`;
 
-    vAn.innerHTML = head + spread + gainSec + `<div class="an-two">${demandSec}${gapSec}</div>` + market;
+    // 2 + 3 side by side, layout "Shared head" (picked 2026-11-26 from three): top 6 of each as numbered tiles, share only;
+    // both titles on one row, the scope + Filter tag at its right end (both lists follow the filters)
+    const tile = (s, i, p, cls, tip, sr = '') => `<li class="${cls}" data-tip="${esc(tip)}"><span class="no" aria-hidden="true">${i + 1}</span>${cls === 'have' ? TICK : RING}<span class="nm" title="${esc(s.name)}">${esc(s.name)}${sr ? `<span class="sr">, ${sr}</span>` : ''}</span><span class="pc">${p}%</span></li>`;
+    const dList = `<ol class="dm" aria-label="Most requested skills, with the share of jobs asking for each">${demand.map((s, i) => {
+      const have = cvHas.has(s.key), p = pct(s.n, N), cv = have ? 'in your CV' : 'not in your CV';
+      return tile(s, i, p, have ? 'have' : 'miss', `${s.name}: asked for in ${nf.format(s.n)} of ${nf.format(N)} jobs (${p}%) · ${cv}`, cv); }).join('')}</ol>`;
+    const gapList = gaps.length ? `<ol class="dm" aria-label="Skills you are missing most often, with the share of the jobs within reach missing each">${gaps.map((s, i) => {
+      const p = pct(s.n, near.length);
+      return tile(s, i, p, 'miss', `${s.name}: missing in ${nf.format(s.n)} of the ${nf.format(near.length)} jobs where you match some skills (${p}%)`); }).join('')}</ol>`
+      : `<p class="an-none">Your CV matches none of the skills in these jobs yet, so there are no gaps to rank.</p>`;
+    const skillPair = `<div class="an-pair">
+      <section aria-labelledby="anDem"><div class="g-head"><h2 id="anDem">Skills in demand</h2></div>${dList}</section>
+      <section aria-labelledby="anGap"><div class="g-head"><h2 id="anGap">Your skill gaps</h2>${scopeTag}</div>${gapList}</section></div>`;
+
+    // two collapsible panels, layout "Panels" (picked 2026-11-26 from three, user): Your CV match (fit, gains, demand + gaps)
+    // and Job market analysis (the market tables). Each panel's open / closed state survives a re-render (filter change).
+    const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+    const isOpen = k => (vAn._open || {})[k] !== false;
+    const fold = (id, title, body) => `<details class="anf" data-k="${id}"${isOpen(id) ? ' open' : ''}><summary><h2 id="${id}">${title}</h2>${CHEV}</summary><div class="anf-b">${body}</div></details>`;
+    vAn.innerHTML = head + fold('anCv', 'Your CV match', spread + gainSec + skillPair) + fold('anMkt', 'Job market analysis', market);
     if (!reduced()) { [...vAn.children].forEach((el, i) => el.style.setProperty('--r', i)); vAn.classList.remove('fill'); void vAn.offsetWidth; vAn.classList.add('fill');
       clearTimeout(vAn._t); vAn._t = setTimeout(() => vAn.classList.remove('fill'), 900); }
   }
   // e.detail === 0: the button was pressed with the keyboard (Enter / Space), not clicked
+  // remember which Analyzer panels are open (toggle does not bubble, so listen in the capture phase)
+  vAn.addEventListener('toggle', e => { const d = e.target; if (d.classList?.contains('anf')) (vAn._open ||= {})[d.dataset.k] = d.open; }, true);
   vAn.addEventListener('click', e => { if (e.target.closest('[data-an="reset"]')) reset(); if (e.target.closest('[data-an="domain"]')) showDomainFilter(e.detail === 0); });
   // "Filter" / "Change" next to the domain scope: opens Filters, brings Job domain to the top of the panel (its
   // options in view, not stuck at the bottom edge) and highlights it once. Keyboard focus moves there only for keyboard
@@ -1321,7 +1424,6 @@
   // until a card is clicked. The job list keeps its scroll position; the URL carries #analyzer so a reload stays put.
   function setPage(p, first = false) {
     if (p === page && !first) return;
-    if (page === 'jobs') jobsY = scrollY;
     page = p;
     pages.querySelectorAll('a').forEach(a => a.dataset.page === p ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
     placeInd();
@@ -1336,9 +1438,10 @@
       open = null; matcher(); mpanel.classList.remove('fill'); mpanel.removeAttribute('aria-busy');
       document.querySelectorAll('.card[aria-current="true"]').forEach(x => x.setAttribute('aria-current', 'false'));
       if (!lpanel.hidden) { lpanel.hidden = true; lbtn.setAttribute('aria-expanded', 'false'); }
-      renderAnalyzer();
+      loadAnalyzer();
       if (!first) scrollTo({ top: 0 });
-    } else if (!first) scrollTo({ top: jobsY });
+    // back to Jobs (user, 2026-11-26): the list reloads with the skeleton, as after Apply, from page 1 at the top
+    } else if (!first) { load(); scrollTo({ top: 0 }); }
   }
   // screenshot / preview hook: ?demo=filters starts with one filter applied (Location: Bucuresti)
   if (new URLSearchParams(location.search).get('demo') === 'filters') { applied.f.city = ['Bucuresti']; staged = clone(applied); }
