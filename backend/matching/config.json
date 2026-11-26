@@ -32,7 +32,6 @@
     },
     "cv_tier_map": {
       "entry": 0,
-      "junior": 1,
       "mid": 2,
       "senior": 3
     },
@@ -44,8 +43,8 @@
     },
     "unknown_cv_tier_or_no_job_level": 1.00,
     "metadata": {
-      "job_level_map_note": "Job tiers",
-      "cv_tier_map_note": "CV tiers",
+      "job_level_map_note": "Job tiers; bestjobs ranges: Entry 0-2 y, Middle 2-5 y, Senior 5+ y. Fără and Entry both start at 0 years, so both are 0. Executive = Senior (a role, not more years with a skill)",
+      "cv_tier_map_note": "CV tiers, same year ranges as bestjobs: entry 0-2 y, mid 2-5 y, senior 5+ y. 1 is unused (junior merged into mid 2026-11-26), so the multipliers stay as before",
       "multipliers_note": "Discount",
       "unknown_note": "No penalty"
     }

@@ -31,6 +31,7 @@ CV_TIER_ALIASES = {
     "mid_level": "mid",
     "mid-level": "mid",
     "middle": "mid",
+    "junior": "mid",  # junior (2-3 years) merged into mid (2-5 years) on 2026-11-26, to match the bestjobs Middle range
 }
 
 

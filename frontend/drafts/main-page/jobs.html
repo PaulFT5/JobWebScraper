@@ -8,6 +8,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script>
+  // login check (mock): not logged in and not browsing as a guest -> the login page, before anything renders.
+  // ?guest=1 comes from the landing page's "Browse jobs" links (temporary, until guest mode is decided)
+  (() => { let on = false; try { on = localStorage.getItem('cvm-auth') === '1'; } catch (e) {}
+    if (!on && !new URLSearchParams(location.search).has('guest')) location.replace('../login/index.html'); })();
   // theme and grouping before first paint: URL, then saved choice, then system setting / off
   (() => { const p = new URLSearchParams(location.search), r = document.documentElement;
     let t = p.get('theme'), g = p.get('group');
@@ -35,15 +39,11 @@
   /* ---------- top bar ---------- */
   .abar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:16px;height:60px;padding:0 max(clamp(16px,2.4vw,28px),calc((100% - 1200px) / 2 + clamp(16px,2.4vw,28px)));background:var(--bar);border-bottom:1px solid var(--line)}
   /* light theme: the start page's brown as the top bar (Night keeps its near-black bar). Bar controls switch to
-     light-on-brown; the Filters panel (inside .fwrap) keeps the page colours, so only the bar's own controls get these tokens */
+     light-on-brown (the Filters panel sits outside the bar, so it keeps the page colours) */
   :root:not([data-theme="dark"]) .abar{background:#2f2b18;border-bottom-color:#2f2b18}
   :root:not([data-theme="dark"]) .abar{--text:#fbfaf7;--muted:#d6cfb6;--field:#3b3620;--line:#57502f;--hover:#c4bb9a;--ctl:#8e8565}
   /* bar control edges: at least 3:1 against the bar (light 3.9:1 on brown, dark 3.1:1), hover brighter still */
   :root[data-theme="dark"] .abar{--ctl:#5e6672;--hover:#a3abb7}
-  :root[data-theme="dark"] .abar .fpanel{--hover:#4f5866}
-  /* the Filters panel sits inside the bar but keeps the page (Graphite) colours */
-  :root:not([data-theme="dark"]) .abar .fpanel{--text:#111111;--muted:#666666;--field:#f6f6f6;--line:#e7e7e7;--hover:#9c9c9c}
-  .abar .fpanel{--ctl:var(--line)}
   :root:not([data-theme="dark"]) .abar .ghost[aria-expanded="true"]{border-color:#fbfaf7}
   :root:not([data-theme="dark"]) .abar .act{background:#fbfaf7;color:#14141a}
   :root:not([data-theme="dark"]) .abar :focus-visible{outline-color:#fbfaf7}
@@ -55,6 +55,14 @@
   .search svg{width:16px;height:16px;flex:none;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round}
   .search input{flex:1;min-width:0;border:0;background:none;font:inherit;font-size:14px;color:var(--text);outline:none}
   .search input::placeholder{color:var(--muted)}
+  /* the browser's clear (x) button, redrawn in the bar's own colours instead of the default blue-grey */
+  .search input::-webkit-search-cancel-button{-webkit-appearance:none;width:16px;height:16px;cursor:pointer;background:var(--muted);
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M7 7l10 10M17 7 7 17'/%3E%3C/svg%3E") center / contain no-repeat}
+  .search input::-webkit-search-cancel-button:hover{background:var(--text)}
+  /* bar controls: state changes ease in instead of snapping, and a press gives a small give */
+  .search,.ghost,.acct,.pages{transition:border-color .15s ease-out,background-color .15s ease-out,color .15s ease-out,transform .1s ease-out}
+  .ghost:active,.acct:active{transform:scale(.96)}
+  @media (prefers-reduced-motion:reduce){ .search,.ghost,.acct,.pages{transition:none} .ghost:active,.acct:active{transform:none} }
   .ghost{height:38px;padding:0 12px;border-radius:9px;border:1px solid var(--ctl,var(--line));background:none;color:var(--text);font:inherit;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px;flex:none;text-decoration:none}
   .ghost:hover{border-color:var(--hover)}
   .ghost[aria-expanded="true"]{border-color:var(--text)}
@@ -68,28 +76,99 @@
   .theme[aria-checked="true"] .knob{transform:translateX(14px)}
   .theme svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
-  /* ---------- filters panel ("Group by fit" lives here) ---------- */
-  .fwrap{position:relative;flex:none}
-  .fpanel{position:absolute;top:calc(100% + 8px);left:0;z-index:20;width:320px;padding:16px;border-radius:12px;background:var(--card);border:1px solid var(--line);box-shadow:0 12px 32px rgb(0 0 0 / .14)}
-  .fpanel[hidden]{display:none}
-  .fpanel h2{font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
-  .fpanel .x{width:32px;height:32px;border-radius:8px;border:1px solid transparent;background:none;color:var(--muted);cursor:pointer;display:grid;place-items:center}
-  .fpanel .x:hover{border-color:var(--line);color:var(--text)}
-  .fpanel .x svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
-  .fpanel .sec{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
-  .fpanel .sec h3{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px}
+  /* ---------- filters panel: left side, under the bar ----------
+     Opens and closes only with the Filters button. Nothing is dimmed or blocked and the cards never move: the sidebar
+     starts at the screen edge and is as wide as the space left of the cards minus a 20px gap (--fw, same width as the
+     matcher on the right, at least 320px); where that doesn't fit the cards move just enough; phones: full width.
+     Changes are staged; Apply / Reset reload the list. */
+  :root{--fw:320px}
+  /* "filters are on" cue: a small dot on the Filters button's top-right corner, cut out of the bar by a ring in the
+     bar colour. It never changes the button's width, so the search never moves; the count is in the accessible name.
+     Dot colour: warm orange on the brown bar (the CV colour of the start page's mark), mint on Night. */
+  .abar{--fon:#ff9a52}
+  :root[data-theme="dark"] .abar{--fon:#7fe0a6}
+  #fbtn{position:relative}
+  #fbtn::after{content:"";position:absolute;top:-4px;right:-4px;width:10px;height:10px;border-radius:50%;background:var(--fon);
+               box-shadow:0 0 0 2.5px #2f2b18;transform:scale(0);transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
+  :root[data-theme="dark"] #fbtn::after{box-shadow:0 0 0 2.5px var(--bar)}
+  #fbtn[data-active]::after{transform:scale(1)}
+  @media (prefers-reduced-motion:reduce){ #fbtn::after{transition:none} }
+  .fpanel{position:fixed;top:var(--barh,60px);left:0;bottom:0;z-index:40;width:var(--fw);display:flex;flex-direction:column;background:var(--card);
+          border-right:1px solid var(--card-line);box-shadow:8px 0 24px rgb(0 0 0 / .10);transform:translateX(0);transition:transform .25s cubic-bezier(.16,1,.3,1)}
+  .fpanel[hidden]{display:flex;visibility:hidden;transform:translateX(-100%);transition:transform .2s ease-in,visibility 0s .2s}
+  :root[data-theme="dark"] .fpanel{border-right-color:#2c3239;box-shadow:12px 0 32px rgb(0 0 0 / .35)}
+  .fhead{padding:16px 20px;border-bottom:1px solid var(--line)}
+  .fhead h2{font-size:17px;font-weight:700}
+  .fbtns{display:flex;gap:8px;margin-top:12px}
+  .fbtns button{flex:1;height:38px;border-radius:9px;font:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:background-color .15s,border-color .15s,opacity .15s}
+  .fapply{border:0;background:var(--act);color:var(--on-act)}
+  .fapply:hover:not(:disabled){filter:brightness(1.08)}
+  .freset{border:1px solid var(--card-line);background:none;color:var(--text)}
+  .freset:hover:not(:disabled){border-color:var(--hover)}
+  /* disabled: a quiet field with muted text, not a heavy greyed-out block */
+  .fbtns button:disabled{cursor:not-allowed}
+  .fapply:disabled{background:var(--field);color:var(--muted)}
+  .freset:disabled{color:var(--muted);opacity:.6}
+  .fscroll{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:4px 20px 24px;scrollbar-width:thin}
+  .fsec{padding:16px 0;border-bottom:1px solid var(--line)}
+  .fsec h3{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px}
+  /* Sort by collapses like the filter groups; closed, it shows the current choice next to the arrow */
+  .fgrp .radios{padding:0 0 12px;display:grid;gap:2px}
+  .fgrp summary .cur{margin-left:auto;font-size:13px;font-weight:500;color:var(--muted)}
+  .fgrp[open] summary .cur{display:none}
+  /* filter groups: collapsible, a count of checked boxes next to the name */
+  .fgrp{border-bottom:1px solid var(--line)}
+  .fgrp:last-child{border-bottom:0}
+  .fgrp summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 0;cursor:pointer;font-size:14px;font-weight:700;border-radius:6px}
+  .fgrp summary::-webkit-details-marker{display:none}
+  .fgrp summary .bdg{margin-left:6px;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--field);color:var(--text);font-size:12px;font-weight:700;display:inline-grid;place-items:center;font-variant-numeric:tabular-nums}
+  .fgrp summary .bdg[hidden]{display:none}
+  .fgrp summary svg{width:16px;height:16px;flex:none;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s cubic-bezier(.16,1,.3,1)}
+  .fgrp[open] summary svg{transform:rotate(180deg)}
+  .fgrp ul{list-style:none;padding:0 0 12px;display:grid;gap:2px}
+  .fgrp .fs{width:100%;height:36px;margin-bottom:8px;padding:0 10px;border-radius:8px;border:1px solid var(--card-line);background:var(--field);font:inherit;font-size:14px;color:var(--text)}
+  .fgrp .fs:focus{border-color:var(--text)}
+  .fgrp .fs:focus-visible{outline:2px solid var(--text);outline-offset:1px}
+  /* checkbox and radio rows (sort uses the same row) */
+  .chk{display:flex;align-items:center;gap:10px;min-height:34px;padding:0 8px;margin:0 -8px;border-radius:8px;font-size:14px;color:var(--muted);cursor:pointer}
+  .chk:hover{background:var(--sel);color:var(--text)}
+  .chk:has(input:checked){color:var(--text);font-weight:600}
+  /* control edges at least 3:1 against the sidebar: #8a8a8a on white 3.4:1, #6b7380 on Night card 3.7:1 */
+  :root{--chk:#8a8a8a}
+  :root[data-theme="dark"]{--chk:#6b7380}
+  .oc{margin-left:auto;padding-left:8px;font-size:12.5px;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums}
+  .chk.zero{opacity:.45}   /* ticking it alone would show no jobs; still tickable */
+  .chk input{appearance:none;flex:none;width:18px;height:18px;margin:0;border:1.5px solid var(--chk);border-radius:5px;background:var(--card) center / 12px no-repeat;cursor:pointer;
+             transition:background-color .12s,border-color .12s}
+  .chk input[type="radio"]{border-radius:50%}
+  .chk input:checked{background-color:var(--act);border-color:var(--act)}
+  .chk input[type="checkbox"]:checked{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E")}
+  :root[data-theme="dark"] .chk input[type="checkbox"]:checked{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230f1114' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E")}
+  .chk input[type="radio"]:checked{box-shadow:inset 0 0 0 3.5px var(--card)}
+  .chk input:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+  @media (prefers-reduced-motion:reduce){ .fpanel,.fpanel[hidden],.fgrp summary svg,.chk input,.fbtns button{transition:none} }
+  /* no matches */
+  .empty{padding:56px 16px;text-align:center}
+  .empty h2{font-size:17px;font-weight:700}
+  .empty p{margin-top:6px;font-size:14px;color:var(--muted)}
+  .empty button{margin-top:16px;height:38px;padding:0 16px;border-radius:9px;border:1px solid var(--card-line);background:none;color:var(--text);font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+  .empty button:hover{border-color:var(--hover)}
   .opt{all:unset;box-sizing:border-box;width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px;align-items:center;cursor:pointer;padding:4px 0}
   .opt:focus-visible{outline:2px solid var(--text);outline-offset:4px;border-radius:6px}
   .opt b{font-size:14px;font-weight:600}
   .opt small{grid-column:1;font-size:12.5px;color:var(--muted);line-height:1.4}
-  .opt .track{grid-column:2;grid-row:1 / span 2;position:relative;width:34px;height:20px;border-radius:999px;background:var(--field);border:1px solid var(--line)}
+  .opt .track{grid-column:2;grid-row:1 / span 2;position:relative;width:34px;height:20px;border-radius:999px;background:var(--field);border:1px solid var(--chk)}
   .opt .knob{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:transform .2s cubic-bezier(.16,1,.3,1)}
   .opt[aria-checked="true"] .track{background:var(--fit);border-color:var(--fit)}
   .opt[aria-checked="true"] .knob{transform:translateX(14px);background:var(--card)}
-  .fpanel .later{font-size:12.5px;color:var(--muted);line-height:1.45}
 
   /* ---------- list ---------- */
-  .body{max-width:1200px;margin:0 auto;padding:20px clamp(16px,2.4vw,28px) 64px}
+  .body{max-width:1200px;margin:0 auto 0 max(0px,calc((100% - 1200px) / 2));padding:20px clamp(16px,2.4vw,28px) 64px;container:list / inline-size;
+        transition:margin-left .25s cubic-bezier(.16,1,.3,1)}
+  /* Filters open: the cards stay where they are while the sidebar (--fw + 20px gap) fits in the margin;
+     on narrower screens they move right just enough to keep the 20px gap, and drop to one column when two no longer fit */
+  :root.fopen .body{margin-left:max(calc((100% - 1200px) / 2),calc(var(--fw) + 20px - clamp(16px,2.4vw,28px)))}
+  @media (prefers-reduced-motion:reduce){ .body{transition:none} }
   .head-row{display:flex;justify-content:flex-end;align-items:center;margin-bottom:12px}
   .count{font-size:14px;color:var(--muted)}
   .count b{color:var(--text);font-weight:700}
@@ -107,9 +186,30 @@
   .legend dd{margin:0;font-size:13px;color:var(--text);font-variant-numeric:tabular-nums}
   .sample a{color:inherit}
   /* two cards per row at most; cards in a row share a height, on phones each card keeps its own */
-  /* every card the same height: all rows match the tallest card (a wrapped title adds room above the icon line) */
-  .grid{list-style:none;padding:0;display:grid;grid-template-columns:minmax(0,1fr);grid-auto-rows:1fr;gap:var(--gap)}
-  @media (min-width:720px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  /* two columns: the two cards in a row share a height (since 2026-11-25; until then every row matched the tallest card
+     of the whole list, which meant measuring every card first - slow with the real 2,242 ads);
+     one column (phones): each card keeps its own height, so a short card has no empty gap in the middle */
+  .grid{list-style:none;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:var(--gap)}
+  /* two columns from the list's own width (not the screen's), so the open Filters panel can drop it to one */
+  @container list (min-width:680px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  /* "Load more": the next 100 cards */
+  .more{display:flex;justify-content:center;margin-top:28px}
+  .more button{height:44px;padding:0 20px;border-radius:10px;border:1px solid var(--card-line);background:var(--card);color:var(--text);
+               font:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:border-color .15s}
+  .more button:hover{border-color:var(--hover)}
+  .more button span{font-weight:500;color:var(--muted)}
+  .group .more{margin-top:16px}
+  /* one fit group on its own: "← All groups" and the group's heading above the list */
+  .bandbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  .bandbar button{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px 0 8px;border-radius:9px;border:1px solid var(--card-line);
+                  background:none;color:var(--text);font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+  .bandbar button:hover{border-color:var(--hover)}
+  .bandbar button svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .bandbar h2{display:flex;align-items:baseline;gap:8px;font-size:14px;font-weight:700}
+  .bandbar h2 .k,.bandbar h2 .d{font-weight:500;color:var(--muted)}
+  .bandbar h2 .k{font-variant-numeric:tabular-nums}
+  .bandbar h2 .d{font-size:12.5px}
+  .bandnone{padding:32px 0;color:var(--muted);font-size:14px}
   .group + .group{margin-top:32px}
   .group h2.gspace{visibility:hidden}
   .group h2{display:flex;align-items:baseline;gap:8px;font-size:14px;font-weight:700;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
@@ -118,8 +218,10 @@
   .group h2 .d{font-size:12.5px}
 
   /* ---------- card: header line, icon strip, skills ---------- */
-  .card{all:unset;box-sizing:border-box;display:flex;flex-direction:column;width:100%;height:100%;padding:var(--pad);border-radius:var(--radius);background:var(--card);border:1px solid var(--card-line);cursor:pointer;transition:border-color .15s,background-color .15s}
+  .card{all:unset;box-sizing:border-box;display:flex;flex-direction:column;width:100%;height:100%;padding:var(--pad);border-radius:var(--radius);background:var(--card);border:1px solid var(--card-line);cursor:pointer}
   .card:hover{border-color:var(--hover)}
+  .card:active:not(.skel){transform:scale(.995)}   /* a small give on press, same idea as the bar buttons */
+  .card{transition:border-color .15s,background-color .15s,transform .1s ease-out}
   .card[aria-current="true"]{border-color:var(--text);background:var(--sel)}
   .card:focus-visible{outline:2px solid var(--text);outline-offset:2px}
   .row1{display:flex;gap:12px;align-items:flex-start}
@@ -150,7 +252,7 @@
   .facts > span[data-f="level"]{flex-shrink:12}
   .facts em{font-style:normal;overflow:hidden;text-overflow:ellipsis}
   .facts svg,.sal svg{width:14px;height:14px;flex:none;fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-  .sal{flex:none;display:inline-flex;align-items:center;gap:5px;font-size:15px;font-weight:700;white-space:nowrap}
+  .sal{flex:none;display:inline-flex;align-items:center;gap:5px;font-size:15px;font-weight:700;white-space:nowrap}   /* proportional digits: Schibsted's tabular set spaces the commas out like a typewriter */
   .sal.none{font-size:14px;font-weight:400;color:var(--muted)}
   /* narrow cards (two columns on a ~1000px screen, phones): the salary takes its own line under the facts,
      so city, work hours and experience get the full width instead of being cut */
@@ -191,7 +293,7 @@
   /* panels and the dimmed area start under the top bar (--barh is measured), so the bar stays visible and usable */
   .scrim{position:fixed;inset:var(--barh,60px) 0 0 0;z-index:50;background:rgb(10 10 12 / .42)}
   .scrim[hidden]{display:none}
-  .drawer{position:fixed;top:var(--barh,60px);right:0;bottom:0;z-index:60;width:min(380px,100vw);display:flex;flex-direction:column;background:var(--card);color:var(--text);
+  .drawer{position:fixed;top:var(--barh,60px);right:0;bottom:0;z-index:60;width:min(var(--mw,380px),100vw);display:flex;flex-direction:column;background:var(--card);color:var(--text);
           border-left:1px solid var(--line);box-shadow:-16px 0 40px rgb(0 0 0 / .18);transform:translateX(0);transition:transform .25s cubic-bezier(.16,1,.3,1)}
   .drawer[hidden]{display:flex;visibility:hidden;transform:translateX(100%);transition:transform .2s ease-in,visibility 0s .2s}
   .drawer.sub{z-index:61}
@@ -219,6 +321,12 @@
   .ditem span{flex:1}
   .ditem svg{width:20px;height:20px;flex:none;fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
   .ditem .chev{width:16px;height:16px}
+  /* Sign out in red (a leaving action): #c0362c on white 5.6:1, #ff7b72 on Night 7.4:1 */
+  .ditem.out{--danger:#c0362c;color:var(--danger)}
+  :root[data-theme="dark"] .ditem.out{--danger:#ff7b72}
+  .ditem.out svg{stroke:var(--danger)}
+  .ditem.out:hover{background:color-mix(in srgb,var(--danger) 9%,transparent)}
+  .ditem.out:focus-visible{outline-color:var(--danger)}
   .dfoot{margin-top:auto;padding:8px;border-top:1px solid var(--line)}
   .dsec{padding:20px}
   .dsec h3{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:10px}
@@ -233,7 +341,8 @@
   /* wide screens: the logo sits in the left margin and Filters starts exactly at the cards' left edge
      (a straight line from Filters down through the count line and the first card column); the right group
      Jobs / Analyzer end at the list's right edge, the account icon sits at the far right. Middle column = the list's content width (1200px page minus 2 x 28px padding). */
-  @media (min-width:1440px){
+  /* from 1480px: below that the margin column is narrower than the logo plus a gap, so the logo would touch Filters */
+  @media (min-width:1480px){
     .abar{display:grid;grid-template-columns:1fr min(1144px,100%) 1fr;align-items:center;column-gap:0;padding:0 28px}
     .logo{grid-column:1;grid-row:1}
     .mid{grid-column:2;grid-row:1;justify-self:start;width:min(100%,620px)}
@@ -248,7 +357,12 @@
     .abar{flex-wrap:wrap;height:auto;padding-top:10px;padding-bottom:10px;row-gap:10px}
     .search{order:5;flex-basis:100%;max-width:none}
     .theme .lbl,.ghost .lbl{display:none}
-    .fpanel{position:fixed;top:64px;left:16px;right:16px;width:auto}
+    /* phones: no room beside the list, so the panel covers it (full width) and the list stays put */
+    .fpanel{width:100%;border-right:0;box-shadow:none}
+    :root.fopen .body{margin-left:0}   /* phones: the sidebar covers the list and closes on Apply */
+    .drawer{width:100vw}   /* phones: account panels full width, like the Filters sidebar */
+    .fbtns button{height:44px}
+    .chk{min-height:44px}
     /* touch targets: 44px on phones */
     .ghost,.search{height:44px}
     .ghost{min-width:44px;justify-content:center}
@@ -257,10 +371,10 @@
     .pages a{padding:0 10px}
     .pages .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
     .acct{width:44px;height:44px}
-    .dx,.fpanel .x{width:44px;height:44px}
+    .dx{width:44px;height:44px}
     .seg3 span{padding:13px 6px}
   }
-  @media (prefers-reduced-motion:reduce){ .theme .knob,.opt .knob,.card{transition:none} }
+  @media (prefers-reduced-motion:reduce){ .theme .knob,.opt .knob,.card{transition:none} .card:active:not(.skel){transform:none} }
   /* page load: skeleton cards in the real card shape, then the details fill in row by row (2 cards at a time,
      top to bottom). The card frames never move: only their content fades in, so nothing jumps. */
   .skel{cursor:default;animation:card-in .2s cubic-bezier(.25,1,.5,1) both;animation-delay:calc(var(--i,0) * 15ms)}   /* skeletons arrive one by one, in reading order */
@@ -278,6 +392,94 @@
   .fill .group h2{animation:fill-in .32s cubic-bezier(.25,1,.5,1) both}
   @keyframes fill-in{from{opacity:0;transform:translateY(4px)}}
   @media (prefers-reduced-motion:reduce){ .sk,.skel{animation:none} .fill .card > *,.fill .group h2{animation:none} }
+
+  /* ---------- matcher: the selected job's match, a fixed panel on the right ----------
+     Sits under the account panels (z 30 < scrim 50 / drawer 60, same 380px width), so opening account settings covers it.
+     Hidden under 1024px for now.
+     Content (picked 2026-11-25 from four versions): the earlier mock's job header + facts grid and its overlap mark
+     with the score, then one ticked / open row per required skill (the "ledger" list).
+     Next to the cards (picked 2026-11-25, "fill the space"): as wide as the space right of the centred cards minus 20px,
+     at least 320px (--mw, measured); where that doesn't fit (under ~1950px) the cards shift left just enough, never
+     covered. The same rule as the Filters sidebar. */
+  :root{--mw:380px}
+  .mpanel{position:fixed;top:var(--barh,60px);right:0;bottom:0;z-index:30;width:var(--mw);overflow-y:auto;overscroll-behavior:contain;
+          background:var(--card);border-left:1px solid var(--card-line);padding:28px 24px 40px;scrollbar-width:thin;
+          box-shadow:-8px 0 24px rgb(0 0 0 / .06)}
+  @media (max-width:1023px){ .mpanel{display:none} }
+  /* the scrollbar's space is always kept, so content never jumps sideways when a long skill list makes the panel scroll
+     (or a short one stops it) - the facts grid's right column used to shift after loading */
+  .mpanel{scrollbar-gutter:stable}
+  /* no job selected (the start state, or the selected one was filtered out): the panel is hidden and the cards are centred */
+  :root:not(.mon) .mpanel{display:none}
+  /* the cards keep their centred place unless the panel needs the room (--mr = room the panel needs on the right) */
+  @media (min-width:1024px){
+    :root.mon .body{--mr:calc(var(--mw) + 20px - clamp(16px,2.4vw,28px));margin-right:var(--mr);
+      margin-left:max(0px,min(calc((100% - 1200px) / 2),calc(100% - 1200px - var(--mr))))}
+    :root.mon.fopen .body{margin-left:max(calc(var(--fw) + 20px - clamp(16px,2.4vw,28px)),min(calc((100% - 1200px) / 2),calc(100% - 1200px - var(--mr))))}
+  }
+  .mpanel .m-swap{animation:m-in .28s cubic-bezier(.25,1,.5,1) both}
+  @keyframes m-in{from{opacity:0;transform:translateY(6px)}}
+  @media (prefers-reduced-motion:reduce){ .mpanel .m-swap{animation:none} }
+  /* header: title, company, the facts grid */
+  .mx h2{font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.15;text-wrap:balance}
+  .mx .who{margin-top:6px;font-size:15px;color:var(--muted)}
+  .mx dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;margin:18px 0 0;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .mx dt{font-size:12px;color:var(--muted)}
+  .mx dd{margin:2px 0 0;font-size:14px;font-weight:600}
+  /* verdict: the overlap mark (how far CV and job overlap), the score and what it means */
+  .mx .verdict{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center;margin:22px 0 6px}
+  /* the number sits on the circle's centre line; the fit word hangs below it without pulling it off centre */
+  .mx .verdict .sc{position:relative}
+  .mx .verdict .sc .word{position:absolute;top:100%;left:0;margin-top:6px;white-space:nowrap}
+  .mx .verdict{margin-bottom:26px}   /* room for the hanging fit word (column layout: margins add up with the heading's 24px) */
+  /* long skill lists: the whole panel scrolls; "Open the ad" stays pinned at the bottom edge */
+  .mpanel{padding-bottom:0}
+  .mx .adbar{position:sticky;bottom:0;margin:auto -24px 0;padding:14px 24px 20px;background:var(--card);border-top:1px solid var(--line);
+             display:flex;justify-content:center}
+  .mx .adbar .go{margin-top:0}
+  /* the panel's content fills its height, so "Open the ad" sits at the bottom edge even when the job has few skills */
+  .mpanel > .m-swap,.mpanel > .msk{min-height:100%;display:flex;flex-direction:column}
+  .mx{flex:1;display:flex;flex-direction:column}
+  .mx > :nth-last-child(2){margin-bottom:26px}
+  .mx .m-none{margin-top:10px;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-size:14px;color:var(--muted)}
+  .mx .verdict .num{font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+  .mx .verdict .num small{font-size:20px;font-weight:700;color:var(--muted);margin-left:2px}
+  .mx .verdict p{font-size:14px;color:var(--muted);margin-top:4px;line-height:1.4}
+  .mx .verdict .word{font-size:15px;font-weight:700;color:var(--text);margin-top:0}
+  .m-note{margin-top:12px;font-size:12.5px;line-height:1.45;color:var(--muted)}
+  .m-esco{font-size:11px;font-weight:700;letter-spacing:.02em;padding:1px 5px;border-radius:4px;background:var(--field);color:var(--muted);flex:none}
+  /* the required skills: one row each, ticked when your CV has it, an open ring when it doesn't */
+  .mx .m-h{margin:24px 0 0;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .mx .m-h .k{font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums}
+  .mx ol{list-style:none;padding:0;margin:10px 0 0;border-top:1px solid var(--line)}
+  .mx li{display:flex;align-items:center;gap:12px;min-height:44px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+  .mx li > span:not(.m-esco){flex:1;min-width:0}
+  .mx li svg{width:20px;height:20px;flex:none}
+  .mx li.have{font-weight:600}
+  .mx li.miss{color:var(--muted)}
+  .mx .go{margin-top:26px;display:inline-flex;align-items:center;gap:8px;height:46px;padding:0 20px;border-radius:999px;background:#ffd21f;color:#14141a;
+          font-size:15px;font-weight:700;text-decoration:none}
+  .mx .go:hover{background:#ffe04f}
+  .mx .go svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+  /* loading: skeleton in the panel's shape, then the details fade in block by block (like the cards' fill-in) */
+  .msk .sk{display:block}
+  .msk .sk.dot{border-radius:50%;flex:none}
+  .msk .sk.pill{border-radius:999px}
+  .msk .mt{display:grid;gap:8px}
+  .msk .mco{margin-top:12px}
+  .msk .mfacts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;margin-top:20px;padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .msk .mfacts > div{display:grid;gap:6px}
+  .msk .mverd{display:flex;align-items:center;gap:24px;margin:24px 0 36px}
+  .msk .mov{display:flex}
+  .msk .mov .sk + .sk{margin-left:-20px;opacity:.7}
+  .msk .mh{margin-top:24px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+  .msk .mrow{display:flex;align-items:center;gap:12px;min-height:44px;border-bottom:1px solid var(--line)}
+  .msk .mad{margin:auto -24px 0;padding:14px 24px 20px;border-top:1px solid var(--line);display:flex;justify-content:center}
+  .mpanel.fill .m-swap{animation:none}
+  .mpanel.fill .mx > *{animation:fill-in .28s cubic-bezier(.25,1,.5,1) both;animation-delay:calc(var(--r,0) * 65ms)}
+  @media (prefers-reduced-motion:reduce){ .mpanel.fill .mx > *{animation:none} }
+  .m-empty{padding:48px 8px;text-align:center;color:var(--muted);font-size:14px}
+  .m-empty b{display:block;color:var(--text);font-size:16px;margin-bottom:6px}
 </style>
 </head>
 <body>
@@ -288,18 +490,7 @@
     CVMatch
   </a>
   <div class="mid">
-  <span class="fwrap">
-    <button class="ghost" type="button" id="fbtn" aria-label="Filters" aria-expanded="false" aria-controls="fpanel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span class="lbl" aria-hidden="true">Filters</span></button>
-    <div class="fpanel" id="fpanel" role="dialog" aria-label="Filters" hidden>
-      <h2>Filters <button class="x" type="button" id="fclose" aria-label="Close filters"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2>
-      <div class="sec"><h3>View</h3>
-        <button class="opt" type="button" role="switch" id="groupSw" aria-checked="false">
-          <b>Group by fit</b><small>Good fits, weak fits and no match as separate sections.</small>
-          <span class="track" aria-hidden="true"><span class="knob"></span></span></button>
-      </div>
-      <div class="sec"><h3>Filters</h3><p class="later">Domain, location, work type, experience and salary go here.</p></div>
-    </div>
-  </span>
+  <button class="ghost" type="button" id="fbtn" aria-label="Filters" aria-expanded="false" aria-controls="fpanel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span class="lbl" aria-hidden="true">Filters</span></button>
   <label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
     <span class="sr">Search jobs</span><input type="search" placeholder="Search jobs or skills"></label>
   </div>
@@ -314,6 +505,30 @@
   </button>
   </div>
 </header>
+
+<!-- filters: left-side panel, opened and closed only by the Filters button; the page stays usable beside it -->
+<aside class="fpanel" id="fpanel" aria-labelledby="fTitle" hidden>
+  <div class="fhead">
+    <h2 id="fTitle">Filters</h2>
+    <div class="fbtns"><button class="fapply" type="button" id="fApply" disabled>Apply</button><button class="freset" type="button" id="fReset" disabled>Clear filters</button></div>
+  </div>
+  <div class="fscroll">
+    <div class="fsec">
+      <h3>View</h3>
+      <button class="opt" type="button" role="switch" id="groupSw" aria-checked="false">
+        <b>Group by fit</b><small>Good fits, weak fits and no match as separate sections.</small>
+        <span class="track" aria-hidden="true"><span class="knob"></span></span></button>
+    </div>
+    <details class="fgrp" open>
+      <summary><span id="sortH">Sort by</span><span class="cur" id="sortCur"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="radios" role="radiogroup" aria-labelledby="sortH" id="sortList"></div>
+    </details>
+    <div id="fgroups"></div>
+  </div>
+</aside>
+
+<!-- matcher: the selected job's match against your CV; account settings open over it -->
+<aside class="mpanel" id="mpanel" aria-label="Your match for the selected job" aria-live="polite"></aside>
 
 <!-- account / settings: right-side panels over the whole page (the future matcher included), page dimmed behind -->
 <div class="scrim" id="scrim" hidden></div>
@@ -384,6 +599,7 @@
       </div>
     </span>
   </div>
+  <p class="sr" id="lstatus" aria-live="polite"></p>
   <div id="list"></div>
 </main>
 
@@ -410,8 +626,7 @@
   const acctBtn = document.getElementById('acctBtn'), scrim = document.getElementById('scrim'), acct = document.getElementById('acct');
   const subs = [['me', 'meBtn'], ['prefs', 'prefsBtn']].map(([p, b]) => ({ panel: document.getElementById(p), btn: document.getElementById(b) }));
   const openSub = () => subs.find(s => !s.panel.hidden);
-  const openAcct = () => { const fb = document.getElementById('fbtn'); if (fb.getAttribute('aria-expanded') === 'true') fb.click();
-    scrim.hidden = false; acct.hidden = false; acctBtn.setAttribute('aria-expanded', 'true'); acct.querySelector('.ditem').focus(); };
+  const openAcct = () => { scrim.hidden = false; acct.hidden = false; acctBtn.setAttribute('aria-expanded', 'true'); acct.querySelector('.ditem').focus(); };
   const closeSub = () => { const s = openSub(); if (!s) return; s.panel.hidden = true; s.btn.focus(); };
   const closeAll = () => { subs.forEach(s => s.panel.hidden = true); acct.hidden = true; scrim.hidden = true; acctBtn.setAttribute('aria-expanded', 'false'); acctBtn.focus(); };
   subs.forEach(s => {
@@ -442,8 +657,11 @@
   const snapInd = () => { pages.classList.remove('ready'); placeInd(); void pages.offsetWidth; pages.classList.add('ready'); };
   new ResizeObserver(snapInd).observe(pages); snapInd();
   document.fonts.ready.then(snapInd);
-  // Sign out is a placeholder until accounts exist
-  document.getElementById('signOut').onclick = () => {};
+  // Sign out (mock): forget the login and go back to the landing page; the next Log in shows the login page again
+  document.getElementById('signOut').onclick = () => {
+    try { localStorage.removeItem('cvm-auth'); } catch (e) {}
+    location.href = '../start-page/index.html';
+  };
   addEventListener('keydown', e => {
     if (e.key !== 'Escape') return;
     if (openSub()) closeSub(); else if (!acct.hidden) closeAll();
@@ -487,13 +705,36 @@
 
   // best fit first; equal fits by salary (top of the range, highest first; no salary last)
   const topPay = j => j.salary ? Math.max(...j.salary.split(/\s*-\s*/).map(Number)) : -1;
-  // The sample CV never reaches "strong" (best is 50), so one clearly labelled EXAMPLE card shows that state:
-  // a real ad with 3 of its 4 skills assumed matched (= 75). The real, weak version of the ad stays in the list.
-  const base = D.jobs.find(j => j.title.startsWith('Continuous Improvement Specialist'));
-  const example = base && { ...base, key: base.key + '#example', example: true, score: 75,
-    matched: [...base.matched, ...base.missing.slice(0, 2)], missing: base.missing.slice(2) };
-  const ranked = [...D.jobs, ...(example ? [example] : [])].sort((a, b) => b.score - a.score || topPay(b) - topPay(a));
-  let open = ranked[0].key;
+  // all real ads from the snapshot (data.js); the old "Example" strong card is gone since the matcher's real scores
+  // on the sample CV include strong fits (until 2026-11-25 the 14-ad sample had none, so one card was faked)
+  const all = D.jobs;
+
+  // sort options: best fit first is the default; the others fall back to fit (then salary) for ties
+  const byFit = (a, b) => b.score - a.score || topPay(b) - topPay(a);
+  const SORTS = [
+    ['fit', 'Best fit', byFit],
+    ['salary', 'Salary: high → low', (a, b) => topPay(b) - topPay(a) || byFit(a, b)],
+    ['title', 'Title A–Z', (a, b) => tidy(a.title).localeCompare(tidy(b.title), 'ro') || byFit(a, b)]
+  ];
+  // filter groups as on master (same names, order and options); boxes in one group are OR-ed, groups are AND-ed
+  const EXP = { none: 'Not specified', 'Fără': 'No experience', Entry: 'Entry', Middle: 'Mid-level', Senior: 'Senior', Executive: 'Executive' };
+  const FGROUPS = [
+    { key: 'domain', title: 'Job domain', search: false, opts: D.facets.domain.map(([n]) => [n, n]), of: j => j.domain },
+    { key: 'city', title: 'Location', opts: D.facets.city.map(([n]) => [n, n]), of: j => j.city },
+    { key: 'worktype', title: 'Work type', opts: D.facets.worktype.map(([n]) => [n, n]), of: j => j.worktype },
+    { key: 'level', title: 'Experience', opts: Object.entries(EXP), of: j => j.level || 'none' },
+    { key: 'salary', title: 'Salary info', opts: [['listed', 'Listed salary'], ['estimated', 'Estimated salary'], ['none', 'No salary']], of: j => j.salary ? 'listed' : 'none' }
+  ];
+  // staged = what the panel shows, applied = what the list shows; Apply copies staged to applied
+  const blank = () => ({ group: false, sort: 'fit', f: Object.fromEntries(FGROUPS.map(g => [g.key, []])) });
+  const clone = s => JSON.parse(JSON.stringify(s));
+  const sig = s => JSON.stringify([s.group, s.sort, FGROUPS.map(g => [...s.f[g.key]].sort())]);
+  let applied = blank(); applied.group = root.dataset.group === 'on';
+  let staged = clone(applied);
+  const activeCount = () => FGROUPS.reduce((n, g) => n + applied.f[g.key].length, 0);
+  const view = () => all.filter(j => FGROUPS.every(g => !applied.f[g.key].length || applied.f[g.key].includes(g.of(j))))
+                        .sort(SORTS.find(s => s[0] === applied.sort)[2]);
+  let open = null;   // no job selected at first: the matcher panel stays hidden until a card is clicked
 
   const word = s => s === 0 ? 'No match' : band(s).replace(' fit', '');
   const RANGE = s => s > 70 ? 'over 70' : s >= 50 ? '50 to 70' : s > 0 ? 'under 50' : 'none of the skills';   // read out after the word
@@ -521,67 +762,250 @@
   // ungrouped list (and the skeleton) keep an invisible copy of a group heading, so the first card stays put
   // when "Group by fit" is switched on and off
   const GSPACE = '<h2 class="gspace" aria-hidden="true">&nbsp;</h2>';
-  function render() {
-    const grouped = root.dataset.group === 'on';
-    groupSw.setAttribute('aria-checked', String(grouped));
-    document.getElementById('fbtn').setAttribute('aria-label', grouped ? 'Filters, grouped by fit' : 'Filters');
-    document.getElementById('list').innerHTML = grouped
-      ? GROUPS.map(([name, desc, test], i) => { const js = ranked.filter(test);
-          return js.length ? `<section class="group" aria-labelledby="g${i}"><h2 id="g${i}">${name} <span class="k">${js.length}</span><span class="d">· ${desc}</span></h2>
-            <ol class="grid">${js.map(card).join('')}</ol></section>` : ''; }).join('')
-      : `<div class="group">${GSPACE}<ol class="grid">${ranked.map(card).join('')}</ol></div>`;
+  // ---------- matcher (right panel): the selected job's match ----------
+  // header + facts grid and the overlap mark from the earlier mock, then one row per required skill
+  const mpanel = document.getElementById('mpanel');
+  const escTag = s => s.esco ? '<span class="m-esco" title="Linked to the EU skills list (ESCO), so other names for it count too">ESCO</span>' : '';
+  const ARROW = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>';
+  const TICK = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="var(--fit)"/><path d="M7.5 12.5l3 3 6-6.5" fill="none" stroke="var(--card)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const RING = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.25" fill="none" stroke="var(--chk)" stroke-width="1.5" stroke-dasharray="3 2.6"/></svg>';
+  function matchView(j) {
+    const t = j.matched.length + j.missing.length;
+    const facts = [['Location', j.city], ['Domain', j.domain], ['Work type', j.worktype], ['Experience', levelName(j.level)],
+                   ['Salary', j.salary ? `${j.salary.split(/\s*-\s*/).map(x => nf.format(+x)).join('–')} EUR` : 'Not listed'], ['Required skills', t]];
+    const row = (s, have) => `<li class="${have ? 'have' : 'miss'}">${have ? TICK : RING}<span>${s.name}<span class="sr">${have ? ', in your CV' : ', not in your CV'}</span></span>${escTag(s)}</li>`;
+    return `<div class="mx"><h2>${tidy(j.title)}</h2><p class="who">${tidy(j.company)}</p>
+      <dl>${facts.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>
+      <div class="verdict">${overlap(j.score, 34)}<div class="sc"><p class="num">${j.score}<small>/100</small></p><p class="word">${j.score === 0 ? 'No match' : band(j.score)}</p></div></div>
+      <h3 class="m-h">Matching skills <span class="k">${j.matched.length}</span></h3>
+      ${j.matched.length ? `<ol aria-label="Matching skills">${j.matched.map(s => row(s, true)).join('')}</ol>` : '<p class="m-none">None of the required skills yet</p>'}
+      <h3 class="m-h">Missing skills <span class="k">${j.missing.length}</span></h3>
+      ${j.missing.length ? `<ol aria-label="Missing skills">${j.missing.map(s => row(s, false)).join('')}</ol>` : '<p class="m-none">Nothing missing</p>'}
+      <div class="adbar"><a class="go" href="#ad">Open the ad ${ARROW}</a></div></div>`;
   }
+  // shows the selected job's match, or hides the panel when nothing is selected
+  function matcher() {
+    const j = all.find(x => x.key === open);
+    root.classList.toggle('mon', !!j);
+    mpanel.innerHTML = j ? `<div class="m-swap">${matchView(j)}</div>` : '';
+  }
+  // the details fade in block by block, top to bottom (same timing as the cards)
+  let mFillT, mPickT;
+  function fillMatcher() {
+    clearTimeout(mFillT);
+    mpanel.removeAttribute('aria-busy');
+    mpanel.querySelectorAll('.mx > *').forEach((el, i) => el.style.setProperty('--r', Math.min(i, 8)));
+    mpanel.classList.add('fill');
+    mFillT = setTimeout(() => mpanel.classList.remove('fill'), 1200);
+  }
+  // a card click: the panel shows its skeleton first (the match is being fetched), then the details fill in.
+  // In the mock a short fixed wait stands in for the request; a newer click replaces an older one.
+  function pickJob() {
+    clearTimeout(mPickT); clearTimeout(mFillT);
+    root.classList.add('mon'); mpanel.classList.remove('fill');
+    mpanel.setAttribute('aria-busy', 'true'); mpanel.innerHTML = mskel; mpanel.scrollTop = 0;
+    mPickT = setTimeout(() => { matcher(); fillMatcher(); }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 150 : 320);
+  }
+  // both side panels (Filters left, matcher right) get the same width: the margin beside the centred cards minus a
+  // 20px gap, at least 320px. The cards are centred, so both margins are equal; where 320px doesn't fit, the CSS moves
+  // the cards just enough to keep the same 20px gap to each panel.
+  const SIDE_MIN = 320, SIDE_GAP = 20;
+  const sizeSides = () => {
+    const W = root.clientWidth, p = Math.min(28, Math.max(16, W * .024));
+    const margin = W >= 1200 ? (W - 1200) / 2 + p : p;            // screen edge to the cards' edge, each side
+    const w = Math.max(SIDE_MIN, Math.round(margin - SIDE_GAP)) + 'px';
+    root.style.setProperty('--fw', w); root.style.setProperty('--mw', w);
+  };
+  // re-measured whenever the page width changes, including when the scrollbar appears after the list loads
+  new ResizeObserver(sizeSides).observe(root); sizeSides();
+
+  const EMPTY = `<div class="empty"><h2>No jobs match these filters</h2><p>Untick a few boxes, or clear them all.</p>
+    <button type="button" id="emptyReset">Clear filters</button></div>`;
+  // only part of the list is built at a time (all 2,242 cards at once made loading slow): the first PAGE,
+  // then PAGE more per "Load more" press, like the current app (30 there). A new list (Apply / Clear) starts again at PAGE.
+  const PAGE = 100;
+  // Group by fit: each group shows its first GROUP_PEEK cards and a "Show more" button. "Show more" opens that group
+  // alone (band = its index in GROUPS), ungrouped, BAND_PAGE cards at a time, with "← All groups" above it
+  // (the browser Back button does the same).
+  const GROUP_PEEK = 8, BAND_PAGE = 50;
+  let fitBand = null;
+  const pageSize = () => fitBand !== null ? BAND_PAGE : PAGE;
+  let shownN = PAGE;
+  // the jobs the list is showing right now (all filtered jobs, or only one fit group)
+  const listed = () => { const js = view(); return fitBand !== null ? js.filter(GROUPS[fitBand][2]) : js; };
+  function render(keepMatcher = false) {
+    const js = view();
+    if (!js.some(j => j.key === open)) open = null;   // the selected job was filtered out: nothing selected, panel hidden
+    if (!keepMatcher) matcher();
+    const more = left => left > 0 ? `<div class="more"><button type="button" id="loadMore">Load more <span>(${nf.format(left)} left)</span></button></div>` : '';
+    let html;
+    if (!js.length) html = EMPTY;
+    else if (fitBand !== null) {
+      // one fit group, as a plain list
+      const [name, desc, test] = GROUPS[fitBand], bj = js.filter(test), page = bj.slice(0, shownN);
+      html = `<div class="bandbar"><button type="button" id="bandBack"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>All groups</button>
+          <h2>${name} <span class="k">${nf.format(bj.length)}</span><span class="d">· ${desc}</span></h2></div>
+        ${bj.length ? `<ol class="grid">${page.map(card).join('')}</ol>` : `<p class="bandnone">No ${name.toLowerCase()} with these filters.</p>`}${more(bj.length - page.length)}`;
+    } else if (applied.group) {
+      // every group: its first 8 cards, then "Show more"
+      html = GROUPS.map(([name, desc, test], i) => { const gj = js.filter(test);
+        return gj.length ? `<section class="group" aria-labelledby="g${i}"><h2 id="g${i}">${name} <span class="k">${nf.format(gj.length)}</span><span class="d">· ${desc}</span></h2>
+          <ol class="grid">${gj.slice(0, GROUP_PEEK).map(card).join('')}</ol>
+          ${gj.length > GROUP_PEEK ? `<div class="more"><button type="button" data-band="${i}">Show more <span>(${nf.format(gj.length)} jobs)</span></button></div>` : ''}</section>` : ''; }).join('');
+    } else {
+      const page = js.slice(0, shownN);
+      html = `<div class="group">${GSPACE}<ol class="grid">${page.map(card).join('')}</ol></div>${more(js.length - page.length)}`;
+    }
+    document.getElementById('list').innerHTML = html;
+    return fitBand !== null ? js.filter(GROUPS[fitBand][2]).length : js.length;
+  }
+  // open one fit group / go back to all groups; both reload the list with the skeleton
+  const openBand = i => { fitBand = i; history.pushState({ fitBand: i }, ''); load(); };
+  addEventListener('popstate', e => { const b = e.state && Number.isInteger(e.state.fitBand) ? e.state.fitBand : null;
+    if (b !== fitBand) { fitBand = applied.group ? b : null; load(); } });
 
   // selection updates in place, so keyboard focus stays on the card
   document.getElementById('list').addEventListener('click', e => {
-    const b = e.target.closest('.card'); if (!b) return;
+    if (e.target.closest('#emptyReset')) { reset(); return; }
+    const bandBtn = e.target.closest('[data-band]');
+    if (bandBtn) { openBand(+bandBtn.dataset.band); return; }
+    if (e.target.closest('#bandBack')) { if (history.state && Number.isInteger(history.state.fitBand)) history.back(); else { fitBand = null; load(); } return; }
+    if (e.target.closest('#loadMore')) {
+      // next page of cards (100, or 50 in a single fit group); keyboard focus moves to the first new card
+      const before = document.querySelectorAll('#list .card').length;
+      shownN += pageSize(); render(true);
+      const cards = document.querySelectorAll('#list .card'), total = listed().length;
+      status.textContent = `${Math.min(shownN, total)} of ${nf.format(total)} jobs shown`;
+      cards[before]?.focus({ preventScroll: true });
+      return;
+    }
+    const b = e.target.closest('.card'); if (!b || b.classList.contains('skel')) return;
     document.querySelectorAll('.card[aria-current="true"]').forEach(x => x.setAttribute('aria-current', 'false'));
-    b.setAttribute('aria-current', 'true'); open = b.dataset.k;
+    b.setAttribute('aria-current', 'true'); open = b.dataset.k; pickJob();
   });
 
-  // filters panel: Esc or a click outside closes it and returns focus to the button
-  const fbtn = document.getElementById('fbtn'), fpanel = document.getElementById('fpanel');
-  const setPanel = on => { fpanel.hidden = !on; fbtn.setAttribute('aria-expanded', String(on)); (on ? groupSw : fbtn).focus(); };
+  // filters panel: only the Filters button opens and closes it (no Esc, no outside click); the page stays usable
+  const fbtn = document.getElementById('fbtn'), fpanel = document.getElementById('fpanel');  const fApply = document.getElementById('fApply'), fReset = document.getElementById('fReset');
+  const sortList = document.getElementById('sortList'), fgroups = document.getElementById('fgroups');
+  const setPanel = (on, focus = true) => { fpanel.hidden = !on; fbtn.setAttribute('aria-expanded', String(on)); root.classList.toggle('fopen', on);
+    if (on && focus) groupSw.focus(); };
+  // sidebar width: set together with the matcher's (sizeSides), so both side panels match
   fbtn.onclick = () => setPanel(fpanel.hidden);
-  document.getElementById('fclose').onclick = () => setPanel(false);
-  // "How fit works": opens and closes like the filters panel
+
+  sortList.innerHTML = SORTS.map(([v, l]) => `<label class="chk"><input type="radio" name="sort" value="${v}"><span>${l}</span></label>`).join('');
+  fgroups.innerHTML = FGROUPS.map(g => `<details class="fgrp" open data-g="${g.key}">
+      <summary><span>${g.title}<span class="bdg" hidden></span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+      ${g.search !== false && g.opts.length >= 8 ? `<input class="fs" type="search" placeholder="Search ${g.title.toLowerCase()}" aria-label="Search ${g.title.toLowerCase()}">` : ''}
+      <ul>${g.opts.map(([v, l]) => `<li><label class="chk"><input type="checkbox" value="${v}"><span>${l}</span><span class="oc"></span></label></li>`).join('')}</ul></details>`).join('');
+
+  // option counts: jobs this box would show, given the boxes ticked in the OTHER groups (so 0 = a dead end; greyed)
+  const countFor = (g, v) => all.filter(j => g.of(j) === v &&
+    FGROUPS.every(o => o === g || !staged.f[o.key].length || staged.f[o.key].includes(o.of(j)))).length;
+  // the panel shows the staged choices; Apply is live only when they differ from the list,
+  // Clear filters when any filter box is ticked (sort and grouping are not filters, so it leaves them alone)
+  const syncPanel = () => {
+    groupSw.setAttribute('aria-checked', String(staged.group));
+    sortList.querySelectorAll('input').forEach(r => r.checked = r.value === staged.sort);
+    document.getElementById('sortCur').textContent = SORTS.find(s => s[0] === staged.sort)[1];
+    fgroups.querySelectorAll('.fgrp').forEach(d => { const sel = staged.f[d.dataset.g], b = d.querySelector('.bdg');
+      const g = FGROUPS.find(x => x.key === d.dataset.g);
+      d.querySelectorAll('input[type="checkbox"]').forEach(c => { c.checked = sel.includes(c.value);
+        const n = countFor(g, c.value), row = c.closest('.chk');
+        row.querySelector('.oc').innerHTML = `<span class="sr">, </span>${n}<span class="sr"> ${n === 1 ? 'job' : 'jobs'}</span>`;
+        row.classList.toggle('zero', n === 0 && !c.checked); });
+      b.hidden = !sel.length; b.innerHTML = `${sel.length}<span class="sr"> selected</span>`; });
+    const anyF = s => FGROUPS.some(g => s.f[g.key].length);
+    fApply.disabled = sig(staged) === sig(applied); fReset.disabled = !anyF(staged) && !anyF(applied);
+  };
+  // the Filters button shows that the list is filtered (the dot), and says how many in its accessible name
+  const syncButton = () => { const n = activeCount(); fbtn.toggleAttribute('data-active', n > 0);
+    fbtn.setAttribute('aria-label', ['Filters', n && `${n} active`, applied.group && 'grouped by fit'].filter(Boolean).join(', ')); };
+  groupSw.onclick = () => { staged.group = !staged.group; syncPanel(); };
+  sortList.addEventListener('change', e => { staged.sort = e.target.value; syncPanel(); });
+  fgroups.addEventListener('change', e => { const c = e.target; if (c.type !== 'checkbox') return; const k = c.closest('.fgrp').dataset.g;
+    staged.f[k] = c.checked ? [...staged.f[k], c.value] : staged.f[k].filter(v => v !== c.value); syncPanel(); });
+  fgroups.addEventListener('input', e => { if (!e.target.classList.contains('fs')) return; const q = e.target.value.trim().toLowerCase();
+    e.target.closest('.fgrp').querySelectorAll('li').forEach(li => li.hidden = !!q && !li.textContent.toLowerCase().includes(q)); });
+  const commit = () => { root.dataset.group = applied.group ? 'on' : 'off'; try { localStorage.setItem('cvm-group', root.dataset.group); } catch (e) {}
+    syncPanel(); syncButton();
+    // phones: the sidebar covers the list, so it closes on Apply / Clear and the reloading list is seen at once
+    if (matchMedia('(max-width:760px)').matches && !fpanel.hidden) setPanel(false);
+    load(); };
+  fApply.onclick = () => { applied = clone(staged); commit(); };
+  // Clear filters: unticks every filter box and reloads the list; sort and grouping (staged or applied) stay as they are
+  const reset = () => { const none = blank().f; applied.f = clone(none); staged.f = clone(none); commit(); };
+  fReset.onclick = reset;
+  // "How fit works": opens and closes on its button; Esc or a click outside closes it
   const lbtn = document.getElementById('lbtn'), lpanel = document.getElementById('legend');
   const setLegend = on => { lpanel.hidden = !on; lbtn.setAttribute('aria-expanded', String(on)); if (!on) lbtn.focus(); };
   lbtn.onclick = () => setLegend(lpanel.hidden);
   addEventListener('keydown', e => {
     if (e.key !== 'Escape') return;
-    if (!fpanel.hidden) setPanel(false);
     if (!lpanel.hidden) setLegend(false);
   });
   addEventListener('pointerdown', e => {
-    if (!fpanel.hidden && !e.target.closest('.fwrap')) { fpanel.hidden = true; fbtn.setAttribute('aria-expanded', 'false'); }
     if (!lpanel.hidden && !e.target.closest('.lwrap')) { lpanel.hidden = true; lbtn.setAttribute('aria-expanded', 'false'); }
   });
-  groupSw.onclick = () => { root.dataset.group = root.dataset.group === 'on' ? 'off' : 'on'; try { localStorage.setItem('cvm-group', root.dataset.group); } catch (e) {} render(); };
 
-  // loading: skeleton cards first (in the mock a short fixed wait stands in for the API call), then the real list
-  const list = document.getElementById('list');
+  // loading: skeleton cards first (in the mock a short fixed wait stands in for the API call), then the real list.
+  // Runs on page load and again on every Apply / Reset.
+  const list = document.getElementById('list'), status = document.getElementById('lstatus');
+  const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   const skBar = (w, h) => `<i class="sk" style="width:${w};height:${h}px"></i>`;
   const skel = `<li><div class="card skel" style="--i:@">
       <div class="row1"><div class="left"><span class="tl">${skBar('64%', 15)}</span><span class="c" style="height:20px;display:flex;align-items:center">${skBar('38%', 12)}</span></div>
         <div class="fit"><span class="skn">${skBar("28px", 17)}${skBar("26px", 9)}</span><span class="skw">${skBar("44px", 9)}</span></div></div>
       <div class="strip"><span class="facts">${skBar('78px', 12)}${skBar('70px', 12)}${skBar('64px', 12)}</span>${skBar('112px', 14)}</div>
       <div class="why" style="height:16px;display:flex;align-items:center">${skBar('128px', 11)}</div></div></li>`;
-  list.setAttribute('aria-busy', 'true');
-  list.innerHTML = `<p class="sr">Loading jobs</p><div class="group" aria-hidden="true">${GSPACE}<ol class="grid">${Array.from({ length: 8 }, (_, i) => skel.replace('@', i)).join('')}</ol></div>`;
+  // matcher skeleton: the panel's real silhouette (title, facts grid, overlap mark + score, skill rows, the ad button)
+  const mrow = w => `<div class="mrow">${skBar('20px', 20).replace('class="sk"', 'class="sk dot"')}${skBar(w, 12)}</div>`;
+  const mskel = `<div class="msk" aria-hidden="true">
+      <div class="mt">${skBar('86%', 22)}${skBar('58%', 22)}</div><div class="mco">${skBar('44%', 13)}</div>
+      <div class="mfacts">${Array.from({ length: 6 }, (_, i) => `<div>${skBar('46%', 9)}${skBar(['70%', '62%', '58%', '66%', '74%', '20%'][i], 12)}</div>`).join('')}</div>
+      <div class="mverd"><span class="mov">${skBar('48px', 48).replace('class="sk"', 'class="sk dot"')}${skBar('48px', 48).replace('class="sk"', 'class="sk dot"')}</span>${skBar('96px', 34)}</div>
+      <div class="mh">${skBar('112px', 11)}</div>${['62%', '48%', '56%'].map(mrow).join('')}
+      <div class="mh">${skBar('96px', 11)}</div>${['54%', '40%'].map(mrow).join('')}
+      <div class="mad">${skBar('150px', 46).replace('class="sk"', 'class="sk pill"')}</div></div>`;
   const hold = new URLSearchParams(location.search).get('skeleton') === 'hold';   // screenshot hook
-  if (!hold) setTimeout(() => {
-    render();
-    list.removeAttribute('aria-busy');
-    // row number per card (2 per row on wide screens, 1 on phones), capped: cards below the fold need no wait
-    list.querySelectorAll('.grid').forEach(g => {
-      const cols = getComputedStyle(g).gridTemplateColumns.split(' ').length;
-      g.querySelectorAll('.card').forEach((c, i) => c.style.setProperty('--r', Math.min(Math.floor(i / cols), 6)));
-    });
-    list.classList.add('fill');
-    setTimeout(() => list.classList.remove('fill'), 1200);   // re-renders (grouping) don't replay it
-  }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 250 : 380);
-  if (new URLSearchParams(location.search).get('filters') === 'open') { fpanel.hidden = false; fbtn.setAttribute('aria-expanded', 'true'); }   // screenshot hook
+  let loadT, fillT;
+  function load(first = false) {
+    clearTimeout(loadT); clearTimeout(fillT); list.classList.remove('fill');
+    if (!applied.group) fitBand = null;   // grouping switched off: no single fit group either
+    shownN = pageSize();               // a new list starts with its first page again (100, or 50 in one fit group)
+    // after Apply: as many skeletons as results (up to 8, none for an empty result), so the list doesn't jump when they fill in
+    const n = first ? 8 : Math.min(8, view().length);
+    list.setAttribute('aria-busy', 'true');
+    list.innerHTML = `<div class="group" aria-hidden="true">${GSPACE}<ol class="grid">${Array.from({ length: n }, (_, i) => skel.replace('@', i)).join('')}</ol></div>`;
+    clearTimeout(mPickT);
+    if (open) { mpanel.classList.remove('fill'); mpanel.setAttribute('aria-busy', 'true'); mpanel.innerHTML = mskel; }   // panel only when a job is selected
+    status.textContent = 'Loading jobs';
+    if (!first && scrollY > 0) scrollTo({ top: 0, behavior: reduced() ? 'auto' : 'smooth' });   // the new list starts at the top
+    if (hold) return;
+    loadT = setTimeout(() => {
+      const count = render();
+      list.removeAttribute('aria-busy');
+      status.textContent = applied.group && fitBand === null ? `${nf.format(count)} jobs in fit groups`
+        : count > pageSize() ? `${pageSize()} of ${nf.format(count)} jobs shown` : `${count} ${count === 1 ? 'job' : 'jobs'} shown`;
+      // row number per card (2 per row on wide lists, 1 on narrow ones), capped: cards below the fold need no wait
+      list.querySelectorAll('.grid').forEach(g => {
+        const cols = getComputedStyle(g).gridTemplateColumns.split(' ').length;
+        g.querySelectorAll('.card').forEach((c, i) => c.style.setProperty('--r', Math.min(Math.floor(i / cols), 6)));
+      });
+      list.classList.add('fill');
+      // the matcher fills in the same way (render() already put the details in, or hid the panel)
+      if (open) fillMatcher(); else mpanel.removeAttribute('aria-busy');
+      fillT = setTimeout(() => list.classList.remove('fill'), 1200);
+      // keyboard focus was on Apply / Clear filters (now disabled or gone), or inside the sidebar that just closed (phones):
+      // continue at the results instead of the page top
+      const a = document.activeElement;
+      if (!first && (a === document.body || a.disabled || !a.isConnected || (fpanel.hidden && fpanel.contains(a))))
+        (list.querySelector('.card') || document.getElementById('emptyReset'))?.focus({ preventScroll: true });
+    }, reduced() ? 250 : 380);
+  }
+  // screenshot / preview hook: ?demo=filters starts with one filter applied (Location: Bucuresti)
+  if (new URLSearchParams(location.search).get('demo') === 'filters') { applied.f.city = ['Bucuresti']; staged = clone(applied); }
+  syncPanel(); syncButton(); load(true);
+  if (new URLSearchParams(location.search).get('filters') === 'open') setPanel(true, false);   // screenshot hook
   if (new URLSearchParams(location.search).get('legend') === 'open') lpanel.hidden = false, lbtn.setAttribute('aria-expanded', 'true');   // screenshot hook
 })();
 </script>

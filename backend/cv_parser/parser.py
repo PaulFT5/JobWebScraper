@@ -20,7 +20,7 @@ CV_PROMPT = """
     Each list item must be exactly one skill, written as a short noun phrase. If the text lists several skills together (in brackets, with commas, or joined by "and" or "/"), return each one as its own item. Keep a name as written when it is a single tool, standard or concept (e.g. CI/CD, TCP/IP, SAP S/4HANA). Do not include duties, tasks or degrees.
 
     Put each hard skill in exactly one experience tier, based only on professional work experience: paid jobs, internships and freelance work, using their dates in the CV.
-    entry (0-2 years), junior (2-3 years), mid (3-5 years), senior (5+ years).
+    entry (0-2 years), mid (2-5 years), senior (5+ years).
     Education, courses, certifications, university projects and personal projects never count as years of experience, even when they have dates; a skill that appears only there goes in entry.
     A skill used in a job counts only the duration of the jobs where it is used, not the candidate's whole career.
     If a skill is mentioned without any job or education context to place it, put it in unknown.
@@ -29,7 +29,7 @@ CV_PROMPT = """
 
     Return only a JSON object in exactly this shape, with no explanation, no markdown, no code fences:
 {
-  "hard_skills": {"entry": [], "junior": [], "mid": [], "senior": [], "unknown": []},
+  "hard_skills": {"entry": [], "mid": [], "senior": [], "unknown": []},
   "languages": []
 }
 

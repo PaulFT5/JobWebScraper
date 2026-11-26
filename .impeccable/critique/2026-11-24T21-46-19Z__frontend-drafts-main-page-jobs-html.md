@@ -10,6 +10,7 @@ target_fingerprint: "sha256:2fc7d7a2346e415a8f0a4a413faae106790c58d686fded6dde7c
 target_path: "C:\\Users\\User\\PycharmProjects\\JobWebScraper\\frontend\\drafts\\main-page\\jobs.html"
 timestamp: 2026-11-24T21-46-19Z
 slug: frontend-drafts-main-page-jobs-html
+closed: true
 ---
 Method: dual-agent (A: design review · B: detector + headless renders + measurements + contrast). Live overlay skipped: headless CLI only. Target: top bar + account panels (Analyzer button included; it was added during the run).
 

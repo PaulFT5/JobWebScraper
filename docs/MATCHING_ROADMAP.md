@@ -22,7 +22,7 @@
 - Both workflows install `requirements.txt` → sentence-transformers there would pull ~2 GB of CUDA torch into every run.
 
 ## Target structure
-*Last changed: 2026-11-16 (pre-grounded jobs: services, repository, build steps 6 and 16, no grounding cache file)* · before: 2026-10-29 (grounding.py location, match_result_object.py, per-machine folders, config table synced with config.json) · before: 2026-10-26 (Fără job level, CV tier names, embedding model, step D postponed, acronym list, on-click flow)
+*Last changed: 2026-11-26 (CV tier junior merged into mid, bestjobs year ranges)* · before: 2026-11-16 (pre-grounded jobs: services, repository, build steps 6 and 16, no grounding cache file) · before: 2026-10-29 (grounding.py location, match_result_object.py, per-machine folders, config table synced with config.json) · before: 2026-10-26 (Fără job level, CV tier names, embedding model, step D postponed, acronym list, on-click flow)
 
 ### File organization
 ```
@@ -88,8 +88,8 @@ data/
 | similarity | boost specific → broad | e.g. 0.90 | Strong direction |
 | | boost broad → specific | e.g. 0.50 | Weak direction |
 | | noise threshold | 0.35 | Below → 0 |
-| seniority | job level map | Fără 0, Entry 0, Middle 2, Senior 3, Executive 3 (Fără added 2026-10-26) | Keys = DB `experience_level` values; NULL → no penalty |
-| | CV tier map | entry 0, junior 1, mid 2, senior 3 (since 2026-10-26; until 2026-10-26: entry_level / mid_level) | Canonical CV tier names; the parser maps its output onto them |
+| seniority | job level map | Fără 0, Entry 0, Middle 2, Senior 3, Executive 3 (Fără added 2026-10-26; bestjobs ranges noted 2026-11-26: Entry 0–2 y, Middle 2–5 y, Senior 5+ y) | Keys = DB `experience_level` values; NULL → no penalty; Executive = Senior on purpose (2026-11-26) |
+| | CV tier map | entry 0, mid 2, senior 3 (since 2026-11-26; 2026-10-26 until 2026-11-26: entry 0, junior 1, mid 2, senior 3; until 2026-10-26: entry_level / mid_level) | Canonical CV tier names; the parser maps its output onto them |
 | | multipliers by tiers below | 0: 1.00, 1: 0.85, 2: 0.65, 3: 0.45 | Discount |
 | | unknown CV tier / no job level | 1.00 | No penalty |
 | metrics | default | "chamfer" | UI default |
@@ -203,7 +203,7 @@ One skill's path from the data to the screen. For each stage: **what goes in**, 
 | # | Stage | In | From | Module / call | Out | Next | State |
 |---|---|---|---|---|---|---|---|
 | 1 | Read job skills | JSON **string** like `'["Python (Programming)", "MS Excel", "CI/CD"]'` | `Jobs.required_skills` in `data/jobs/JobsDatabase.sqlite` | repository query + `json.loads` | `list[str]` | 2 | read side exists (API); matching reader planned |
-| 1b | Read CV skills | uploaded PDF | user upload (session only) | `cv_parser` → Groq | `{"hard_skills": {"entry": [...], "junior": [...], "mid": [...], "senior": [...]}, "languages": [...]}` | 2 | rework planned (CV1–CV9) |
+| 1b | Read CV skills | uploaded PDF | user upload (session only) | `cv_parser` → Groq | `{"hard_skills": {"entry": [...], "mid": [...], "senior": [...], "unknown": [...]}, "languages": [...]}` (since 2026-11-26; until 2026-11-26 also `junior`) | 2 | rework planned (CV1–CV9) |
 | 2 | Filter | `list[str]` | stage 1 | skip `["__EXTRACTION_FAILED__"]` and `[]` | clean `list[str]` | 3 | planned |
 | 3 | Normalize | `"Python (Programming)"` | stage 2 | `normalization.py` | `"python (programming)"` | 4 | done 2026-10-26 |
 | 4 | Simplify + exact (A) | normalized string | stage 3 + index built once from `data/esco/*.csv` (`esco/loader.py` → `esco/index.py`) | `exact_match(skill)` (simplifies: hyphens → spaces, trailing qualifier removed) | `MatchResult` — `"python"` → *match*, concept = ESCO URI for Python | done → 7; not found → 5; ambiguous → 6 (candidates) | done 2026-10-27 |
@@ -211,7 +211,7 @@ One skill's path from the data to the screen. For each stage: **what goes in**, 
 | 6 | Embedding (C) | string still not found | stage 5 | `embeddings.py`: ESCO labels encoded **once** → vectors saved in `data/cache/`; input encoded → cosine vs all labels (or only the candidates when ambiguous) | best concept if ≥ 0.80, else *unresolved* (raw string kept) | 7 | planned (stretch) |
 | 7 | Cache | skill → `MatchResult` | stages 4–6 | *(since 2026-11-16, G3)* job skills: `Jobs.grounded_skills` written by the workflow batch; CV skills: looked up there first, kept in memory *(until 2026-11-16: dict (slice) → `grounding.sqlite` (November))* | same result reused for every later job/CV | 8 | planned |
 | 8 | Matrix | job requirements × CV skills, both grounded | stage 7 | `similarity.py` | 2-D table of values 0–1 (same concept or same unresolved string → 1.0) | 9 / 10 | planned |
-| 9 | Seniority | job `experience_level`, CV tier of each skill | `Jobs.experience_level`, CV dict, `seniority` config | `similarity.py` | matrix × multiplier (e.g. CV junior vs Senior job → 0.65) | 10 | planned (after slice) |
+| 9 | Seniority | job `experience_level`, CV tier of each skill | `Jobs.experience_level`, CV dict, `seniority` config | `similarity.py` | matrix × multiplier (e.g. CV entry vs Middle job → 0.65; until 2026-11-26 the example was CV junior vs Senior job) | 10 | planned (after slice) |
 | 10 | Metric | matrix | stage 8/9 | `metrics/chamfer.py` | score 0–100 + best CV skill per requirement | 11 | planned (slice) |
 | 11 | Report | metric output | stage 10 | `report.py` | % score, matched, missing (and later under-qualified, extra skills) | 12 | planned (slice: minimal) |
 | 12 | Serve + show | report | stage 11 | `matcher_service.py` → FastAPI endpoint → SvelteKit match panel *(since 2026-11-16, G1: scores for all jobs at upload → score on every job card; detail on click)* | JSON → UI | — | planned (slice) |
@@ -260,7 +260,7 @@ One skill's path from the data to the screen. For each stage: **what goes in**, 
 - [x] Normalization: casefold, trim/collapse spaces, punctuation cleanup, small curated acronym list (ESCO alt labels first). Same function for ESCO labels and for input skills. — open → done 2026-10-26 (ticked 2026-10-29; acronym part moved to Phase 2)
   - *(2026-10-26)* Acronym list moved to grounding (Phase 2), applied after normalization; the normalization function itself is done (build step 2).
 - [ ] Compound split ("/", "&", "and") only if the whole string fails grounding **and** every part grounds confidently; never around digits. (CI/CD stays whole, C/C++ splits.)
-- [ ] CV parser returns a validated structure; tiers entry / junior / mid / senior / **unknown**; skill in several tiers → highest. — *(2026-11-11)* validator implemented (`llm_output_validator.py`); prompt asks for `unknown` when experience is undeterminable.
+- [ ] CV parser returns a validated structure; tiers entry / mid / senior / **unknown** *(since 2026-11-26; until 2026-11-26: entry / junior / mid / senior / unknown)*; skill in several tiers → highest. — *(2026-11-11)* validator implemented (`llm_output_validator.py`); prompt asks for `unknown` when experience is undeterminable.
   - *(2026-10-26)* Config `cv_tier_map` is the source of truth for tier names. The prompt names the exact keys; an alias table maps variants (`entry_level`, `Entry-level`, `mid_level`, `middle`, …; case-insensitive) to canonical keys; anything unrecognized → `unknown` (no default to entry).
 - [ ] Job requirements: flatten, normalize, dedupe (by URI after grounding).
 - [ ] Map job level: Fără/Entry→0, Middle→2, Senior/Executive→3, NULL→none. *(Since 2026-10-26; until 2026-10-26: "Fără"/NULL→none.)*
@@ -445,3 +445,4 @@ Detailed view at `/analyzer` (FE_NOTES L4), mainly for the author and the thesis
 | 2026-10-29 | Docs synced with the code: done ticks (skeleton/config, requirements file, normalization, index, step A), fuzzy in progress, `match_result_object.py` in the tree, config table with real keys + `model_folder` + ESCO 1.2.1, per-machine `data/models` / `data/cache`, step C floor vs gap clarified, "Fără" count scopes, goal line (one clicked job). "How it fits together" walkthrough added. |
 | 2026-10-30 | Analyzer page designed (AN1–AN4): built after the slice; three sections Extraction / Matching / Jobs; timings for grounding per skill, LLM extraction per job and CV parsing per upload; rankings by ESCO concept; CV data session-only. `SkillGrounding` gets `duration_ms` and `source`. |
 | 2026-11-16 | Pre-grounded jobs (G1–G7), after a read-only performance study: CV scored against every available job at upload; job skills grounded ahead of time by a batch in `extract.yml` (rapidfuzz only) into a new `Jobs.grounded_skills` JSON column + `grounding_fingerprint`; CV grounding only at upload; order: saved exact + fuzzy → engine incl. CV side → embeddings + reground; stay on SQLite; matcher takes a source-independent grounded CV. Replaces the 2026-10-26 on-click flow, `grounding.sqlite` and "no grounding in Actions". Reason: ~1 s of backend work per upload instead of ~3 min cold; measurements recorded in the new section. |
+| 2026-11-26 | CV tier `junior` (2–3 y) merged into `mid` (now 2–5 y), so the CV tiers use the bestjobs ranges (user: Entry 0–2 y, Middle 2–5 y, Senior 5+ y): `cv_tier_map` entry 0, mid 2, senior 3; tier 1 unused, multipliers unchanged; `job_level_map` unchanged (Entry → 1 rejected: CV entry = bestjobs Entry); Executive stays = Senior (a role, not years with a skill). Prompt, validator alias `junior` → `mid` and config changed by Claude at the user's request. No re-extraction or regrounding (grounding fingerprint unchanged). Reason: a 2–3-year skill would have been discounted on a Middle job it qualifies for. |

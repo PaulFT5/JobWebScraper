@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Log in · CVMatch</title>
+<script>
+  // already logged in (mock: the saved flag counts as valid credentials): skip this page and go straight to the jobs
+  (() => { try { if (localStorage.getItem('cvm-auth') === '1') location.replace('../main-page/jobs.html'); } catch (e) {} })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  /* the landing page's world: paper, ink, the two inks of the mark, one yellow action */
+  :root{--paper:#fbfaf7;--ink:#14141a;--ink-soft:#4a4a55;--cv:#ff7a1a;--job:#2f5bea;--act:#ffd21f;--rule:#d9d6ce;--field:#ffffff;
+        --ease:cubic-bezier(.16,1,.3,1)}
+  *{box-sizing:border-box;margin:0}
+  html{background:var(--paper);color:var(--ink);font-family:"Schibsted Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  body{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;background:var(--paper);overflow-x:hidden}
+  ::selection{background:var(--job);color:#fff}
+  :focus-visible{outline:3px solid var(--act);outline-offset:3px;border-radius:4px}
+
+  .top{display:flex;align-items:center;padding:20px clamp(16px,4vw,56px)}
+  .brand{display:flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none;font-weight:800;font-size:18px;letter-spacing:-.02em}
+  .brand svg{width:26px;height:auto;isolation:isolate}
+
+  /* the two inks of the mark sit behind the form, just touching: the fit starts once you're in */
+  .stage{position:relative;flex:1;display:grid;place-items:center;padding:24px 16px 64px;isolation:isolate}
+  .ink{position:absolute;z-index:-1;width:min(56vw,560px);aspect-ratio:1;border-radius:50%;opacity:.14;pointer-events:none}
+  .ink.cv{background:var(--cv);right:50%;bottom:4%}
+  .ink.job{background:var(--job);left:50%;top:0;mix-blend-mode:multiply}
+
+  .card{width:min(100%,400px);padding:32px;border-radius:20px;background:var(--field);border:1px solid var(--rule);
+        box-shadow:0 1px 2px rgb(20 20 26 / .04),0 18px 48px -12px rgb(20 20 26 / .14)}
+  h1{font-size:32px;font-weight:800;letter-spacing:-.03em;line-height:1.05}
+  .lead{margin-top:8px;font-size:15px;line-height:1.45;color:var(--ink-soft)}
+  form{margin-top:24px;display:grid;gap:16px}
+  label{display:grid;gap:6px;font-size:14px;font-weight:600}
+  input{height:46px;padding:0 14px;border-radius:10px;border:1.5px solid #b9b5ab;background:var(--field);font:inherit;font-size:15px;font-weight:400;color:var(--ink);
+        transition:border-color .15s}
+  input::placeholder{color:#7a776f}
+  input:hover{border-color:#8f8b80}
+  input:focus{outline:none;border-color:var(--ink)}
+  input:focus-visible{outline:3px solid var(--act);outline-offset:1px}
+  .go{margin-top:8px;display:inline-flex;align-items:center;justify-content:center;gap:10px;height:50px;border:0;border-radius:999px;background:var(--act);
+      color:var(--ink);font:inherit;font-size:16px;font-weight:700;cursor:pointer;transition:background-color .2s,transform .35s var(--ease)}
+  .go svg{width:1.25em;height:1.25em;transition:transform .35s var(--ease)}
+  .go:hover{background:#ffe04f}
+  .go:hover svg{transform:translateX(.25em)}
+  .go:active{transform:scale(.97)}
+  .alt{margin-top:20px;font-size:14px;color:var(--ink-soft);text-align:center}
+  .alt a{color:var(--ink);font-weight:700;text-underline-offset:3px}
+  .note{margin-top:16px;padding-top:16px;border-top:1px solid var(--rule);font-size:12.5px;line-height:1.45;color:var(--ink-soft);text-align:center}
+  @media (max-width:480px){ .card{padding:24px 20px} h1{font-size:28px} }
+  @media (prefers-reduced-motion:reduce){ .go,.go svg,input{transition:none} }
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../start-page/index.html" aria-label="CVMatch, start page">
+    <svg viewBox="0 0 40 34" aria-hidden="true"><circle cx="13" cy="21" r="13" fill="#ff7a1a"/><circle cx="27" cy="13" r="13" fill="#2f5bea" style="mix-blend-mode:multiply"/></svg>
+    CVMatch
+  </a>
+</header>
+
+<main class="stage">
+  <div class="ink cv" aria-hidden="true"></div>
+  <div class="ink job" aria-hidden="true"></div>
+  <section class="card" aria-labelledby="title">
+    <h1 id="title">Log in</h1>
+    <p class="lead">Log in to compare your CV with the jobs.</p>
+    <!-- mock: the fields are not checked or sent anywhere; Log in always lets you in -->
+    <form id="login" novalidate>
+      <label>Email<input type="email" name="email" autocomplete="email" placeholder="you@example.com"></label>
+      <label>Password<input type="password" name="password" autocomplete="current-password" placeholder="Your password"></label>
+      <button class="go" type="submit">Log in
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </form>
+    <p class="alt">No account? <a href="#signup" id="signup">Sign up</a></p>
+    <p class="note">Demo: accounts aren't connected yet. Log in works with any details, or none.</p>
+  </section>
+</main>
+
+<script>
+  // Log in (button or Enter): save the mock login and open the jobs; the fields are ignored for now
+  document.getElementById('login').addEventListener('submit', e => {
+    e.preventDefault();
+    try { localStorage.setItem('cvm-auth', '1'); } catch (err) {}
+    location.href = '../main-page/jobs.html';
+  });
+  // Sign up: mock, does nothing yet
+  document.getElementById('signup').addEventListener('click', e => e.preventDefault());
+</script>
+</body>
+</html>
