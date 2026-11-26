@@ -1,5 +1,4 @@
 <script lang="ts">
-  import ImpeccableLiveRoot from '$lib/impeccable/ImpeccableLiveRoot.svelte?impeccable-live=e3a00929';
     import './layout.css';
     import favicon from '$lib/assets/favicon.svg';
     import Sidebar from '$lib/components/Sidebar.svelte';
@@ -12,9 +11,6 @@
 <div class="flex min-h-screen">
     <Sidebar filters={data} />
     <main class="relative min-w-0 flex-1">
-        <!-- impeccable-live-svelte-start -->
-<ImpeccableLiveRoot />
-<!-- impeccable-live-svelte-end -->
-{@render children()}
+        {@render children()}
     </main>
 </div>

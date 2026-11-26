@@ -89,7 +89,7 @@
   :root[data-theme="dark"] .abar{--fon:#7fe0a6}
   #fbtn{position:relative}
   #fbtn::after{content:"";position:absolute;top:-4px;right:-4px;width:10px;height:10px;border-radius:50%;background:var(--fon);
-               box-shadow:0 0 0 2.5px #2f2b18;transform:scale(0);transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
+               box-shadow:0 0 0 2.5px #2f2b18;transform:scale(0);transition:transform .25s cubic-bezier(.16,1,.3,1)}
   :root[data-theme="dark"] #fbtn::after{box-shadow:0 0 0 2.5px var(--bar)}
   #fbtn[data-active]::after{transform:scale(1)}
   @media (prefers-reduced-motion:reduce){ #fbtn::after{transition:none} }
@@ -98,7 +98,7 @@
   .fpanel[hidden]{display:flex;visibility:hidden;transform:translateX(-100%);transition:transform .2s ease-in,visibility 0s .2s}
   :root[data-theme="dark"] .fpanel{border-right-color:#2c3239;box-shadow:12px 0 32px rgb(0 0 0 / .35)}
   .fhead{padding:16px 20px;border-bottom:1px solid var(--line)}
-  .fhead h2{font-size:17px;font-weight:700}
+  .fhead h2{font-size:20px;font-weight:700}
   .fbtns{display:flex;gap:8px;margin-top:12px}
   .fbtns button{flex:1;height:38px;border-radius:9px;font:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:background-color .15s,border-color .15s,opacity .15s}
   .fapply{border:0;background:var(--act);color:var(--on-act)}
@@ -149,7 +149,7 @@
   @media (prefers-reduced-motion:reduce){ .fpanel,.fpanel[hidden],.fgrp summary svg,.chk input,.fbtns button{transition:none} }
   /* no matches */
   .empty{padding:56px 16px;text-align:center}
-  .empty h2{font-size:17px;font-weight:700}
+  .empty h2{font-size:20px;font-weight:700}
   .empty p{margin-top:6px;font-size:14px;color:var(--muted)}
   .empty button{margin-top:16px;height:38px;padding:0 16px;border-radius:9px;border:1px solid var(--card-line);background:none;color:var(--text);font:inherit;font-size:14px;font-weight:700;cursor:pointer}
   .empty button:hover{border-color:var(--hover)}
@@ -205,14 +205,14 @@
                   background:none;color:var(--text);font:inherit;font-size:14px;font-weight:600;cursor:pointer}
   .bandbar button:hover{border-color:var(--hover)}
   .bandbar button svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-  .bandbar h2{display:flex;align-items:baseline;gap:8px;font-size:14px;font-weight:700}
+  .bandbar h2{display:flex;align-items:baseline;gap:8px;font-size:20px;font-weight:700}
   .bandbar h2 .k,.bandbar h2 .d{font-weight:500;color:var(--muted)}
   .bandbar h2 .k{font-variant-numeric:tabular-nums}
   .bandbar h2 .d{font-size:12.5px}
   .bandnone{padding:32px 0;color:var(--muted);font-size:14px}
   .group + .group{margin-top:32px}
   .group h2.gspace{visibility:hidden}
-  .group h2{display:flex;align-items:baseline;gap:8px;font-size:14px;font-weight:700;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  .group h2{display:flex;align-items:baseline;gap:8px;font-size:20px;font-weight:700;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
   .group h2 .k,.group h2 .d{font-weight:500;color:var(--muted)}
   .group h2 .k{font-variant-numeric:tabular-nums}
   .group h2 .d{font-size:12.5px}
@@ -306,7 +306,7 @@
   .cvbtn:hover{filter:brightness(1.08)}
   .dhead{display:flex;align-items:center;gap:12px;padding:16px 16px 16px 20px;border-bottom:1px solid var(--line)}
   .dhead > div{flex:1;min-width:0}
-  .dhead h2{font-size:17px;font-weight:700}
+  .dhead h2{font-size:20px;font-weight:700}
   .dhead p{font-size:13px;color:var(--muted);margin-top:2px}
   .avatar{width:40px;height:40px;border-radius:50%;background:var(--field);display:grid;place-items:center;flex:none}
   .avatar svg{width:22px;height:22px;fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round}
@@ -329,7 +329,7 @@
   .ditem.out:focus-visible{outline-color:var(--danger)}
   .dfoot{margin-top:auto;padding:8px;border-top:1px solid var(--line)}
   .dsec{padding:20px}
-  .dsec h3{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:10px}
+  .dsec h3{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:10px}
   .seg3{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:10px;background:var(--field);border:1px solid var(--line)}
   .seg3 label{position:relative;cursor:pointer}
   .seg3 input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
@@ -449,7 +449,7 @@
   .m-note{margin-top:12px;font-size:12.5px;line-height:1.45;color:var(--muted)}
   .m-esco{font-size:11px;font-weight:700;letter-spacing:.02em;padding:1px 5px;border-radius:4px;background:var(--field);color:var(--muted);flex:none}
   /* the required skills: one row each, ticked when your CV has it, an open ring when it doesn't */
-  .mx .m-h{margin:24px 0 0;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .mx .m-h{margin:24px 0 0;font-size:12px;font-weight:700;display:flex;align-items:center;gap:8px}
   .mx .m-h .k{font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums}
   .mx ol{list-style:none;padding:0;margin:10px 0 0;border-top:1px solid var(--line)}
   .mx li{display:flex;align-items:center;gap:12px;min-height:44px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14.5px}
@@ -480,6 +480,151 @@
   @media (prefers-reduced-motion:reduce){ .mpanel.fill .mx > *{animation:none} }
   .m-empty{padding:48px 8px;text-align:center;color:var(--muted);font-size:14px}
   .m-empty b{display:block;color:var(--text);font-size:16px;margin-bottom:6px}
+
+  /* ---------- Analyzer: a second view in the same page (since 2026-11-26) ----------
+     Swaps with the job list under the shared top bar. Opening it closes the matcher; back on Jobs the matcher stays
+     closed until a card is clicked. The applied filters scope every number here. Counts come from the real ads and the
+     matcher's output for the current CV; nothing is estimated. */
+  .view[hidden]{display:none}
+  .an-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px 24px;flex-wrap:wrap;padding:8px 0 4px}
+  .an-head h1{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.15}
+  .an-scope{margin-top:6px;font-size:14px;color:var(--muted);line-height:1.5}
+  .an-scope b{color:var(--text);font-weight:700}
+  .an-cv{display:inline-flex;align-items:center;gap:10px;padding:8px 14px 8px 10px;border-radius:999px;border:1px solid var(--card-line);font-size:13.5px;color:var(--muted)}
+  .an-cv b{color:var(--text);font-weight:600}
+  .an-cv svg{flex:none}
+  .linkbtn{all:unset;cursor:pointer;color:var(--text);font-weight:600;text-decoration:underline;text-decoration-color:var(--card-line);text-underline-offset:3px}
+  .linkbtn:hover{text-decoration-color:var(--text)}
+  .linkbtn:focus-visible{outline:2px solid var(--text);outline-offset:2px;border-radius:3px}
+  .an-sec{margin-top:40px}
+  .an-sec > h2{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:20px;font-weight:700;padding-bottom:10px;border-bottom:1px solid var(--line)}
+  .an-sec > h2 .d{font-size:13px;font-weight:500;color:var(--muted)}
+  .an-note{margin-top:12px;font-size:12.5px;line-height:1.5;color:var(--muted);max-width:68ch}
+  .an-two{display:grid;grid-template-columns:minmax(0,1fr);gap:0 48px}
+  @container list (min-width:880px){ .an-two{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  /* your fit (reworked 2026-11-26; until then one stacked bar + a detached legend, where the 3% that matters was a
+     sliver): the answer as a sentence first, then one labelled row per band, best first. Every bar is drawn out of
+     100% of the jobs on a faint track, so a 1% row reads as "almost none" rather than as an empty row. */
+  :root{--b-strong:var(--fit);--b-partial:color-mix(in srgb,var(--fit) 48%,var(--card));--b-weak:var(--hover);--b-none:color-mix(in srgb,var(--muted) 32%,var(--card))}
+  .fit-lead{margin-top:16px;font-size:20px;font-weight:600;letter-spacing:-.01em;line-height:1.35;text-wrap:balance}
+  .fit-lead b{font-weight:800;color:var(--fit)}
+  .fit-how{margin-top:4px;font-size:13.5px;color:var(--muted);line-height:1.5}
+  .bands{list-style:none;padding:0;margin-top:20px;border-top:1px solid var(--line)}
+  .bands li{display:grid;grid-template-columns:minmax(150px,210px) minmax(0,1fr) 10ch;align-items:center;column-gap:20px;min-height:52px;padding:8px 0;border-bottom:1px solid var(--line)}
+  .bands .nm{display:flex;align-items:center;gap:10px;font-size:14.5px;font-weight:700}
+  .bands .sw{width:12px;height:12px;border-radius:3px;flex:none}
+  .bands .rg{display:block;margin:2px 0 0 22px;font-size:12.5px;font-weight:500;color:var(--muted)}
+  .bands .bar{height:12px;border-radius:4px;background:var(--field);overflow:hidden}
+  .bands .bar i{display:block;height:100%;min-width:3px;border-radius:4px}
+  .bands .v{text-align:right;font-size:18px;font-weight:700;letter-spacing:-.01em;line-height:1.15}
+  .bands .v small{display:block;font-size:12px;font-weight:500;letter-spacing:0;color:var(--muted)}
+  .bands li.out .nm{font-weight:600}
+  .bands li.out .v{font-weight:600}
+  @container list (max-width:560px){
+    .bands li{grid-template-columns:minmax(0,1fr) auto;row-gap:8px}
+    .bands .bar{grid-column:1 / -1;grid-row:2}
+  }
+  /* ranked rows: mark, name, bar from a shared baseline, count; the bar shows the count against the list's largest */
+  .rank{list-style:none;padding:0;margin:0}
+  .rank li{display:grid;grid-template-columns:20px minmax(0,1fr) minmax(56px,30%) 7.5ch;align-items:center;column-gap:12px;min-height:40px;padding:6px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .rank.plain li{grid-template-columns:minmax(0,1fr) minmax(56px,38%) 7.5ch}
+  .rank li > svg{width:18px;height:18px}
+  .rank .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rank li.have .nm{font-weight:600}
+  .rank .bar{height:8px}
+  .rank .bar i{display:block;height:100%;min-width:3px;border-radius:0 4px 4px 0;background:var(--b-weak)}
+  .rank li.have .bar i{background:var(--fit)}
+  .rank.plain .bar i{background:var(--text);opacity:.72}
+  .rank .ct{text-align:right;font-weight:600}
+  .rank .ct small{display:block;font-size:11.5px;font-weight:500;color:var(--muted)}
+  .rank li:hover{background:linear-gradient(var(--sel),var(--sel)) no-repeat center / calc(100% + 16px) 100%}
+  .an-none{padding:16px 0;font-size:14px;color:var(--muted);border-bottom:1px solid var(--line)}
+  /* market overview: four breakdowns in a grid, the salary table under them */
+  .an-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:28px 48px;margin-top:20px}
+  @container list (min-width:680px){ .an-grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  .an-grid h3,.an-sal h3{font-size:12px;font-weight:700;margin-bottom:6px}
+  .an-grid h3 span,.an-sal h3 span{font-weight:500;color:var(--muted)}
+  .an-sal{margin-top:32px}
+  .an-sal table{width:100%;border-collapse:collapse;font-size:14px}
+  .an-sal th{font-size:12px;font-weight:600;color:var(--muted);text-align:left;padding:8px 0;border-bottom:1px solid var(--line)}
+  .an-sal td{padding:10px 0;border-bottom:1px solid var(--line)}
+  .an-sal th:not(:first-child),.an-sal td:not(:first-child){text-align:right}
+  .an-sal td:first-child{font-weight:600}
+  .an-sal td.na{color:var(--muted)}
+  /* enter: each section fades up in reading order (same curve as the cards' fill-in) */
+  #vAnalyzer.fill > *{animation:fill-in .32s cubic-bezier(.25,1,.5,1) both;animation-delay:calc(var(--r,0) * 70ms)}
+  @media (prefers-reduced-motion:reduce){ #vAnalyzer.fill > *{animation:none} }
+  /* hover tooltip for bars and rows */
+  .tip{position:fixed;z-index:70;pointer-events:none;max-width:260px;padding:8px 10px;border-radius:8px;background:var(--text);color:var(--bg);font-size:12.5px;line-height:1.4;
+       box-shadow:0 6px 18px rgb(0 0 0 / .18)}
+  .tip[hidden]{display:none}
+  /* fit section heading ("Air", picked 2026-11-26 from three layouts): a wide gap above, a bigger heading with no rule
+     under it; the table's top line does the separating */
+  #fitSec{margin-top:64px}
+  #fitSec > h2{font-size:26px;letter-spacing:-.02em;border-bottom:0;padding-bottom:0}
+  #fitSec .bands{margin-top:18px}
+
+  /* ---------- skills that would raise your fit (2026-11-26) ----------
+     Same blueprint as the fit section: 64px above, a 26px heading with no rule, the graph under it.
+     The numbers are a page-side ESTIMATE until a backend endpoint exists; the dashed tag says so (dashed = pending). */
+  #gainSec{margin-top:64px}
+  #gainSec h2{font-size:26px;font-weight:700;letter-spacing:-.02em}
+  /* heading row: title left, the domain scope and its Filter button right, centred on the title's line */
+  .g-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px 24px}
+  .g-meta{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px}
+  /* status tags under the list */
+  .g-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .g-tags .g-tag{margin-left:0}
+  .g-scope{font-size:14px;font-weight:600}
+  .g-filter{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px 0 10px;border-radius:8px;border:1px solid var(--card-line);background:none;color:var(--text);
+            font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;transition:border-color .15s}
+  .g-filter:hover{border-color:var(--hover)}
+  .g-filter svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+  .g-tag.wip{margin-left:0;letter-spacing:.04em}
+  .g-tag{margin-left:auto;display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:999px;border:1px dashed var(--chk);font-size:12px;font-weight:600;color:var(--muted)}
+  /* bars: your fits now (fit green) + the jobs the skill adds (lighter green), on a faint track */
+  .gbar{display:flex;gap:2px;height:12px;border-radius:4px;background:var(--field);overflow:hidden}
+  .gbar i{display:block;height:100%;min-width:0}
+  .gbar i.now{background:var(--b-strong);border-radius:4px 0 0 4px}
+  .gbar i.add{background:var(--b-partial);border-radius:0 4px 4px 0}
+  .gbar i.now.p,.gbar i.add.p{background:var(--b-partial)}
+  .gbar i.add.s{background:color-mix(in srgb,var(--fit) 70%,var(--card))}
+  .gbar i.add.p{background:color-mix(in srgb,var(--fit) 28%,var(--card))}
+  /* layout "Split" (picked 2026-11-26): per skill, the growth by its name, then Strong and Partial as before → after */
+  .gains2 .nm{font-size:14.5px;font-weight:700}
+  .gains2 .rg{display:block;margin-top:2px;font-size:12.5px;color:var(--muted)}
+  .gains2{list-style:none;padding:0;margin-top:18px;border-top:1px solid var(--line)}
+  /* each row: name block (g2n), growth (g2p) and the two bars (g2b) in their own grid areas, so every +% sits in
+     one aligned column whatever the skill name's length */
+  .gains2 li{display:grid;align-items:center;column-gap:24px;padding:14px 0;border-bottom:1px solid var(--line)}
+  .g2n{grid-area:n;min-width:0}
+  .g2p{grid-area:p;font-size:20px;font-weight:800;letter-spacing:-.01em;color:var(--fit);white-space:nowrap}
+  .g2b{grid-area:b;display:grid;gap:8px}
+  /* growth at the right edge, like the fit table's counts (picked 2026-11-26): name | bars | +% */
+  .gains2 li{grid-template-columns:minmax(150px,220px) minmax(0,1fr) 8ch;grid-template-areas:"n b p"}
+  .g2p{text-align:right;font-size:22px}
+  .gs{display:grid;grid-template-columns:7ch minmax(0,1fr) 10ch;align-items:center;column-gap:12px;font-size:12.5px}
+  .gs-l{color:var(--muted);font-weight:600}
+  .gs-v{text-align:right;font-weight:600}
+  .gs .gbar{height:9px}
+  @container list (max-width:720px){ .gains2 li{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"n p" "b b";row-gap:10px} }
+  .g-few{margin-top:14px;font-size:13.5px;color:var(--muted)}
+  /* Filters: the Job domain group flashes once when reached from the Analyzer's "Filter" button */
+  /* "Underline sweep" (picked 2026-11-26): a green line draws under the "Job domain" header left to right, the header
+     turns green, then both settle back. (Until 2026-11-26: a 2px ring + tint around the whole group, flush to its text.) */
+  .fgrp summary{position:relative}
+  .fgrp.flash summary::after{content:"";position:absolute;left:0;right:0;bottom:6px;height:2px;border-radius:2px;background:var(--fit);
+    transform-origin:left;animation:hl-sweep 2.2s cubic-bezier(.16,1,.3,1) both}
+  .fgrp.flash summary > span{animation:hl-ink 2.2s ease-out both}
+  @keyframes hl-sweep{0%{transform:scaleX(0)}30%{transform:scaleX(1);opacity:1}70%{opacity:1}100%{transform:scaleX(1);opacity:0}}
+  @keyframes hl-ink{0%,70%{color:var(--fit)}100%{color:var(--text)}}
+  @media (prefers-reduced-motion:reduce){ .fgrp.flash summary::after,.fgrp.flash summary > span{animation:none} .fgrp.flash summary > span{color:var(--fit)} }
+  /* on the Analyzer, View and Sort by do nothing: greyed and inert (no clicks, no focus), with one line saying why */
+  .fna{display:none;margin:14px 0 2px;font-size:12.5px;line-height:1.45;color:var(--muted)}
+  :root.an .fna{display:block}
+  :root.an #viewSec,:root.an #sortGrp{opacity:.4;filter:grayscale(1);transition:opacity .2s ease-out}
+  @media (prefers-reduced-motion:reduce){ :root.an #viewSec,:root.an #sortGrp{transition:none} }
+  @media (max-width:760px){ .an-head h1{font-size:24px} .rank li{min-height:44px} }
 </style>
 </head>
 <body>
@@ -497,8 +642,8 @@
   <div class="right">
   <nav class="pages" aria-label="Pages">
     <span class="ind" aria-hidden="true"></span>
-    <a href="jobs.html" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8h17v11.5h-17zM9 8V5h6v3M3.5 13h17"/></svg><span class="lbl">Jobs</span></a>
-    <a href="#analyzer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span class="lbl">Analyzer</span></a>
+    <a href="jobs.html" data-page="jobs" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8h17v11.5h-17zM9 8V5h6v3M3.5 13h17"/></svg><span class="lbl">Jobs</span></a>
+    <a href="#analyzer" data-page="analyzer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span class="lbl">Analyzer</span></a>
   </nav>
   <button class="acct" type="button" id="acctBtn" aria-label="Account and settings" aria-haspopup="dialog" aria-expanded="false" aria-controls="acct">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c1.4-3.2 4-4.8 7-4.8s5.6 1.6 7 4.8"/></svg>
@@ -513,13 +658,14 @@
     <div class="fbtns"><button class="fapply" type="button" id="fApply" disabled>Apply</button><button class="freset" type="button" id="fReset" disabled>Clear filters</button></div>
   </div>
   <div class="fscroll">
-    <div class="fsec">
+    <p class="fna" id="fna">View and Sort by apply to the job list only.</p>
+    <div class="fsec" id="viewSec">
       <h3>View</h3>
       <button class="opt" type="button" role="switch" id="groupSw" aria-checked="false">
         <b>Group by fit</b><small>Good fits, weak fits and no match as separate sections.</small>
         <span class="track" aria-hidden="true"><span class="knob"></span></span></button>
     </div>
-    <details class="fgrp" open>
+    <details class="fgrp" id="sortGrp" open>
       <summary><span id="sortH">Sort by</span><span class="cur" id="sortCur"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
       <div class="radios" role="radiogroup" aria-labelledby="sortH" id="sortList"></div>
     </details>
@@ -584,6 +730,7 @@
 </aside>
 
 <main class="body">
+  <div class="view" id="vJobs">
   <div class="head-row">
     <span class="lwrap">
       <button class="qbtn" type="button" id="lbtn" aria-expanded="false" aria-controls="legend">
@@ -601,9 +748,11 @@
   </div>
   <p class="sr" id="lstatus" aria-live="polite"></p>
   <div id="list"></div>
+  </div>
+  <!-- Analyzer: the job market for the applied filters, and how the current CV covers it -->
+  <div class="view" id="vAnalyzer" aria-labelledby="anTitle" hidden></div>
 </main>
-
-<script src="data.js"></script>
+<div class="tip" id="tip" role="presentation" hidden></div><script src="data.js"></script>
 <script src="shell.js"></script>
 <script>
 (() => {
@@ -647,12 +796,11 @@
   }, true);
   addEventListener('click', e => { if (!swallow) return; swallow = false; e.preventDefault(); e.stopPropagation(); }, true);
   document.querySelector('[data-close="acct"]').onclick = closeAll;
-  // page switch (mock): clicking Jobs or Analyzer moves the filled state; the page itself stays until Analyzer exists
+  // page switch: Jobs and Analyzer are two views of this page (setPage, below); the filled highlight follows
   const pages = document.querySelector('.pages');
   const placeInd = () => { const c = pages.querySelector('[aria-current="page"]');
     pages.style.setProperty('--ix', c.offsetLeft + 'px'); pages.style.setProperty('--iw', c.offsetWidth + 'px'); };
-  pages.querySelectorAll('a').forEach(a => a.onclick = e => { e.preventDefault();
-    pages.querySelectorAll('a').forEach(x => x.removeAttribute('aria-current')); a.setAttribute('aria-current', 'page'); placeInd(); });
+  pages.querySelectorAll('a').forEach(a => a.onclick = e => { e.preventDefault(); setPage(a.dataset.page); });
   // only a click slides the highlight; layout changes (font swap, resize, phone icons) snap it into place
   const snapInd = () => { pages.classList.remove('ready'); placeInd(); void pages.offsetWidth; pages.classList.add('ready'); };
   new ResizeObserver(snapInd).observe(pages); snapInd();
@@ -888,7 +1036,7 @@
   const fbtn = document.getElementById('fbtn'), fpanel = document.getElementById('fpanel');  const fApply = document.getElementById('fApply'), fReset = document.getElementById('fReset');
   const sortList = document.getElementById('sortList'), fgroups = document.getElementById('fgroups');
   const setPanel = (on, focus = true) => { fpanel.hidden = !on; fbtn.setAttribute('aria-expanded', String(on)); root.classList.toggle('fopen', on);
-    if (on && focus) groupSw.focus(); };
+    if (on && focus) (page === 'analyzer' ? fgroups.querySelector('summary') : groupSw).focus(); };   // Analyzer: View is inert, so start at the first filter group
   // sidebar width: set together with the matcher's (sizeSides), so both side panels match
   fbtn.onclick = () => setPanel(fpanel.hidden);
 
@@ -930,7 +1078,7 @@
     syncPanel(); syncButton();
     // phones: the sidebar covers the list, so it closes on Apply / Clear and the reloading list is seen at once
     if (matchMedia('(max-width:760px)').matches && !fpanel.hidden) setPanel(false);
-    load(); };
+    load(); if (page === 'analyzer') renderAnalyzer(); };
   fApply.onclick = () => { applied = clone(staged); commit(); };
   // Clear filters: unticks every filter box and reloads the list; sort and grouping (staged or applied) stay as they are
   const reset = () => { const none = blank().f; applied.f = clone(none); staged.f = clone(none); commit(); };
@@ -1002,10 +1150,200 @@
         (list.querySelector('.card') || document.getElementById('emptyReset'))?.focus({ preventScroll: true });
     }, reduced() ? 250 : 380);
   }
+  // ---------- Analyzer view ----------
+  // Every number is a count over the jobs the filters leave (view()), using the skills each ad lists and the
+  // matcher's matched / missing split for the current CV. Skill names are counted as the ads wrote them (lower-cased):
+  // grounding does not merge variants yet, so "Excel" and "Microsoft Excel" are separate rows. The page says so.
+  const vJobs = document.getElementById('vJobs'), vAn = document.getElementById('vAnalyzer'), tip = document.getElementById('tip');
+  let page = 'jobs', jobsY = 0;
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  const pct = (n, d) => d ? Math.round(100 * n / d) : 0;
+  const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+  // skills your CV covers: any skill the matcher marked as matched in some ad (by name)
+  const cvHas = new Set(all.flatMap(j => j.matched.map(s => s.name.toLowerCase())));
+  // counts names (lower-cased) and keeps the spelling seen most often for display
+  const tally = lists => {
+    const m = new Map();
+    for (const names of lists) for (const n of new Set(names.map(x => x.toLowerCase())).values()) {
+      const e = m.get(n) || { n: 0, sp: new Map() }; e.n++; m.set(n, e); }
+    for (const names of lists) for (const x of names) { const e = m.get(x.toLowerCase()); e.sp.set(x, (e.sp.get(x) || 0) + 1); }
+    return [...m].map(([k, e]) => ({ key: k, name: [...e.sp].sort((a, b) => b[1] - a[1])[0][0], n: e.n })).sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
+  };
+  const countBy = (js, f) => { const m = new Map(); js.forEach(j => { const k = f(j); m.set(k, (m.get(k) || 0) + 1); });
+    return [...m].sort((a, b) => b[1] - a[1]); };
+  const mid = s => { const p = s.split(/\s*-\s*/).map(Number); return p.length > 1 ? (p[0] + p[1]) / 2 : p[0]; };
+  const median = xs => { if (!xs.length) return null; const s = [...xs].sort((a, b) => a - b), h = s.length >> 1; return s.length % 2 ? s[h] : (s[h - 1] + s[h]) / 2; };
+
+  // one ranked row: optional mark, name, bar (against the list's largest value), count with a small share under it
+  const rankRow = (name, n, max, total, { mark = '', cls = '', tipText = '', sr = '' } = {}) =>
+    `<li class="${cls}" data-tip="${esc(tipText)}">${mark}<span class="nm" title="${esc(name)}">${esc(name)}${sr ? `<span class="sr">, ${sr}</span>` : ''}</span>
+      <span class="bar" aria-hidden="true"><i style="width:${Math.max(2, 100 * n / max)}%"></i></span>
+      <span class="ct">${nf.format(n)}<small>${pct(n, total)}%</small></span></li>`;
+  const plainList = (rows, total, label, fmt = x => x) => { const max = rows[0]?.[1] || 1;
+    return `<ol class="rank plain" aria-label="${label}">${rows.map(([k, n]) =>
+      rankRow(fmt(k), n, max, total, { tipText: `${fmt(k)}: ${nf.format(n)} of ${nf.format(total)} jobs (${pct(n, total)}%)` })).join('')}</ol>`; };
+
+  function renderAnalyzer() {
+    const js = view(), N = js.length, filtered = activeCount() > 0;
+    const cvLine = `<p class="an-cv">${overlap(62, 8)}<span>Compared with <b>Sample CV</b> · ${D.sampleCv.length} skills</span></p>`;
+    // short scope line (user, 2026-11-26): "X jobs found"; with filters on, a Clear filters link follows
+    const scope = `<b>${nf.format(N)}</b> ${N === 1 ? 'job' : 'jobs'} found`
+      + (filtered ? ` · <button class="linkbtn" type="button" data-an="reset">Clear filters</button>` : '');
+    const head = `<div class="an-head"><div><h1 id="anTitle">Job market analysis</h1><p class="an-scope">${scope}</p></div>${cvLine}</div>`;
+    if (!N) { vAn.innerHTML = head + `<div class="empty"><h2>No jobs match these filters</h2><p>Untick a few boxes, or clear them all.</p>
+      <button type="button" data-an="reset">Clear filters</button></div>`; return; }
+
+    // 1. your fit spread: the four score bands
+    const B = [['Strong fit', 'score over 70', 'strong', j => j.score > 70], ['Partial fit', 'score 50 to 70', 'partial', j => j.score >= 50 && j.score <= 70],
+               ['Weak fit', 'score 1 to 49', 'weak', j => j.score > 0 && j.score < 50]]
+      .map(([nm, rg, k, t]) => ({ nm, rg, k, n: js.filter(t).length }));
+    // the base (100%) is the jobs in these three rows: jobs sharing at least one skill with the CV (score 0 left out)
+    const M = B.reduce((s, b) => s + b.n, 0), good = B[0].n + B[1].n;
+    // whole percentages that add up to exactly 100 (largest remainder), so the three rows never read 99% or 101%
+    const P = (() => { const raw = B.map(b => M ? 100 * b.n / M : 0), p = raw.map(Math.floor);
+      raw.map((r, i) => [r - p[i], i]).sort((a, b) => b[0] - a[0]).slice(0, M ? 100 - p.reduce((s, x) => s + x, 0) : 0).forEach(([, i]) => p[i]++);
+      return p; })();
+    const jobsW = n => `${nf.format(n)} ${n === 1 ? 'job' : 'jobs'}`;
+    // the lead sentence and the explanation line were removed (user, 2026-11-26): heading, then the table
+    const spread = `<section class="an-sec" id="fitSec" aria-labelledby="anFit"><h2 id="anFit">Your fit across these jobs</h2>
+      ${M ? `<ul class="bands" aria-label="Jobs per fit level">${B.map((b, i) => `<li class="${i > 1 ? 'out' : ''}" data-tip="${b.nm} (${b.rg}): ${jobsW(b.n)}, ${P[i]}% of the jobs sharing skills with your CV">
+        <span><span class="nm"><span class="sw" style="background:var(--b-${b.k})" aria-hidden="true"></span>${b.nm}</span><span class="rg">${b.rg}</span></span>
+        <span class="bar" aria-hidden="true"><i style="width:${100 * b.n / M}%;background:var(--b-${b.k})"></i></span>
+        <span class="v">${jobsW(b.n)}<small>${P[i]}%</small></span></li>`).join('')}</ul>`
+      : `<p class="fit-lead">None of these ${nf.format(N)} jobs shares a skill with your CV yet.</p>`}</section>`;
+
+    // 2. skills in demand: how many of these ads list each skill; ticked when your CV has it
+    const demand = tally(js.map(j => [...j.matched, ...j.missing].map(s => s.name))).slice(0, 12);
+    const dMax = demand[0]?.n || 1, dHave = demand.filter(s => cvHas.has(s.key)).length;
+    const demandSec = `<section class="an-sec" aria-labelledby="anDem"><h2 id="anDem">Skills in demand <span class="d">· you have ${dHave} of the top ${demand.length}</span></h2>
+      <ol class="rank" aria-label="Most requested skills, with the number of jobs asking for each">${demand.map(s => { const have = cvHas.has(s.key);
+        return rankRow(s.name, s.n, dMax, N, { mark: have ? TICK : RING, cls: have ? 'have' : 'miss', sr: have ? 'in your CV' : 'not in your CV',
+          tipText: `${s.name}: asked for in ${nf.format(s.n)} of ${nf.format(N)} jobs (${pct(s.n, N)}%) · ${have ? 'in your CV' : 'not in your CV'}` }); }).join('')}</ol>
+      <p class="an-note">Counted by name as each ad wrote it, so variants such as Excel and Microsoft Excel are separate rows for now.</p></section>`;
+
+    // 3. your skill gaps: skills missing from the jobs where your CV already matches something (the jobs within reach)
+    const near = js.filter(j => j.matched.length);
+    const gaps = tally(near.map(j => j.missing.map(s => s.name))).filter(s => !cvHas.has(s.key)).slice(0, 12);
+    const gMax = gaps[0]?.n || 1;
+    const gapSec = `<section class="an-sec" aria-labelledby="anGap"><h2 id="anGap">Your skill gaps <span class="d">· in the ${nf.format(near.length)} jobs where you match at least one skill</span></h2>
+      ${gaps.length ? `<ol class="rank" aria-label="Skills you are missing most often, with the number of jobs missing each">${gaps.map(s =>
+        rankRow(s.name, s.n, gMax, near.length, { mark: RING, cls: 'miss', tipText: `${s.name}: missing in ${nf.format(s.n)} of the ${nf.format(near.length)} jobs where you match some skills (${pct(s.n, near.length)}%)` })).join('')}</ol>
+      <p class="an-note">Adding one of these to your CV raises your fit in every job on its row. The share is of the jobs within reach, not of all jobs.</p>`
+      : `<p class="an-none">Your CV matches none of the skills in these jobs yet, so there are no gaps to rank.</p>`}</section>`;
+
+    // 4. market overview: where the jobs are, what level, what hours; salaries where the ad lists one
+    const levels = countBy(js, j => j.level || 'none');
+    const sal = js.filter(j => j.salary);
+    const salRows = levels.map(([lv]) => { const xs = sal.filter(j => (j.level || 'none') === lv).map(j => mid(j.salary)), m = median(xs);
+      return `<tr><td>${EXP[lv] || levelName(lv)}</td><td>${nf.format(js.filter(j => (j.level || 'none') === lv).length)}</td><td>${nf.format(xs.length)}</td>
+        <td class="${m == null ? 'na' : ''}">${m == null ? 'None listed' : nf.format(Math.round(m)) + ' EUR'}</td></tr>`; }).join('');
+    const market = `<section class="an-sec" aria-labelledby="anMkt"><h2 id="anMkt">Market overview <span class="d">· ${nf.format(N)} jobs</span></h2>
+      <div class="an-grid">
+        <div><h3>Job domain</h3>${plainList(countBy(js, j => j.domain).slice(0, 8), N, 'Jobs by domain')}</div>
+        <div><h3>Location</h3>${plainList(countBy(js, j => j.city), N, 'Jobs by location', cap)}</div>
+        <div><h3>Experience</h3>${plainList(levels, N, 'Jobs by experience', lv => EXP[lv] || levelName(lv))}</div>
+        <div><h3>Work type</h3>${plainList(countBy(js, j => j.worktype), N, 'Jobs by work type')}</div>
+      </div>
+      <div class="an-sal"><h3>Salary <span>· ${nf.format(sal.length)} of ${nf.format(N)} ads (${pct(sal.length, N)}%) list one</span></h3>
+        <table><thead><tr><th scope="col">Experience</th><th scope="col">Jobs</th><th scope="col">With salary</th><th scope="col">Median salary</th></tr></thead><tbody>${salRows}</tbody></table>
+        <p class="an-note">Median of each listed range's midpoint, in EUR. The ads don't say whether a salary is monthly, yearly, gross or net, so read these as rough.</p></div></section>`;
+
+    // 1b. skills that would raise your fit (2026-11-26, user): of the 20 skills in demand your CV lacks most often, the 3
+    // that grow your fits (Strong + Partial) the most; a skill that adds no fit is never shown (user: "+0% is irrelevant").
+    // ESTIMATE, not engine output: each job that asks for the skill is recounted as (matched + 1) / required skills
+    // (never below its real score). Needs a backend endpoint.
+    const lack = tally(js.map(j => [...j.matched, ...j.missing].map(s => s.name))).filter(s => !cvHas.has(s.key)).slice(0, 20);
+    const nStrong = B[0].n, nPart = B[1].n;
+    const allGains = lack.map(s => {
+      let toFit = 0, toStrong = 0, partToStrong = 0;
+      js.forEach(j => { if (!j.missing.some(x => x.name.toLowerCase() === s.key)) return;
+        const t = j.matched.length + j.missing.length, nw = Math.max(j.score, Math.round(100 * (j.matched.length + 1) / t));
+        if (j.score < 50 && nw >= 50) toFit++;
+        if (j.score <= 70 && nw > 70) { toStrong++; if (j.score >= 50) partToStrong++; } });
+      const after = good + toFit, strongAfter = nStrong + toStrong, partAfter = nPart + toFit - (toStrong - partToStrong) - partToStrong;
+      return { ...s, after, add: toFit, strongAfter, partAfter, pct: good ? Math.round(100 * toFit / good) : null };
+    });
+    // biggest gain first; ties go to the skill more ads ask for
+    const gains = allGains.filter(g => g.add > 0).sort((a, b) => b.add - a.add || b.n - a.n).slice(0, 3);
+    const gMaxAfter = Math.max(1, ...gains.map(g => g.after));
+    const doms = applied.f.domain;
+    const domScope = doms.length ? (doms.length <= 2 ? `In ${doms.map(esc).join(', ')}` : `In ${doms.length} domains`) : 'On all domains';
+    const FILTER_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>';
+    const growth = g => g.pct != null ? `+${g.pct}%` : `+${nf.format(g.add)}`;
+    const growthSr = g => g.pct != null ? `your fits grow by about ${g.pct}%` : `about ${g.add} more fits`;
+    const asked = g => `asked for in ${nf.format(g.n)} ${g.n === 1 ? 'job' : 'jobs'}`;
+    // layout "Split" (picked 2026-11-26 from three): growth beside the name, then Strong and Partial each as before → after
+    const splitRow = (lbl, k, a, b) => `<div class="gs"><span class="gs-l">${lbl}</span><span class="gbar" aria-hidden="true"><i class="now ${k}" style="width:${100 * Math.min(a, b) / gMaxAfter}%"></i><i class="add ${k}" style="width:${100 * Math.max(0, b - a) / gMaxAfter}%"></i></span><span class="gs-v">${nf.format(a)} → ${nf.format(b)}</span></div>`;
+    const gList = `<ul class="gains2" aria-label="Skills that would raise your fit">${gains.map(g => `<li>
+        <div class="g2n"><span class="nm">${esc(g.name)}</span><span class="rg">${asked(g)}</span></div>
+        <b class="g2p">${growth(g)}<span class="sr">, ${growthSr(g)}</span></b>
+        <div class="g2b">${splitRow('Strong', 's', nStrong, g.strongAfter)}${splitRow('Partial', 'p', nPart, g.partAfter)}</div></li>`).join('')}</ul>`;
+    // heading row: title left, domain scope + Filter right (user, 2026-11-26); the status tags sit under the list
+    const gainSec = `<section class="an-sec" id="gainSec" aria-labelledby="anGain">
+      <div class="g-head"><h2 id="anGain">Skills that would raise your fit</h2>
+        <div class="g-meta"><span class="g-scope">${domScope}</span>
+          <button class="g-filter" type="button" data-an="domain">${FILTER_ICON}${doms.length ? 'Change' : 'Filter'}<span class="sr"> job domains</span></button></div></div>
+      ${!lack.length ? '<p class="an-none">Your CV already has the skills these ads ask for most.</p>'
+        : !gains.length ? '<p class="an-none">No single skill would turn one of these jobs into a fit for your CV yet.</p>'
+        : (gains.length < 3 ? `<p class="g-few">Only ${gains.length === 1 ? 'one skill' : 'two skills'} in demand here would add fits.</p>` : '') + gList}
+      <div class="g-tags"><span class="g-tag" title="These numbers are worked out in the page, not by the matcher">Estimate · Not yet in BE, need a new endpoint</span>
+        <span class="g-tag wip" title="Work in progress: to revisit once the backend gives real numbers">WIP</span></div>
+      </section>`;
+
+    vAn.innerHTML = head + spread + gainSec + `<div class="an-two">${demandSec}${gapSec}</div>` + market;
+    if (!reduced()) { [...vAn.children].forEach((el, i) => el.style.setProperty('--r', i)); vAn.classList.remove('fill'); void vAn.offsetWidth; vAn.classList.add('fill');
+      clearTimeout(vAn._t); vAn._t = setTimeout(() => vAn.classList.remove('fill'), 900); }
+  }
+  // e.detail === 0: the button was pressed with the keyboard (Enter / Space), not clicked
+  vAn.addEventListener('click', e => { if (e.target.closest('[data-an="reset"]')) reset(); if (e.target.closest('[data-an="domain"]')) showDomainFilter(e.detail === 0); });
+  // "Filter" / "Change" next to the domain scope: opens Filters, brings Job domain to the top of the panel (its
+  // options in view, not stuck at the bottom edge) and highlights it once. Keyboard focus moves there only for keyboard
+  // users; a mouse click no longer leaves the black focus box around the header (until 2026-11-26 it always did).
+  function showDomainFilter(byKeyboard = false) {
+    if (fpanel.hidden) setPanel(true, false);
+    const g = fgroups.querySelector('.fgrp[data-g="domain"]'); if (!g) return;
+    g.open = true;
+    const sc = fpanel.querySelector('.fscroll');
+    sc.scrollTo({ top: g.offsetTop - sc.offsetTop - 8, behavior: reduced() ? 'auto' : 'smooth' });
+    g.classList.remove('flash'); void g.offsetWidth; g.classList.add('flash');
+    clearTimeout(g._t); g._t = setTimeout(() => g.classList.remove('flash'), 2400);
+    if (byKeyboard) g.querySelector('summary').focus({ preventScroll: true });
+  }
+  // hover tooltip: one shared box, follows the pointer over any row or bar segment with a data-tip
+  vAn.addEventListener('pointermove', e => { const t = e.target.closest('[data-tip]');
+    if (!t || !t.dataset.tip || e.pointerType === 'touch') { tip.hidden = true; return; }
+    tip.textContent = t.dataset.tip; tip.hidden = false;
+    const r = tip.getBoundingClientRect(), x = Math.min(e.clientX + 14, innerWidth - r.width - 8), y = e.clientY + 18 + r.height > innerHeight ? e.clientY - r.height - 12 : e.clientY + 18;
+    tip.style.left = x + 'px'; tip.style.top = y + 'px'; });
+  vAn.addEventListener('pointerleave', () => tip.hidden = true);
+
+  // switching views. Analyzer: the matcher closes and the selection is cleared, so back on Jobs it stays closed
+  // until a card is clicked. The job list keeps its scroll position; the URL carries #analyzer so a reload stays put.
+  function setPage(p, first = false) {
+    if (p === page && !first) return;
+    if (page === 'jobs') jobsY = scrollY;
+    page = p;
+    pages.querySelectorAll('a').forEach(a => a.dataset.page === p ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
+    placeInd();
+    vJobs.hidden = p !== 'jobs'; vAn.hidden = p !== 'analyzer'; tip.hidden = true;
+    // Filters panel: View and Sort by only shape the job list, so on the Analyzer they are greyed and inert
+    root.classList.toggle('an', p === 'analyzer');
+    ['viewSec', 'sortGrp'].forEach(id => document.getElementById(id).inert = p === 'analyzer');
+    document.title = (p === 'analyzer' ? 'Analyzer' : 'Jobs') + ' · CVMatch';
+    history.replaceState(history.state, '', location.pathname + location.search + (p === 'analyzer' ? '#analyzer' : ''));
+    if (p === 'analyzer') {
+      clearTimeout(mPickT); clearTimeout(mFillT);
+      open = null; matcher(); mpanel.classList.remove('fill'); mpanel.removeAttribute('aria-busy');
+      document.querySelectorAll('.card[aria-current="true"]').forEach(x => x.setAttribute('aria-current', 'false'));
+      if (!lpanel.hidden) { lpanel.hidden = true; lbtn.setAttribute('aria-expanded', 'false'); }
+      renderAnalyzer();
+      if (!first) scrollTo({ top: 0 });
+    } else if (!first) scrollTo({ top: jobsY });
+  }
   // screenshot / preview hook: ?demo=filters starts with one filter applied (Location: Bucuresti)
   if (new URLSearchParams(location.search).get('demo') === 'filters') { applied.f.city = ['Bucuresti']; staged = clone(applied); }
   syncPanel(); syncButton(); load(true);
-  if (new URLSearchParams(location.search).get('filters') === 'open') setPanel(true, false);   // screenshot hook
+  if (location.hash === '#analyzer') setPage('analyzer', true);  if (new URLSearchParams(location.search).get('filters') === 'open') setPanel(true, false);   // screenshot hook
   if (new URLSearchParams(location.search).get('legend') === 'open') lpanel.hidden = false, lbtn.setAttribute('aria-expanded', 'true');   // screenshot hook
 })();
 </script>
